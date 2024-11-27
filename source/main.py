@@ -2,7 +2,6 @@ import pygame, sys
 from gameplay.level import *
 from gameplay.settings import *
 
-sys.path.append(r'C:\RPG Eldoria\source')
 
 class Game:
     def __init__(self):
