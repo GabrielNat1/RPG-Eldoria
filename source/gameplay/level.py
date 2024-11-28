@@ -2,7 +2,7 @@ import pygame
 from gameplay.settings import *
 from gameplay.tile import Tile
 from player.player import Player
-from gameplay.debug import *
+from core.debug import *
 
 class Level:
     def __init__(self):
