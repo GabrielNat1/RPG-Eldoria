@@ -2,3 +2,5 @@
     <h1>RPG Eldoria</h1>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="PYTHON" width="40" height="40" style="margin-right: 10px;">
 </div>
+
+---
