@@ -16,16 +16,16 @@ class Player(pygame.sprite.Sprite):
     def input(self):
         keys = pygame.key.get_pressed()
         
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             self.direction.y = -1
-        elif keys[pygame.K_DOWN]:
+        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
             self.direction.y = 1
         else:
             self.direction.y = 0
         
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.direction.x = 1
-        elif keys[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.direction.x = -1
         else:
             self.direction.x = 0
@@ -40,22 +40,26 @@ class Player(pygame.sprite.Sprite):
         self.collision('vertical')
         self.rect.center = self.hitbox.center
     
-    def collision(self,direction):
-        if direction =='horizontal':
-            for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.x > 0:
-                        self.rect.right = sprite.hitbox.left
-                    if self.direction.x < 0:
-                        self.rect.left = sprite.hitbox.right
+    def collision(self, direction):
+     if direction == 'horizontal':
+        for sprite in self.obstacle_sprites:
+            if sprite.hitbox.colliderect(self.hitbox):
+                if self.direction.x > 0: 
+                    self.hitbox.right = sprite.hitbox.left
+                elif self.direction.x < 0: 
+                    self.hitbox.left = sprite.hitbox.right
+                
+                self.rect.centerx = self.hitbox.centerx
                         
-        if direction == 'vertical':
-            for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.y > 0:
-                        self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction.y < 0:
-                        self.hitbox.top = sprite.hitbox.bottom
+     if direction == 'vertical':
+        for sprite in self.obstacle_sprites:
+            if sprite.hitbox.colliderect(self.hitbox):
+                if self.direction.y > 0:  
+                    self.hitbox.bottom = sprite.hitbox.top
+                elif self.direction.y < 0: 
+                    self.hitbox.top = sprite.hitbox.bottom
+                
+                self.rect.centery = self.hitbox.centery
     
     def update(self):
         self.input()

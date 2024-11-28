@@ -1,0 +1,14 @@
+- level up
+- Creating the player
+- Creating the camera
+- Graphics
+- Player animations
+- Weapons
+- UI
+– Magic setup
+– Enemy creation
+– Player-enemy interaction
+– Particles
+– Spells
+– Upgrade system and menu
+– final fixes & sound
