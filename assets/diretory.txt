@@ -1,11 +1,11 @@
-- level up
-- Creating the player
-- Creating the camera
-- Graphics
-- Player animations
-- Weapons
-- UI
-– Magic setup
+- level up ok
+- Creating the player ok
+- Creating the camera ok
+- Graphics ok
+- Player animations ok
+- Weapons ok
+- UI ok
+– Magic setup ok
 – Enemy creation
 – Player-enemy interaction
 – Particles
