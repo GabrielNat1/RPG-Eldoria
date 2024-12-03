@@ -12,3 +12,10 @@
 – Spells
 – Upgrade system and menu
 – final fixes & sound
+- interior house
+- npc interation
+- implement system money
+- implement booking tree
+- implement system fish mecanics and minigame and npc Fisher
+- implement events for enemies 
+
