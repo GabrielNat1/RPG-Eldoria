@@ -61,7 +61,7 @@ Para jogar **Eldoria** no seu computador, siga os passos abaixo:
 git clone https://github.com/GabrielNat1/RPG-Eldoria.git
 2. Navegue até o diretório do projeto
 bash
-Copiar código
+
 cd RPG-Eldoria
 3. Instale as dependências
 Certifique-se de ter o Pygame instalado:
@@ -73,7 +73,7 @@ python -m pip install pygame
 Execute o jogo com o seguinte comando:
 
 bash
-Copiar código
+
 python eudoria.py
 🏆 Créditos
 Desenvolvedores:
@@ -85,8 +85,7 @@ Biblioteca Usada: Pygame
 🌐 Links Úteis
 Documentação do Pygame
 Repositório GitHub de Eldoria
-markdown
-Copiar código
+markdown
 
  O que foi feito:
 
