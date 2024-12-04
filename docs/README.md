@@ -104,3 +104,4 @@ markdown
 1. Crie ou edite o arquivo **README.md** no seu repositório.
 2. Cole o código atualizado acima.
 3. Faça o commit e envie para o repositório.
+4. Após isso, execute dando o comando: "python +seu repositório/main.py" & verifique se os requeriments estão abaixados.
