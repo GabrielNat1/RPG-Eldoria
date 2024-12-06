@@ -9,47 +9,18 @@
 
 ## 🚀 Como Jogar
 
-**Eldoria** é um RPG dinâmico onde você irá explorar um mundo imersivo, resolver puzzles e lutar contra inimigos temíveis. Aqui estão os controles principais:
-
 ### 🏃‍♂️ Movimentação
 
 - **W**, **A**, **S**, **D** ou as **Setas Direcionais**: Movimenta o personagem no mapa.
 
-### 🤝 Interações
-
-- **E**: Interaja com NPCs, abra portas e pegue itens.
-
 ### ⚔️ Combate
 
 - **Espaço**: Atacar inimigos.
-- **Q** ou **R**: Habilidades especiais (quando disponível).
-
-### 🛠️ Acessando o Menu
-
-- **ESC**: Abra o menu para salvar, carregar ou sair do jogo.
+- **Crtl**: Habilidades especiais (quando disponível).
+- **Q** ou **e**: Trocar itens
 
 ---
 
-## 📜 Como Navegar no Menu
-
-Ao acessar o menu do jogo, você verá várias opções:
-
-1. **Iniciar Jogo**: Comece uma nova aventura.
-2. **Carregar Jogo**: Carregue seu progresso salvo.
-3. **Opções**: Ajuste configurações de áudio, gráficos e controles.
-4. **Sair**: Encerre o jogo e retorne ao desktop.
-
----
-
-## ⌨️ Teclas de Atalho
-
-Aqui estão algumas teclas rápidas para facilitar sua experiência de jogo:
-
-- **F1**: Exibe os controles do jogo.
-- **F5**: Salva seu progresso.
-- **F9**: Carrega o último jogo salvo.
-
----
 
 ## 🖥️ Como Instalar e Rodar
 
@@ -82,10 +53,13 @@ GabrielNat1
 EnzoHacker
 Biblioteca Usada: Pygame
 
+
 🌐 Links Úteis
 Documentação do Pygame
 Repositório GitHub de Eldoria
-markdown
+markdown
+clearcode
+
 
  O que foi feito:
 
