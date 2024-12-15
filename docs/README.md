@@ -33,7 +33,7 @@ git clone https://github.com/GabrielNat1/RPG-Eldoria.git
 
 2. Navegue até o diretório do projeto
 ```bash 
-cd RPG-Eldoria
+cd {o repositorio do projeto + / + code}
 ```
 
 
@@ -49,8 +49,7 @@ python -m pip install pygame
 Execute o jogo com o seguinte comando:
 
 ```bash
-Copiar código
-python eldoria.py
+python main.py
 ```
 
 🏆 Créditos
