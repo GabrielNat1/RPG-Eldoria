@@ -90,7 +90,7 @@ class Intro:
             displayed_text += char
             rendered_text = self.font.render(displayed_text, True, TEXT_COLOR)
             text_rect = rendered_text.get_rect(center=(WIDTH // 2, HEIGTH // 2))
-            self.screen.fill(BLACK_COLOR)
+            self.screen.fill(WATER_COLOR)
             self.screen.blit(rendered_text, text_rect)
             pygame.display.flip()
             time.sleep(0.2)  # Adjust speed of the typing effect
@@ -103,6 +103,9 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
         pygame.display.set_caption('RPG Eldoria')
+        icon_path = '../graphics/icon/icon.game.data.ico'  
+        icon = pygame.image.load(icon_path)
+        pygame.display.set_icon(icon)
         self.clock = pygame.time.Clock()
         self.level = Level()
         self.main_menu = MainMenu(self.screen)
