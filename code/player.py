@@ -129,6 +129,7 @@ class Player(Entity):
 				self.magic = list(magic_data.keys())[self.magic_index]
     
 			#mouse input
+			# ==> problema: demora na ação do mouse
 			for event in pygame.event.get():
 				if event.type == pygame.MOUSEBUTTONDOWN:
 					if event.button == 1:
