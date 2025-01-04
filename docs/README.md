@@ -2,7 +2,7 @@
   <h1>Eldoria RPG</h1>
 
   <!-- Logo do Python -->
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python Logo" width="80" height="80" />
+  <img src="https://github.com/user-attachments/assets/5ca22c19-ef7b-4476-8e0c-5f6d22101fc0" alt="Python Logo" width="80" height="80" />
 </div>
 
 ---
