@@ -13,7 +13,7 @@ class Intro:
         self.audio_manager = AudioManager() 
 
     def display(self):
-        self.audio_manager.play("../audio/main_menu.wav", loops=-1, volume=0.5)  
+        self.audio_manager.play("../audio/main_menu.ogg", loops=-1, volume=0.5)  
 
         self.screen.fill(WATER_COLOR)
         displayed_text = ""
@@ -130,11 +130,11 @@ class AudioManager:
 
     def play(self, filename, loops=0, volume=0.5):
         try:
-            sound = pygame.mixer.Sound(filename)  
-            sound.set_volume(volume)
-            sound.play(loops)
+            pygame.mixer.music.load(filename)
+            pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.play(loops)
         except pygame.error as e:
-            print(f"error loading audio: {filename}. Error: {e}")
+            print(f"Error loading audio: {filename}. Error: {e}")
 
     def stop(self):
         pygame.mixer.music.stop()
@@ -247,17 +247,14 @@ class Game:
         self.in_gameplay = False
 
         self.intro_played = False
+        self.audio_manager = AudioManager()
 
-        
         if not self.intro_played:
             intro = Intro(self.screen)
             intro.display()
             self.intro_played = True
 
-        # sound game
-        #pygame.mixer.music.load("../audio/main.wav")
-        #pygame.mixer.music.set_volume(0.5)
-        #pygame.mixer.music.play(loops=-1)
+        self.audio_manager.play("../audio/main_menu.ogg", loops=-1, volume=0.5)
 
     def run(self):
         while True:
@@ -277,6 +274,8 @@ class Game:
                             if action == "new_game":
                                 self.in_menu = False
                                 self.in_gameplay = True
+                                self.audio_manager.stop()
+                                self.audio_manager.play("../audio/main.ogg", loops=-1, volume=0.5)
                             elif action == "settings":
                                 self.in_menu = False
                                 self.in_settings = True

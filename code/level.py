@@ -117,7 +117,6 @@ class Level:
 					self.chunks[(x, y)] = self.load_chunk((x, y))
 
 	def load_chunk(self, chunk):
-		print(f"Loading chunk: {chunk}")
 		chunk_data = {
 			'boundary': [],
 			'grass': [],
@@ -187,7 +186,7 @@ class Level:
 		for x in range(chunk[0] - self.visible_chunks - 1, chunk[0] + self.visible_chunks + 2):
 			for y in range(chunk[1] - self.visible_chunks - 1, chunk[1] + self.visible_chunks + 2):
 				if (x, y) in self.chunks and not self.is_chunk_visible((x, y), chunk):
-					print(f"Unloading chunk: {(x, y)}")
+					
 					self.save_chunk((x, y))
 					del self.chunks[(x, y)]
 
@@ -205,6 +204,7 @@ class Level:
 	def save_chunk(self, chunk):
 		chunk_data = self.chunks[chunk]
 		chunk_file = f'../chunks/chunk_{chunk[0]}_{chunk[1]}.json'
+		os.makedirs(os.path.dirname(chunk_file), exist_ok=True)  # Certifique-se de que o diretório exista
 		with open(chunk_file, 'w') as f:
 			json.dump(chunk_data, f)
 
