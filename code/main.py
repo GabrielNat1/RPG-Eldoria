@@ -3,6 +3,7 @@ import sys
 import time
 from settings import *
 from level import Level
+from settings import WIDTH, HEIGTH, FPS, UI_FONT, UI_FONT_SIZE, TEXT_COLOR, MIN_VISIBLE_CHUNKS, MAX_VISIBLE_CHUNKS
 
 class Intro:
     def __init__(self, screen):
@@ -95,7 +96,7 @@ class MainMenuSettings:
                 text += f": {'On' if option['value'] else 'Off'}"
             elif option["type"] == "choice":
                 current_res = option["choices"][option["value"]]
-                text += f": {current_res[0]}x{current_res[1]}"
+                text += f": {current_res[0]}x{current_res[1]}" if option["name"] == "Resolution" else f": {current_res}"
                 
             rendered_text = self.font.render(text, True, color)
             text_rect = rendered_text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
@@ -122,7 +123,6 @@ class MainMenuSettings:
             return "Back", None
         
         return None, None
-
     
 class AudioManager:
     def __init__(self):
@@ -195,7 +195,7 @@ class PauseMenuSettings:
                 text += f": {'On' if option['value'] else 'Off'}"
             elif option["type"] == "choice":
                 current_res = option["choices"][option["value"]]
-                text += f": {current_res[0]}x{current_res[1]}"
+                text += f": {current_res[0]}x{current_res[1]}" if option["name"] == "Resolution" else f": {current_res}"
                 
             rendered_text = self.font.render(text, True, color)
             text_rect = rendered_text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
@@ -221,7 +221,6 @@ class PauseMenuSettings:
             return "Back", None
         
         return None, None
-
 
 
 class Game:
@@ -392,7 +391,19 @@ class Game:
             flags = pygame.SRCALPHA if borderless else pygame.FULLSCREEN
             pygame.display.set_mode((WIDTH, HEIGTH), flags)
             self.fullscreen = True
+    
+    def apply_resolution(self, resolution):
+        global WIDTH, HEIGTH
+        WIDTH, HEIGTH = resolution
+        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
 
+    def toggle_pause_menu(self):
+        # Lógica para alternar o menu de pausa
+        pass
+
+    def toggle_main_menu(self):
+        # Lógica para alternar o menu principal
+        pass
 
 
 if __name__ == '__main__':

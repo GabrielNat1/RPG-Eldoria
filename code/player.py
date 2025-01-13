@@ -9,9 +9,7 @@ class Player(Entity):
 		self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
 		self.rect = self.image.get_rect(topleft = pos)
 		self.hitbox = self.rect.inflate(-6,HITBOX_OFFSET['player'])
-
-		#position player
-		self.initial_position = (100,100)
+		self.initial_position = pos  # Defina a posição inicial do jogador
             
 		# graphics setup
 		self.import_player_assets()
@@ -228,8 +226,13 @@ class Player(Entity):
 			self.energy += 0.01 * self.stats['magic']
 		else:
 			self.energy = self.stats['energy']
-   
 
+	def check_death(self):
+		if self.health <= 0:
+			self.health = self.stats['health']
+			self.energy = self.stats['energy']
+			self.rect.topleft = self.initial_position
+			self.hitbox.topleft = self.initial_position
 
 	def update(self):
 		self.input()
@@ -238,3 +241,4 @@ class Player(Entity):
 		self.animate()
 		self.move(self.stats['speed'])
 		self.energy_recovery()
+		self.check_death()

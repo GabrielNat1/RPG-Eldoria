@@ -1,8 +1,14 @@
-# game setup
+# game configs
 WIDTH = 1280
 HEIGTH = 720
 FPS = 60
+
 TILESIZE = 64
+CHUNKSIZE = 32
+MIN_VISIBLE_CHUNKS = 1
+MAX_VISIBLE_CHUNKS = 5
+VISIBLE_CHUNKS = 2  # Valor predefinido
+
 HITBOX_OFFSET = {
     'player': -26,
     'object': -40,
