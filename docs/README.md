@@ -1,25 +1,25 @@
+<img src='https://github.com/user-attachments/assets/fdef5933-fd25-4bd2-ac0e-b69d583f7ddf'>
+
 <div align="center">
-  <h1>Eldoria RPG</h1>
+  <h1><strong>🎆RPG Eldoria🎆</strong></h1>
 
-  <!-- Logo do Python -->
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python Logo" width="80" height="80" />
+  
 </div>
+<br>
+<img src='https://github.com/user-attachments/assets/29986fe7-23d2-4662-bc62-96244db0e1c7'>
 
 ---
 
-## 🚀 Como Jogar
+## 🛠️ Tecnologias Utilizadas
 
-### 🏃‍♂️ Movimentação
+<ul>
+    <li><strong>Python</strong> 🐍</li>
+    <li><strong>PyGame</strong></li>
+</ul>
 
-- **W**, **A**, **S**, **D** ou as **Setas Direcionais**: Movimenta o personagem no mapa.
+<br>
+<hr>
 
-### ⚔️ Combate
-
-- **Espaço**: Atacar inimigos.
-- **Ctrl**: Habilidades especiais (quando disponível).
-- **Q** ou **E**: Trocar itens.
-
----
 
 ## 🖥️ Como Instalar e Rodar
 
@@ -33,7 +33,7 @@ git clone https://github.com/GabrielNat1/RPG-Eldoria.git
 
 2. Navegue até o diretório do projeto
 ```bash 
-cd {o repositorio do projeto + / + code}
+cd {rpgeldoria/code}
 ```
 
 
@@ -52,19 +52,86 @@ Execute o jogo com o seguinte comando:
 python main.py
 ```
 
-🏆 Créditos
-Desenvolvedores:
+---
 
-<p>GabrielNat1</p>
-<p>ClearCode</p>
+## 🚀 Como Jogar
+
+### 🏃‍♂️ Movimentação
+
+- **W**, **A**, **S**, **D** ou as **Setas Direcionais**: Movimenta o personagem no mapa.
+
+### ⚔️ Combate
+
+- **Espaço**: Atacar inimigos.
+- **Ctrl**: Habilidades especiais (quando disponível).
+- **Q** ou **E**: Trocar itens.
 
 ---
 
-Biblioteca Usada:
+## 📂 Estrutura de Diretórios  
 
-Pygame
-🌐 Links Úteis:
+A estrutura de diretórios do projeto é organizada da seguinte forma:
+
 ```bash
-Documentação do Pygame
-Repositório GitHub de Eldoria
+RPG-ELDORIA/  
+├── assets/  
+│   ├── audio/                   # Arquivos de áudio do jogo  
+│   │   ├── attack/              # Sons de ataque  
+│   │   ├── death.wav            # Som de morte  
+│   │   ├── Fire.wav             # Som de fogo  
+│   │   ├── heal.wav             # Som de cura  
+│   │   ├── hit.wav              # Som de impacto  
+│   │   ├── main_menu.wav        # Música do menu principal  
+│   │   ├── main.wav             # Música principal do jogo  
+│   │   └── sword.wav            # Som de espada  
+│   ├── code/                    # Scripts e código do jogo  
+│   ├── docs/                    # Documentação do projeto  
+│   ├── graphics/                # Recursos visuais do jogo  
+│   │   ├── font/                # Fontes usadas no jogo  
+│   │   ├── grass/               # Imagens de grama  
+│   │   ├── icon/                # Ícones do jogo  
+│   │   ├── monsters/            # Sprites de monstros  
+│   │   ├── movies/              # Vídeos e cutscenes  
+│   │   ├── objects/             # Objetos interativos do jogo  
+│   │   ├── particles/           # Efeitos de partículas  
+│   │   ├── player/              # Sprites do personagem principal  
+│   │   ├── test/                # Recursos de teste para desenvolvimento  
+│   │   ├── tilemap/             # Mapas e tilesets do jogo  
+│   │   └── weapons/             # Sprites de armas  
+├── map/                         # Arquivos relacionados aos mapas do jogo  
+├── requirements.txt             # Dependências do projeto  
 ```
+
+---
+
+## 🌍 Sistema de Renderização por Chunks  
+
+O projeto utiliza um **sistema de renderização por chunks** para otimizar o desempenho, evitando sobrecarregar a aplicação e economizando memória durante a execução.  
+
+### 🔧 Como Funciona  
+- O mapa do jogo é dividido em **pequenas regiões chamadas chunks**, que são carregadas e renderizadas dinamicamente com base na posição do jogador.  
+- Apenas os chunks próximos ao jogador são carregados na memória, enquanto os demais são descarregados ou mantidos em um estado de baixa prioridade.  
+
+### 🛠️ Benefícios  
+- **Desempenho Aprimorado:** Reduz o uso de recursos do sistema, garantindo uma experiência mais fluida.  
+- **Gerenciamento de Memória:** Apenas o necessário é mantido na memória, permitindo que o jogo rode em dispositivos com especificações limitadas.  
+- **Escalabilidade:** Suporte para mapas maiores sem impactar negativamente o desempenho.  
+
+<br>
+
+---
+
+🏆 Créditos
+Desenvolvedores:
+
+```bash
+GabrielNat1
+
+ClearCode
+
+Pack:NinjaAdventurePack
+```
+
+---
+
+<img src='https://github.com/user-attachments/assets/fdef5933-fd25-4bd2-ac0e-b69d583f7ddf'>
