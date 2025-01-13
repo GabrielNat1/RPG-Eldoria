@@ -396,14 +396,6 @@ class Game:
         WIDTH, HEIGTH = resolution
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
 
-    def toggle_pause_menu(self):
-        # Lógica para alternar o menu de pausa
-        pass
-
-    def toggle_main_menu(self):
-        # Lógica para alternar o menu principal
-        pass
-
 
 if __name__ == '__main__':
     game = Game()
