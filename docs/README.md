@@ -14,7 +14,7 @@
 
 <ul>
     <li><strong>Python</strong> 🐍</li>
-    <li><strong>PyGame</strong></li>
+    <li><strong>PyGame</strong> 🎮</li>
 </ul>
 
 <br>
