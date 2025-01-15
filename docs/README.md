@@ -1,7 +1,7 @@
 <img src='https://github.com/user-attachments/assets/fdef5933-fd25-4bd2-ac0e-b69d583f7ddf'>
 
 <div align="center">
-  <h1><strong>🎆RPG Eldoria🎆</strong></h1>
+  <h1><strong>🎮RPG Eldoria🎮</strong></h1>
 
   
 </div>
