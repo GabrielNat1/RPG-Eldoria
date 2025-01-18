@@ -61,11 +61,11 @@ class MainMenu:
         self.selected_option = (self.selected_option + direction) % len(self.options)
 
     def select(self):
-        if self.selected_option == 0:  # New Game
+        if self.selected_option == 0:  
             return "new_game"
-        elif self.selected_option == 1:  # Settings
+        elif self.selected_option == 1: 
             return "settings"
-        elif self.selected_option == 2:  # Quit Game
+        elif self.selected_option == 2:  
             pygame.quit()
             sys.exit()
 
@@ -164,11 +164,11 @@ class PauseMenu:
         self.selected = (self.selected + direction) % len(self.options)
 
     def select(self):
-        if self.selected == 0:  # Resume Game
+        if self.selected == 0:  
             return "resume"
-        elif self.selected == 1:  # Settings
+        elif self.selected == 1:  
             return "settings"
-        elif self.selected == 2:  # Quit Game
+        elif self.selected == 2:  
             return "quit"
         
         
