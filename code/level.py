@@ -47,6 +47,8 @@ class Level:
 		self.visible_chunks = VISIBLE_CHUNKS
 		self.load_initial_chunks()
 
+		
+
 	def create_map(self):
 		layouts = {
 			'boundary': import_csv_layout('../map/map_FloorBlocks.csv'),
@@ -288,7 +290,15 @@ class Level:
 			self.visible_sprites.update()
 			self.visible_sprites.enemy_update(self.player)
 			self.player_attack_logic()
+
 		
+
+	def is_chunk_within_visibility_radius(self, chunk):
+		player_pos = self.player.rect.center
+		visibility_radius = 300  # Adjust as needed
+		chunk_center = (chunk[0] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2, chunk[1] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2)
+		distance = ((chunk_center[0] - player_pos[0]) ** 2 + (chunk_center[1] - player_pos[1]) ** 2) ** 0.5
+		return distance < visibility_radius
 
 class YSortCameraGroup(pygame.sprite.Group):
 	def __init__(self):
