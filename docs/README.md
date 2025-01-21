@@ -6,7 +6,7 @@
 
 ---
 
-## 🛠️ Technologies Used
+## 🛠️ Technologies Used:
 
 <ul>
     <li><strong>Python</strong> 🐍</li>
