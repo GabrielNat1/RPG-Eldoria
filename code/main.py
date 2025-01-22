@@ -1,6 +1,8 @@
 import pygame
 import sys
 import time
+import shutil  
+import os
 from settings import *
 from level import Level
 from settings import WIDTH, HEIGTH, FPS, UI_FONT, UI_FONT_SIZE, TEXT_COLOR, MIN_VISIBLE_CHUNKS, MAX_VISIBLE_CHUNKS
@@ -260,133 +262,140 @@ class Game:
         self.audio_manager.play("../audio/main_menu.ogg", loops=-1, volume=0.5)
 
     def run(self):
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+        try:
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
 
-                if self.in_menu:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_UP:
-                            self.main_menu.navigate(-1)
-                        elif event.key == pygame.K_DOWN:
-                            self.main_menu.navigate(1)
-                        elif event.key == pygame.K_RETURN:
-                            action = self.main_menu.select()
-                            if action == "new_game":
-                                self.in_menu = False
-                                self.in_gameplay = True
-                                self.audio_manager.stop()
-                                self.audio_manager.play("../audio/main.ogg", loops=-1, volume=0.5)
-                            elif action == "settings":
-                                self.in_menu = False
-                                self.in_settings = True
-                            elif action == "quit":
+                    if self.in_menu:
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_UP:
+                                self.main_menu.navigate(-1)
+                            elif event.key == pygame.K_DOWN:
+                                self.main_menu.navigate(1)
+                            elif event.key == pygame.K_RETURN:
+                                action = self.main_menu.select()
+                                if action == "new_game":
+                                    self.in_menu = False
+                                    self.in_gameplay = True
+                                    self.audio_manager.stop()
+                                    self.audio_manager.play("../audio/main.ogg", loops=-1, volume=0.5)
+                                elif action == "settings":
+                                    self.in_menu = False
+                                    self.in_settings = True
+                                elif action == "quit":
+                                    pygame.quit()
+                                    sys.exit()
+                            elif event.key == pygame.K_ESCAPE:
                                 pygame.quit()
                                 sys.exit()
-                        elif event.key == pygame.K_ESCAPE:
-                            pygame.quit()
-                            sys.exit()
 
-                elif self.in_pause:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_UP:
-                            self.pause_menu.navigate(-1)
-                        elif event.key == pygame.K_DOWN:
-                            self.pause_menu.navigate(1)
-                        elif event.key == pygame.K_RETURN:
-                            action = self.pause_menu.select()
-                            if action == "resume":
+                    elif self.in_pause:
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_UP:
+                                self.pause_menu.navigate(-1)
+                            elif event.key == pygame.K_DOWN:
+                                self.pause_menu.navigate(1)
+                            elif event.key == pygame.K_RETURN:
+                                action = self.pause_menu.select()
+                                if action == "resume":
+                                    self.in_pause = False
+                                elif action == "settings":
+                                    self.in_pause = False
+                                    self.in_pause_settings = True
+                                elif action == "quit":
+                                    pygame.quit()
+                                    sys.exit()
+                            elif event.key == pygame.K_ESCAPE:
                                 self.in_pause = False
-                            elif action == "settings":
-                                self.in_pause = False
-                                self.in_pause_settings = True
-                            elif action == "quit":
-                                pygame.quit()
-                                sys.exit()
-                        elif event.key == pygame.K_ESCAPE:
-                            self.in_pause = False
 
-                elif self.in_settings:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_UP:
-                            self.main_menu_settings.navigate(-1)
-                        elif event.key == pygame.K_DOWN:
-                            self.main_menu_settings.navigate(1)
-                        elif event.key == pygame.K_RETURN:
-                            option, value = self.main_menu_settings.toggle_option()
-                            if option == "Fullscreen":
-                                self.toggle_fullscreen(borderless=False)
-                            elif option == "Borderless":
-                                self.toggle_fullscreen(borderless=True)
-                            elif option == "Resolution":
-                                self.apply_resolution(value)
-                            elif option == "Back":
+                    elif self.in_settings:
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_UP:
+                                self.main_menu_settings.navigate(-1)
+                            elif event.key == pygame.K_DOWN:
+                                self.main_menu_settings.navigate(1)
+                            elif event.key == pygame.K_RETURN:
+                                option, value = self.main_menu_settings.toggle_option()
+                                if option == "Fullscreen":
+                                    self.toggle_fullscreen(borderless=False)
+                                elif option == "Borderless":
+                                    self.toggle_fullscreen(borderless=True)
+                                elif option == "Resolution":
+                                    self.apply_resolution(value)
+                                elif option == "Back":
+                                    self.in_settings = False
+                                    self.in_menu = True
+                            elif event.key == pygame.K_ESCAPE:
                                 self.in_settings = False
                                 self.in_menu = True
-                        elif event.key == pygame.K_ESCAPE:
-                            self.in_settings = False
-                            self.in_menu = True
 
-                elif self.in_pause_settings:
-                    
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_UP:
-                            self.pause_menu_settings.navigate(-1)
-                            
-                        elif event.key == pygame.K_DOWN:
-                            self.pause_menu_settings.navigate(1)
-                            
-                        elif event.key == pygame.K_RETURN:
-                            option, value = self.pause_menu_settings.toggle_option()
-                            if option == "Fullscreen":
-                                self.toggle_fullscreen(borderless=False)
-                            elif option == "Borderless":
-                                self.toggle_fullscreen(borderless=True)
-                            elif option == "Resolution":
-                                self.apply_resolution(value)
-                            elif option == "Back":
+                    elif self.in_pause_settings:
+                        
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_UP:
+                                self.pause_menu_settings.navigate(-1)
+                                
+                            elif event.key == pygame.K_DOWN:
+                                self.pause_menu_settings.navigate(1)
+                                
+                            elif event.key == pygame.K_RETURN:
+                                option, value = self.pause_menu_settings.toggle_option()
+                                if option == "Fullscreen":
+                                    self.toggle_fullscreen(borderless=False)
+                                elif option == "Borderless":
+                                    self.toggle_fullscreen(borderless=True)
+                                elif option == "Resolution":
+                                    self.apply_resolution(value)
+                                elif option == "Back":
+                                    self.in_pause_settings = False
+                                    self.in_pause = True
+                                
+                            elif event.key == pygame.K_ESCAPE:
                                 self.in_pause_settings = False
                                 self.in_pause = True
-                                
-                        elif event.key == pygame.K_ESCAPE:
-                            self.in_pause_settings = False
-                            self.in_pause = True
 
+                    elif self.in_gameplay:
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_ESCAPE:
+                                self.in_pause = True
+                            elif event.key == pygame.K_f:
+                                self.toggle_fullscreen()
+
+                        if event.type == pygame.VIDEORESIZE:
+                            global WIDTH, HEIGTH
+                            WIDTH, HEIGTH = event.size
+                            self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
+
+                if self.in_menu:
+                    self.main_menu.display()
+                    
+                elif self.in_pause:
+                    self.screen.fill(WATER_COLOR)
+                    self.level.visible_sprites.custom_draw(self.level.player)
+                    self.level.ui.display(self.level.player)  # Corrigido aqui
+                    self.pause_menu.display()
+                    
+                elif self.in_settings:
+                    self.main_menu_settings.display()
+                    
+                elif self.in_pause_settings:
+                    self.pause_menu_settings.display()
+                    
                 elif self.in_gameplay:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            self.in_pause = True
-                        elif event.key == pygame.K_f:
-                            self.toggle_fullscreen()
+                    self.screen.fill(WATER_COLOR)
+                    self.level.run()
+                    pygame.display.update()
 
-                    if event.type == pygame.VIDEORESIZE:
-                        global WIDTH, HEIGTH
-                        WIDTH, HEIGTH = event.size
-                        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
+                self.clock.tick(FPS)
+        finally:
+            self.cleanup()
 
-            if self.in_menu:
-                self.main_menu.display()
-                
-            elif self.in_pause:
-                self.screen.fill(WATER_COLOR)
-                self.level.visible_sprites.custom_draw(self.level.player)
-                self.level.ui.display(self.level.player)  # Corrigido aqui
-                self.pause_menu.display()
-                
-            elif self.in_settings:
-                self.main_menu_settings.display()
-                
-            elif self.in_pause_settings:
-                self.pause_menu_settings.display()
-                
-            elif self.in_gameplay:
-                self.screen.fill(WATER_COLOR)
-                self.level.run()
-                pygame.display.update()
-
-            self.clock.tick(FPS)
+    def cleanup(self):
+        if os.path.exists(CHUNKS_FOLDER):
+            shutil.rmtree(CHUNKS_FOLDER)
 
     def toggle_fullscreen(self, borderless=False):
         if self.fullscreen:

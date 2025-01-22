@@ -13,6 +13,7 @@ from magic import MagicPlayer
 from upgrade import Upgrade
 import json
 import os
+import shutil  
 
 class Level:
 	def __init__(self):
@@ -46,6 +47,7 @@ class Level:
 		self.current_chunk = None
 		self.visible_chunks = VISIBLE_CHUNKS
 		self.load_initial_chunks()
+		os.makedirs(CHUNKS_FOLDER, exist_ok=True)  # Ensure chunks folder exists
 
 		
 
@@ -119,6 +121,17 @@ class Level:
 					self.chunks[(x, y)] = self.load_chunk((x, y))
 
 	def load_chunk(self, chunk):
+		chunk_file = f'{CHUNKS_FOLDER}/chunk_{chunk[0]}_{chunk[1]}.json'
+		if os.path.exists(chunk_file):
+			return self.load_chunk_from_file(chunk_file)
+		else:
+			return self.generate_chunk(chunk)
+
+	def load_chunk_from_file(self, chunk_file):
+		with open(chunk_file, 'r') as f:
+			return json.load(f)
+
+	def generate_chunk(self, chunk):
 		chunk_data = {
 			'boundary': [],
 			'grass': [],
@@ -205,19 +218,9 @@ class Level:
 
 	def save_chunk(self, chunk):
 		chunk_data = self.chunks[chunk]
-		chunk_file = f'../chunks/chunk_{chunk[0]}_{chunk[1]}.json'
-		os.makedirs(os.path.dirname(chunk_file), exist_ok=True)  # Certifique-se de que o diretório exista
+		chunk_file = f'{CHUNKS_FOLDER}/chunk_{chunk[0]}_{chunk[1]}.json'
 		with open(chunk_file, 'w') as f:
 			json.dump(chunk_data, f)
-
-	def load_chunk_from_file(self, chunk):
-		chunk_file = f'../chunks/chunk_{chunk[0]}_{chunk[1]}.json'
-		if os.path.exists(chunk_file):
-			with open(chunk_file, 'r') as f:
-				chunk_data = json.load(f)
-			return chunk_data
-		else:
-			return self.load_chunk(chunk)
 
 	def create_attack(self):
 		self.current_attack = Weapon(self.player, [self.visible_sprites, self.attack_sprites])
