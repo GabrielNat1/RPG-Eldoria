@@ -185,7 +185,6 @@ class Level:
 									elif col == '391': monster_name = 'spirit'
 									elif col == '392': monster_name = 'raccoon'
 									else: monster_name = 'squid'
-									# Verifique se já existe um inimigo na mesma posição
 									if not any(enemy.rect.topleft == (x, y) for enemy in self.attackable_sprites):
 										chunk_data['entities'].append(Enemy(
 											monster_name,
@@ -263,15 +262,14 @@ class Level:
 				self.respawn_player()
 
 	def respawn_player(self):
-		# Reposicione o jogador no ponto inicial correto
 		self.player = Player(
-			self.initial_position,  # Ponto inicial correto
+			self.initial_position,  
 			[self.visible_sprites],
 			self.obstacle_sprites,
 			self.create_attack,
 			self.destroy_attack,
 			self.create_magic)
-		self.player.health = self.player.stats['health']  # Restaure a saúde do jogador
+		self.player.health = self.player.stats['health']  
 
 	def trigger_death_particles(self, pos, particle_type):
 		self.animation_player.create_particles(particle_type, pos, self.visible_sprites)
@@ -298,7 +296,7 @@ class Level:
 
 	def is_chunk_within_visibility_radius(self, chunk):
 		player_pos = self.player.rect.center
-		visibility_radius = 300  # Adjust as needed
+		visibility_radius = 400
 		chunk_center = (chunk[0] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2, chunk[1] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2)
 		distance = ((chunk_center[0] - player_pos[0]) ** 2 + (chunk_center[1] - player_pos[1]) ** 2) ** 0.5
 		return distance < visibility_radius
@@ -329,13 +327,11 @@ class YSortCameraGroup(pygame.sprite.Group):
 
 		# for sprite in self.sprites():
 		for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery):
-			# Verifique se o sprite está dentro da área visível
 			if self.is_sprite_visible(sprite):
 				offset_pos = sprite.rect.topleft - self.offset
 				self.display_surface.blit(sprite.image,offset_pos)
 
 	def is_sprite_visible(self, sprite):
-		# Verifique se o sprite está dentro da área visível
 		return (self.offset.x - TILESIZE <= sprite.rect.x <= self.offset.x + self.display_surface.get_width() + TILESIZE and
 				self.offset.y - TILESIZE <= sprite.rect.y <= self.offset.y + self.display_surface.get_height() + TILESIZE)
 

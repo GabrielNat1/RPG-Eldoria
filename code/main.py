@@ -154,6 +154,8 @@ class PauseMenu:
         self.menu_surface.set_alpha(150)  # Adjust alpha for transparency
 
     def display(self):
+        self.menu_surface = pygame.Surface((WIDTH, HEIGTH))  # Update size to match current resolution
+        self.menu_surface.set_alpha(150)  # Adjust alpha for transparency
         self.menu_surface.fill((0, 0, 0))  # Fill with black color
         self.screen.blit(self.menu_surface, (0, 0))
         
