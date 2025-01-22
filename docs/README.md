@@ -2,6 +2,10 @@
   <h1><strong>🎮 RPG Eldoria 🎮</strong></h1>
 </div>
 <br>
+<div style="font-size: 0; line-height: 0;">
+  <p style="margin: 0; padding: 0; line-height: normal; font-size: 16px;">NinjaAdventurePack:</p>
+</div>
+
 <img src='https://github.com/user-attachments/assets/29986fe7-23d2-4662-bc62-96244db0e1c7'>
 
 ---
