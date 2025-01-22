@@ -148,9 +148,12 @@ class PauseMenu:
         self.font = pygame.font.Font(UI_FONT, 40)
         self.options = ["Resume Game", "Settings", "Quit Game"]
         self.selected = 0
+        self.menu_surface = pygame.Surface((WIDTH, HEIGTH))
+        self.menu_surface.set_alpha(150)  # Adjust alpha for transparency
 
     def display(self):
-        self.screen.fill(WATER_COLOR)
+        self.menu_surface.fill((0, 0, 0))  # Fill with black color
+        self.screen.blit(self.menu_surface, (0, 0))
         
         for idx, option in enumerate(self.options):
             color = TEXT_COLOR if idx == self.selected else UI_BG_COLOR
@@ -367,6 +370,9 @@ class Game:
                 self.main_menu.display()
                 
             elif self.in_pause:
+                self.screen.fill(WATER_COLOR)
+                self.level.visible_sprites.custom_draw(self.level.player)
+                self.level.ui.display(self.level.player)  # Corrigido aqui
                 self.pause_menu.display()
                 
             elif self.in_settings:
