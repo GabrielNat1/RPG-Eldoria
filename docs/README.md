@@ -2,6 +2,10 @@
   <h1><strong>🎮 RPG Eldoria 🎮</strong></h1>
 </div>
 <br>
+<div style="font-size: 0; line-height: 0;">
+  <p style="margin: 0; padding: 0; line-height: normal; font-size: 16px;">NinjaAdventurePack:</p>
+</div>
+
 <img src='https://github.com/user-attachments/assets/29986fe7-23d2-4662-bc62-96244db0e1c7'>
 
 ---
@@ -16,7 +20,7 @@
 <br>
 <hr>
 
-## 🖥️ How to Install and Run
+## 🖥️ How to Install and Run:
 
 To play **Eldoria** on your computer, follow the steps below:
 
@@ -94,7 +98,7 @@ RPG-ELDORIA/
 
 ---
 
-## 🌍 Chunk-Based Rendering System  
+## 🌍 Chunk-Based Rendering System!
 
 The project uses a **chunk-based rendering system** to optimize performance, avoiding overloading the application and saving memory during execution.  
 
@@ -116,8 +120,7 @@ Developers:
 
 ```bash   
 GabrielNat1  
-
-ClearCode  
-
+ClearCode
 Pack: NinjaAdventurePack  
 ```
+
