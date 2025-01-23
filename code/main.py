@@ -30,7 +30,7 @@ class Intro:
             time.sleep(0.2)  # effect
 
         time.sleep(1)  # Pause after
-        self.audio_manager.stop_music()  # stop audio
+        self.audio_manager.stop_music()  
 
 
 class MainMenu:
@@ -41,7 +41,7 @@ class MainMenu:
         self.title = "RPG ELDORIA"
         self.options = ["New Game", "Settings", "Quit Game"]
         self.selected_option = 0
-        self.audio_manager = AudioManager()  # Add this line
+        self.audio_manager = AudioManager()  
 
     def display(self):
         self.screen.fill(WATER_COLOR)
@@ -91,7 +91,7 @@ class MainMenuSettings:
             {"name": "Back", "type": "action"}
         ]
         self.selected = 0
-        self.audio_manager = AudioManager()  # Add this line
+        self.audio_manager = AudioManager()  
 
     def display(self):
         self.screen.fill(WATER_COLOR)
@@ -139,6 +139,7 @@ class AudioManager:
     def __init__(self):
         pygame.mixer.init() 
 
+    #function for music
     def play_music(self, filename, loops=0, volume=0.5):
         try:
             pygame.mixer.music.load(filename)
@@ -147,6 +148,7 @@ class AudioManager:
         except pygame.error as e:
             print(f"Error loading music: {filename}. Error: {e}")
 
+    #function for effect 
     def play_sound(self, filename, volume=0.5):
         try:
             sound = pygame.mixer.Sound(filename)
@@ -197,6 +199,7 @@ class PauseMenu:
             return "settings"
         elif self.selected == 2:  
             self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
+            time.sleep(0.5)
             return "quit"
         
         
