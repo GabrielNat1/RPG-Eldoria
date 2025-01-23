@@ -98,7 +98,7 @@ RPG-ELDORIA/
 
 ---
 
-## 🌍 Chunk-Based Rendering System  
+## 🌍 Chunk-Based Rendering System!
 
 The project uses a **chunk-based rendering system** to optimize performance, avoiding overloading the application and saving memory during execution.  
 
@@ -120,8 +120,7 @@ Developers:
 
 ```bash   
 GabrielNat1  
-
-ClearCode  
-
+ClearCode
 Pack: NinjaAdventurePack  
 ```
+
