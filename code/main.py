@@ -65,13 +65,13 @@ class MainMenu:
 
     def select(self):
         if self.selected_option == 0:  
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
             return "new_game"
         elif self.selected_option == 1: 
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
             return "settings"
         elif self.selected_option == 2:  
-            self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=1.0)
+            self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
             time.sleep(1)
             pygame.quit()
             sys.exit()
@@ -121,16 +121,16 @@ class MainMenuSettings:
         
         if option["type"] == "toggle":
             option["value"] = not option["value"]
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
             return option["name"], option["value"]
         
         elif option["type"] == "choice":
             option["value"] = (option["value"] + 1) % len(option["choices"])
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
             return option["name"], option["choices"][option["value"]]
         
         elif option["type"] == "action" and option["name"] == "Back":
-            self.audio_manager.play_sound("../audio/menu/Cancel.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Cancel.wav", volume=2.5)
             return "Back", None
         
         return None, None
@@ -193,7 +193,7 @@ class PauseMenu:
             self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
             return "resume"
         elif self.selected == 1:  
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
             return "settings"
         elif self.selected == 2:  
             self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
@@ -240,16 +240,16 @@ class PauseMenuSettings:
         
         if option["type"] == "toggle":
             option["value"] = not option["value"]
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
             return option["name"], option["value"]
         
         elif option["type"] == "choice":
             option["value"] = (option["value"] + 1) % len(option["choices"])
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
             return option["name"], option["choices"][option["value"]]
         
         elif option["type"] == "action" and option["name"] == "Back":
-            self.audio_manager.play_sound("../audio/menu/Cancel.wav", volume=0.5)
+            self.audio_manager.play_sound("../audio/menu/Cancel.wav", volume=2.5)
             return "Back", None
         
         return None, None
