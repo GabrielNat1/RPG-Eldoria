@@ -20,7 +20,7 @@
 <br>
 <hr>
 
-## 🖥️ How to Install and Run
+## 🖥️ How to Install and Run:
 
 To play **Eldoria** on your computer, follow the steps below:
 
