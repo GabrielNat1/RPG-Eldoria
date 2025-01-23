@@ -15,7 +15,7 @@ class Intro:
         self.audio_manager = AudioManager() 
 
     def display(self):
-        self.audio_manager.play("../audio/main_menu.ogg", loops=-1, volume=0.5)  
+        self.audio_manager.play_music("../audio/main_menu.ogg", loops=-1, volume=0.5)  
 
         self.screen.fill(WATER_COLOR)
         displayed_text = ""
@@ -30,7 +30,7 @@ class Intro:
             time.sleep(0.2)  # effect
 
         time.sleep(1)  # Pause after
-        self.audio_manager.stop()  # stop audio
+        self.audio_manager.stop_music()  # stop audio
 
 
 class MainMenu:
@@ -41,6 +41,7 @@ class MainMenu:
         self.title = "RPG ELDORIA"
         self.options = ["New Game", "Settings", "Quit Game"]
         self.selected_option = 0
+        self.audio_manager = AudioManager()  # Add this line
 
     def display(self):
         self.screen.fill(WATER_COLOR)
@@ -64,10 +65,14 @@ class MainMenu:
 
     def select(self):
         if self.selected_option == 0:  
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=0.5)
             return "new_game"
         elif self.selected_option == 1: 
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=0.5)
             return "settings"
         elif self.selected_option == 2:  
+            self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=1.0)
+            time.sleep(1)
             pygame.quit()
             sys.exit()
 
@@ -86,6 +91,7 @@ class MainMenuSettings:
             {"name": "Back", "type": "action"}
         ]
         self.selected = 0
+        self.audio_manager = AudioManager()  # Add this line
 
     def display(self):
         self.screen.fill(WATER_COLOR)
@@ -115,13 +121,16 @@ class MainMenuSettings:
         
         if option["type"] == "toggle":
             option["value"] = not option["value"]
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=0.5)
             return option["name"], option["value"]
         
         elif option["type"] == "choice":
             option["value"] = (option["value"] + 1) % len(option["choices"])
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=0.5)
             return option["name"], option["choices"][option["value"]]
         
         elif option["type"] == "action" and option["name"] == "Back":
+            self.audio_manager.play_sound("../audio/menu/Cancel.wav", volume=0.5)
             return "Back", None
         
         return None, None
@@ -130,18 +139,26 @@ class AudioManager:
     def __init__(self):
         pygame.mixer.init() 
 
-    def play(self, filename, loops=0, volume=0.5):
+    def play_music(self, filename, loops=0, volume=0.5):
         try:
             pygame.mixer.music.load(filename)
             pygame.mixer.music.set_volume(volume)
             pygame.mixer.music.play(loops)
         except pygame.error as e:
-            print(f"Error loading audio: {filename}. Error: {e}")
+            print(f"Error loading music: {filename}. Error: {e}")
 
-    def stop(self):
+    def play_sound(self, filename, volume=0.5):
+        try:
+            sound = pygame.mixer.Sound(filename)
+            sound.set_volume(volume)
+            sound.play()
+        except pygame.error as e:
+            print(f"Error loading sound: {filename}. Error: {e}")
+
+    def stop_music(self):
         pygame.mixer.music.stop()
 
-    def set_volume(self, volume):
+    def set_music_volume(self, volume):
         pygame.mixer.music.set_volume(volume)
 
 class PauseMenu:
@@ -152,6 +169,7 @@ class PauseMenu:
         self.selected = 0
         self.menu_surface = pygame.Surface((WIDTH, HEIGTH))
         self.menu_surface.set_alpha(150)  # Adjust alpha for transparency
+        self.audio_manager = AudioManager()  # Add this line
 
     def display(self):
         self.menu_surface = pygame.Surface((WIDTH, HEIGTH))  # Update size to match current resolution
@@ -172,10 +190,13 @@ class PauseMenu:
 
     def select(self):
         if self.selected == 0:  
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
             return "resume"
         elif self.selected == 1:  
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=0.5)
             return "settings"
         elif self.selected == 2:  
+            self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
             return "quit"
         
         
@@ -190,6 +211,7 @@ class PauseMenuSettings:
             {"name": "Back", "type": "action"}
         ]
         self.selected = 0
+        self.audio_manager = AudioManager()  
 
     def display(self):
         self.screen.fill(WATER_COLOR)
@@ -218,13 +240,16 @@ class PauseMenuSettings:
         
         if option["type"] == "toggle":
             option["value"] = not option["value"]
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=0.5)
             return option["name"], option["value"]
         
         elif option["type"] == "choice":
             option["value"] = (option["value"] + 1) % len(option["choices"])
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=0.5)
             return option["name"], option["choices"][option["value"]]
         
         elif option["type"] == "action" and option["name"] == "Back":
+            self.audio_manager.play_sound("../audio/menu/Cancel.wav", volume=0.5)
             return "Back", None
         
         return None, None
@@ -261,7 +286,7 @@ class Game:
             intro.display()
             self.intro_played = True
 
-        self.audio_manager.play("../audio/main_menu.ogg", loops=-1, volume=0.5)
+        self.audio_manager.play_music("../audio/main_menu.ogg", loops=-1, volume=0.5)
 
     def run(self):
         try:
@@ -282,8 +307,8 @@ class Game:
                                 if action == "new_game":
                                     self.in_menu = False
                                     self.in_gameplay = True
-                                    self.audio_manager.stop()
-                                    self.audio_manager.play("../audio/main.ogg", loops=-1, volume=0.5)
+                                    self.audio_manager.stop_music()
+                                    self.audio_manager.play_music("../audio/main.ogg", loops=-1, volume=0.5)
                                 elif action == "settings":
                                     self.in_menu = False
                                     self.in_settings = True
@@ -304,6 +329,8 @@ class Game:
                                 action = self.pause_menu.select()
                                 if action == "resume":
                                     self.in_pause = False
+                                    self.audio_manager.stop_music()
+                                    self.audio_manager.play_music("../audio/main.ogg", loops=-1, volume=0.5)
                                 elif action == "settings":
                                     self.in_pause = False
                                     self.in_pause_settings = True
@@ -312,6 +339,8 @@ class Game:
                                     sys.exit()
                             elif event.key == pygame.K_ESCAPE:
                                 self.in_pause = False
+                                self.audio_manager.stop_music()
+                                self.audio_manager.play_music("../audio/main.ogg", loops=-1, volume=0.5)
 
                     elif self.in_settings:
                         if event.type == pygame.KEYDOWN:
@@ -363,6 +392,8 @@ class Game:
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_ESCAPE:
                                 self.in_pause = True
+                                self.audio_manager.stop_music()
+                                self.audio_manager.play_music("../audio/pause_menu.ogg", loops=-1, volume=0.5)
                             elif event.key == pygame.K_f:
                                 self.toggle_fullscreen()
 
