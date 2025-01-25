@@ -27,9 +27,9 @@ class Intro:
             self.screen.fill(WATER_COLOR)
             self.screen.blit(rendered_text, text_rect)
             pygame.display.flip()
-            time.sleep(0.2)  # effect
+            time.sleep(0.2)  # => effect intro
 
-        time.sleep(1)  # Pause after
+        time.sleep(1)  # => Pause after
         self.audio_manager.stop_music()  
 
 
@@ -170,8 +170,8 @@ class PauseMenu:
         self.options = ["Resume Game", "Settings", "Quit Game"]
         self.selected = 0
         self.menu_surface = pygame.Surface((WIDTH, HEIGTH))
-        self.menu_surface.set_alpha(150)  # Adjust alpha for transparency
-        self.audio_manager = AudioManager()  # Add this line
+        self.menu_surface.set_alpha(150)  # => Adjust alpha for transparency
+        self.audio_manager = AudioManager()  # => Add this line
 
     def display(self):
         self.menu_surface = pygame.Surface((WIDTH, HEIGTH))  # Update size to match current resolution
@@ -411,7 +411,7 @@ class Game:
                 elif self.in_pause:
                     self.screen.fill(WATER_COLOR)
                     self.level.visible_sprites.custom_draw(self.level.player)
-                    self.level.ui.display(self.level.player)  # Corrigido aqui
+                    self.level.ui.display(self.level.player)  # => fix here
                     self.pause_menu.display()
                     
                 elif self.in_settings:

@@ -9,7 +9,7 @@ class Player(Entity):
 		self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
 		self.rect = self.image.get_rect(topleft = pos)
 		self.hitbox = self.rect.inflate(-6,HITBOX_OFFSET['player'])
-		self.initial_position = pos  # Defina a posição inicial do jogador
+		self.initial_position = pos  # => position initial for player
             
 		# graphics setup
 		self.import_player_assets()
@@ -48,7 +48,7 @@ class Player(Entity):
 
 		# damage timer
 		self.vulnerable = True
-		self.hurt_time = pygame.time.get_ticks()  # Inicialize com o tempo atual
+		self.hurt_time = pygame.time.get_ticks()  
 		self.invulnerability_duration = 500
 		self.blinking = False
 		self.blink_start_time = None
@@ -56,6 +56,9 @@ class Player(Entity):
 		# import a sound
 		self.weapon_attack_sound = pygame.mixer.Sound('../audio/sword.wav')
 		self.weapon_attack_sound.set_volume(0.4)
+
+		# animation speed
+		self.animation_speed = 0.2  
 
 	def import_player_assets(self):
 		character_path = '../graphics/player/'
@@ -128,25 +131,23 @@ class Player(Entity):
 
 				self.magic = list(magic_data.keys())[self.magic_index]
     
-			#mouse input
-			# ==> problema: demora na ação do mouse
-			for event in pygame.event.get():
-				if event.type == pygame.MOUSEBUTTONDOWN:
-					if event.button == 1:
-						self.attacking = True
-						self.attack_time = pygame.time.get_ticks()
-						self.create_attack()
-						self.weapon_attack_sound.play()
-      
-      
-				elif event.type == pygame.MOUSEBUTTONUP:
-					if event.button == 3:
-						self.attacking = True
-						self.attack_time = pygame.time.get_ticks()
-						style = list(magic_data.keys())[self.magic_index]
-						strength = list(magic_data.values())[self.magic_index]['strength'] + self.stats['magic']
-						cost = list(magic_data.values())[self.magic_index]['cost']
-						self.create_magic(style, strength, cost)
+			# // mouse input //
+			mouse_buttons = pygame.mouse.get_pressed()
+			if mouse_buttons[0]: # => Left mouse button
+				if not self.attacking:
+					self.attacking = True
+					self.attack_time = pygame.time.get_ticks()
+					self.create_attack()
+					self.weapon_attack_sound.play()
+
+			if mouse_buttons[2]:  # => Right mouse button
+				if not self.attacking:
+					self.attacking = True
+					self.attack_time = pygame.time.get_ticks()
+					style = list(magic_data.keys())[self.magic_index]
+					strength = list(magic_data.values())[self.magic_index]['strength'] + self.stats['magic']
+					cost = list(magic_data.values())[self.magic_index]['cost']
+					self.create_magic(style, strength, cost)
                         
 
 	def get_status(self):
