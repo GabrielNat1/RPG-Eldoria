@@ -38,13 +38,17 @@ class Player(Entity):
 		self.magic_switch_time = None
 
 		# stats
-		self.stats = {'health': 100, 'energy': 60, 'attack': 10, 'magic': 4, 'speed': 5}
-		self.max_stats = {'health': 300, 'energy': 140, 'attack': 20, 'magic' : 10, 'speed': 10}
-		self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic' : 100, 'speed': 100}
+		self.stats = {'health': 100, 'energy': 60, 'attack': 10, 'magic': 4, 'speed': 5, 'stamina': 100}
+		self.max_stats = {'health': 300, 'energy': 140, 'attack': 20, 'magic' : 10, 'speed': 10, 'stamina': 100}
+		self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic' : 100, 'speed': 100, 'stamina': 100}
 		self.health = self.stats['health']  
 		self.energy = self.stats['energy'] * 0.8
 		self.exp = 0  
 		self.speed = self.stats['speed']
+		self.stamina = self.stats['stamina']
+		self.running = False
+		self.stamina_recovery_time = 2000  # Tempo em milissegundos para recuperar a estamina
+		self.last_run_time = pygame.time.get_ticks()
 
 		# damage timer
 		self.vulnerable = True
@@ -92,6 +96,16 @@ class Player(Entity):
 				self.status = 'left'
 			else:
 				self.direction.x = 0
+
+			# running input
+			if keys[pygame.K_LSHIFT] and self.stamina > 0:
+				self.running = True
+				self.speed = self.stats['speed'] * 1.5
+				self.stamina -= 0.5
+				self.last_run_time = pygame.time.get_ticks()
+			else:
+				self.running = False
+				self.speed = self.stats['speed']
 
 			# attack input 
 			if keys[pygame.K_SPACE]:
@@ -165,6 +179,11 @@ class Player(Entity):
 					self.status = self.status.replace('_idle','_attack')
 				else:
 					self.status = self.status + '_attack'
+		elif self.running:
+			if 'idle' in self.status:
+				self.status = self.status.replace('_idle','')
+			elif 'attack' in self.status:
+				self.status = self.status.replace('_attack','')
 		else:
 			if 'attack' in self.status:
 				self.status = self.status.replace('_attack','')
@@ -188,6 +207,11 @@ class Player(Entity):
 		if not self.vulnerable:
 			if self.hurt_time is not None and current_time - self.hurt_time >= self.invulnerability_duration:
 				self.vulnerable = True
+
+		# Stamina recovery
+		if not self.running and current_time - self.last_run_time >= self.stamina_recovery_time:
+			if self.stamina < self.stats['stamina']:
+				self.stamina += 0.5
 
 	def animate(self):
 		animation = self.animations[self.status]
@@ -253,7 +277,7 @@ class Player(Entity):
 	def update(self):
 		if not self.blinking:
 			self.input()
-			self.move(self.stats['speed'])
+			self.move(self.speed)
 		self.cooldowns()
 		self.get_status()
 		self.animate()

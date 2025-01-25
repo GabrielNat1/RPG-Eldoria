@@ -37,6 +37,7 @@ TEXT_COLOR = '#EEEEEE'
 # UI Colors
 HEALTH_COLOR = 'red'
 ENERGY_COLOR = 'blue'
+STAMINA_COLOR = 'green'  
 UI_BORDER_COLOR_ACTIVE = 'gold'
 
 # Upgrade menu
