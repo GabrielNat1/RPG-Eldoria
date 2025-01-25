@@ -4,7 +4,7 @@ from tile import Tile
 from player import Player
 from debug import debug
 from support import *
-from random import choice, randint
+from random import choice, randint, random  # Import random
 from weapon import Weapon
 from ui import UI
 from enemy import Enemy
@@ -31,7 +31,6 @@ class Level:
 		self.attack_sprites = pygame.sprite.Group()
 		self.attackable_sprites = pygame.sprite.Group()
 
-		# sprite setup
 		self.create_map()
 
 		# user interface 
@@ -49,14 +48,21 @@ class Level:
 		self.load_initial_chunks()
 		os.makedirs(CHUNKS_FOLDER, exist_ok=True)  # Ensure chunks folder exists
 
-		self.wind_effects = pygame.sprite.Group()  # Add this line
-		self.wind_effect_last_spawn_time = pygame.time.get_ticks()  # Add this line
-		self.wind_frames = import_folder('../graphics/environment/wind')  # Preload wind frames
-		self.spawn_wind_effects()  # Add this line
+		self.wind_effect_interval = 4000  # Default to 4 seconds
+		self.wind_effect_duration = 3000  # Default to 3 seconds
+		self.max_wind_effects = 0  # Default to 4 wind effects
+		self.wind_effects = pygame.sprite.Group()
+		self.wind_effect_last_spawn_time = pygame.time.get_ticks()
+		self.wind_frames = import_folder('../graphics/environment/wind')
+		self.spawn_wind_effects()
 
 		self.floor_surf = pygame.image.load('../graphics/tilemap/ground.png').convert()
 		self.floor_surf = pygame.transform.scale(self.floor_surf, (WIDTH, HEIGTH))  # Scale the background image
 		self.floor_rect = self.floor_surf.get_rect(topleft=(0, 0))
+
+		# Add a delay before enemies can attack the player
+		self.enemy_attack_delay = 3000  # 3 seconds
+		self.game_start_time = pygame.time.get_ticks()
 
 	def create_map(self):
 		layouts = {
@@ -259,7 +265,8 @@ class Level:
 							target_sprite.get_damage(self.player, attack_sprite.sprite_type)
 
 	def damage_player(self, amount, attack_type):
-		if self.player.vulnerable:
+		current_time = pygame.time.get_ticks()
+		if self.player.vulnerable and current_time - self.game_start_time > self.enemy_attack_delay:
 			self.player.health -= amount
 			self.player.vulnerable = False
 			self.player.hurt_time = pygame.time.get_ticks()
@@ -290,21 +297,29 @@ class Level:
 	def toggle_menu(self):
 		self.game_paused = not self.game_paused 
 
+	def clear_wind_effects(self):
+		self.wind_effects.empty()
+
 	def spawn_wind_effects(self):
-		for _ in range(2):  # Limit to 2 wind effects
+		for _ in range(self.max_wind_effects):
 			x = randint(self.player.rect.left - 400, self.player.rect.right + 400)
 			y = randint(self.player.rect.top - 400, self.player.rect.bottom + 400)
-			WindEffect((x, y), [self.visible_sprites, self.wind_effects], self.wind_frames)
+			WindEffect((x, y), [self.visible_sprites, self.wind_effects], self.wind_frames, self.wind_effect_duration)
 
 	def update_wind_effects(self):
 		current_time = pygame.time.get_ticks()
-		if current_time - self.wind_effect_last_spawn_time >= 4000:  # 3 seconds delay
+		if current_time - self.wind_effect_last_spawn_time >= self.wind_effect_interval:
 			self.wind_effect_last_spawn_time = current_time
 			self.spawn_wind_effects()
 
 		for wind_effect in self.wind_effects:
 			if wind_effect.finished:
 				wind_effect.kill()
+
+	def update_wind_effects_settings(self):
+		self.wind_effects.empty()  # Clear existing wind effects
+		self.wind_effect_last_spawn_time = pygame.time.get_ticks()  # Reset spawn time
+		self.spawn_wind_effects()
 
 	def run(self):
 		self.update_chunks()

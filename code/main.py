@@ -3,9 +3,8 @@ import sys
 import time
 import shutil  
 import os
-from settings import *
-from level import Level
-from settings import WIDTH, HEIGTH, FPS, UI_FONT, UI_FONT_SIZE, TEXT_COLOR, MIN_VISIBLE_CHUNKS, MAX_VISIBLE_CHUNKS
+import settings
+from level import *
 
 class Intro:
     def __init__(self, screen):
@@ -86,6 +85,7 @@ class Settings:
             {"name": "Fullscreen", "type": "toggle", "value": True},  # Default to fullscreen
             {"name": "Borderless", "type": "toggle", "value": False},
             {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600)], "value": 1},  # Default to 1920x1080
+            {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1},  # Default to normal
             {"name": "Back", "type": "action"}
         ]
         self.selected = 0
@@ -282,6 +282,35 @@ class Game:
             self.intro_played = True
 
         self.audio_manager.play_music("../audio/main_menu.ogg", loops=-1, volume=0.5)
+        self.apply_game_settings()
+
+    def apply_game_settings(self):
+        game_mode = self.settings.options[3]["value"]
+        self.level.clear_wind_effects()  # Clear existing wind effects
+        if game_mode == 0:  # optimized
+            settings.TILESIZE = 32
+            settings.CHUNKSIZE = 16
+            settings.VISIBLE_CHUNKS = 1
+            self.level.wind_effect_interval = 30000  # 30 seconds
+            self.level.wind_effect_duration = 5000  # 5 seconds
+            self.level.max_wind_effects = 1
+        elif game_mode == 1:  # normal
+            settings.TILESIZE = 64
+            settings.CHUNKSIZE = 32
+            settings.VISIBLE_CHUNKS = 3
+            self.level.wind_effect_interval = 10000  # 10 seconds
+            self.level.wind_effect_duration = 5000  # 5 seconds
+            self.level.max_wind_effects = 3
+        elif game_mode == 2:  # extreme performance
+            settings.TILESIZE = 128
+            settings.CHUNKSIZE = 64
+            settings.VISIBLE_CHUNKS = 6
+            self.level.wind_effect_interval = 10000  # 10 seconds
+            self.level.wind_effect_duration = 5000  # 5 seconds
+            self.level.max_wind_effects = 5
+
+        self.level.update_wind_effects_settings()
+        self.level.spawn_wind_effects()  # Respawn wind effects
 
     def run(self):
         try:

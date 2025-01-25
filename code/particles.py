@@ -57,8 +57,8 @@ class AnimationPlayer:
         animation_frames = self.frames[animation_type]
         ParticleEffect(pos, animation_frames, groups)
 
-    def create_wind_effect(self, pos, groups):
-        WindEffect(pos, groups, self.wind_frames)
+    def create_wind_effect(self, pos, groups, duration):
+        WindEffect(pos, groups, self.wind_frames, duration)
 
 
 class ParticleEffect(pygame.sprite.Sprite):
@@ -83,7 +83,7 @@ class ParticleEffect(pygame.sprite.Sprite):
 
 
 class WindEffect(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, frames):
+    def __init__(self, pos, groups, frames, duration):
         super().__init__(groups)
         self.frames = [pygame.transform.scale(frame, (frame.get_width() // 2, frame.get_height() // 2)) for frame in frames]  # Reduce size
         self.frame_index = 0
@@ -91,7 +91,7 @@ class WindEffect(pygame.sprite.Sprite):
         self.image = self.frames[self.frame_index]
         self.rect = self.image.get_rect(center=pos)
         self.start_time = pygame.time.get_ticks()
-        self.duration = 3000  # 3 seconds
+        self.duration = duration  # Use the provided duration
         self.finished = False
 
     def animate(self):
