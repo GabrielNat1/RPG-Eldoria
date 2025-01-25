@@ -48,8 +48,10 @@ class Player(Entity):
 
 		# damage timer
 		self.vulnerable = True
-		self.hurt_time = None
+		self.hurt_time = pygame.time.get_ticks()  # Inicialize com o tempo atual
 		self.invulnerability_duration = 500
+		self.blinking = False
+		self.blink_start_time = None
 
 		# import a sound
 		self.weapon_attack_sound = pygame.mixer.Sound('../audio/sword.wav')
@@ -183,7 +185,7 @@ class Player(Entity):
 				self.can_switch_magic = True
 
 		if not self.vulnerable:
-			if current_time - self.hurt_time >= self.invulnerability_duration:
+			if self.hurt_time is not None and current_time - self.hurt_time >= self.invulnerability_duration:
 				self.vulnerable = True
 
 	def animate(self):
@@ -227,18 +229,34 @@ class Player(Entity):
 		else:
 			self.energy = self.stats['energy']
 
+	def blink(self):
+		current_time = pygame.time.get_ticks()
+		if current_time - self.blink_start_time >= 500:
+			self.blinking = False
+			self.vulnerable = True
+			self.image.set_alpha(255)
+		else:
+			alpha = self.wave_value()
+			self.image.set_alpha(alpha)
+
 	def check_death(self):
 		if self.health <= 0:
 			self.health = self.stats['health']
 			self.energy = self.stats['energy']
 			self.rect.topleft = self.initial_position
 			self.hitbox.topleft = self.initial_position
+			self.blinking = True
+			self.blink_start_time = pygame.time.get_ticks()
+			self.vulnerable = False
 
 	def update(self):
-		self.input()
+		if not self.blinking:
+			self.input()
+			self.move(self.stats['speed'])
 		self.cooldowns()
 		self.get_status()
 		self.animate()
-		self.move(self.stats['speed'])
 		self.energy_recovery()
 		self.check_death()
+		if self.blinking:
+			self.blink()

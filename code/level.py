@@ -269,7 +269,10 @@ class Level:
 			self.create_attack,
 			self.destroy_attack,
 			self.create_magic)
-		self.player.health = self.player.stats['health']  
+		self.player.health = self.player.stats['health']
+		self.player.blinking = True
+		self.player.blink_start_time = pygame.time.get_ticks()
+		self.player.vulnerable = False
 
 	def trigger_death_particles(self, pos, particle_type):
 		self.animation_player.create_particles(particle_type, pos, self.visible_sprites)
