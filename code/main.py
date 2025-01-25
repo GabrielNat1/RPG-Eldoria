@@ -80,24 +80,47 @@ class MainMenu:
 
 
 
-class MainMenuSettings:
-    def __init__(self, screen):
-        self.screen = screen
-        self.font = pygame.font.Font(UI_FONT, 40)
+class Settings:
+    def __init__(self):
         self.options = [
-            {"name": "Fullscreen", "type": "toggle", "value": False},
+            {"name": "Fullscreen", "type": "toggle", "value": True},  # Default to fullscreen
             {"name": "Borderless", "type": "toggle", "value": False},
-            {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600)], "value": 0},
+            {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600)], "value": 1},  # Default to 1920x1080
             {"name": "Back", "type": "action"}
         ]
         self.selected = 0
+
+    def navigate(self, direction):
+        self.selected = (self.selected + direction) % len(self.options)
+
+    def toggle_option(self):
+        option = self.options[self.selected]
+        
+        if option["type"] == "toggle":
+            option["value"] = not option["value"]
+            return option["name"], option["value"]
+        
+        elif option["type"] == "choice":
+            option["value"] = (option["value"] + 1) % len(option["choices"])
+            return option["name"], option["choices"][option["value"]]
+        
+        elif option["type"] == "action" and option["name"] == "Back":
+            return "Back", None
+        
+        return None, None
+
+class MainMenuSettings:
+    def __init__(self, screen, settings):
+        self.screen = screen
+        self.font = pygame.font.Font(UI_FONT, 40)
+        self.settings = settings
         self.audio_manager = AudioManager()  
 
     def display(self):
         self.screen.fill(WATER_COLOR)
         
-        for idx, option in enumerate(self.options):
-            color = TEXT_COLOR if idx == self.selected else UI_BG_COLOR
+        for idx, option in enumerate(self.settings.options):
+            color = TEXT_COLOR if idx == self.settings.selected else UI_BG_COLOR
             text = option["name"]
             
             if option["type"] == "toggle":
@@ -108,33 +131,94 @@ class MainMenuSettings:
                 
             rendered_text = self.font.render(text, True, color)
             text_rect = rendered_text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
-            
             self.screen.blit(rendered_text, text_rect)
+            
+        pygame.display.flip()
+
+    def navigate(self, direction):
+        self.settings.navigate(direction)
+
+    def toggle_option(self):
+        option, value = self.settings.toggle_option()
+        if option:
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
+        return option, value
+
+class PauseMenu:
+    def __init__(self, screen):
+        self.screen = screen
+        self.font = pygame.font.Font(UI_FONT, 40)
+        self.options = ["Resume Game", "Settings", "Quit Game"]
+        self.selected = 0
+        self.menu_surface = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA)  # Update to use SRCALPHA for transparency
+        self.menu_surface.fill((0, 0, 0, 150))  # Fill with black color and set alpha
+        self.audio_manager = AudioManager()  # => Add this line
+
+    def display(self):
+        self.menu_surface = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA)  # Update size to match current resolution
+        self.menu_surface.fill((0, 0, 0, 150))  # Fill with black color and set alpha
+        self.screen.blit(self.menu_surface, (0, 0))
+        
+        for idx, option in enumerate(self.options):
+            color = TEXT_COLOR if idx == self.selected else UI_BG_COLOR
+            text = self.font.render(option, True, color)
+            text_rect = text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
+            self.screen.blit(text, text_rect)
             
         pygame.display.flip()
 
     def navigate(self, direction):
         self.selected = (self.selected + direction) % len(self.options)
 
+    def select(self):
+        if self.selected == 0:  
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
+            return "resume"
+        elif self.selected == 1:  
+            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
+            return "settings"
+        elif self.selected == 2:  
+            self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
+            time.sleep(0.5)
+            return "quit"
+        
+        
+class PauseMenuSettings:
+    def __init__(self, screen, settings):
+        self.screen = screen
+        self.font = pygame.font.Font(UI_FONT, 40)
+        self.settings = settings
+        self.audio_manager = AudioManager()  
+
+    def display(self):
+        self.screen.fill(WATER_COLOR)
+        
+        for idx, option in enumerate(self.settings.options):
+            color = TEXT_COLOR if idx == self.settings.selected else UI_BG_COLOR
+            text = option["name"]
+            
+            if option["type"] == "toggle":
+                text += f": {'On' if option['value'] else 'Off'}"
+            elif option["type"] == "choice":
+                current_res = option["choices"][option["value"]]
+                text += f": {current_res[0]}x{current_res[1]}" if option["name"] == "Resolution" else f": {current_res}"
+                
+            rendered_text = self.font.render(text, True, color)
+            text_rect = rendered_text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
+            self.screen.blit(rendered_text, text_rect)
+            
+        pygame.display.flip()
+
+    def navigate(self, direction):
+        self.settings.navigate(direction)
+
     def toggle_option(self):
-        option = self.options[self.selected]
-        
-        if option["type"] == "toggle":
-            option["value"] = not option["value"]
+        option, value = self.settings.toggle_option()
+        if option:
             self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
-            return option["name"], option["value"]
-        
-        elif option["type"] == "choice":
-            option["value"] = (option["value"] + 1) % len(option["choices"])
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
-            return option["name"], option["choices"][option["value"]]
-        
-        elif option["type"] == "action" and option["name"] == "Back":
-            self.audio_manager.play_sound("../audio/menu/Cancel.wav", volume=2.5)
-            return "Back", None
-        
-        return None, None
-    
+        return option, value
+
+
 class AudioManager:
     def __init__(self):
         pygame.mixer.init() 
@@ -163,104 +247,10 @@ class AudioManager:
     def set_music_volume(self, volume):
         pygame.mixer.music.set_volume(volume)
 
-class PauseMenu:
-    def __init__(self, screen):
-        self.screen = screen
-        self.font = pygame.font.Font(UI_FONT, 40)
-        self.options = ["Resume Game", "Settings", "Quit Game"]
-        self.selected = 0
-        self.menu_surface = pygame.Surface((WIDTH, HEIGTH))
-        self.menu_surface.set_alpha(150)  # => Adjust alpha for transparency
-        self.audio_manager = AudioManager()  # => Add this line
-
-    def display(self):
-        self.menu_surface = pygame.Surface((WIDTH, HEIGTH))  # Update size to match current resolution
-        self.menu_surface.set_alpha(150)  # Adjust alpha for transparency
-        self.menu_surface.fill((0, 0, 0))  # Fill with black color
-        self.screen.blit(self.menu_surface, (0, 0))
-        
-        for idx, option in enumerate(self.options):
-            color = TEXT_COLOR if idx == self.selected else UI_BG_COLOR
-            text = self.font.render(option, True, color)
-            text_rect = text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
-            self.screen.blit(text, text_rect)
-            
-        pygame.display.flip()
-
-    def navigate(self, direction):
-        self.selected = (self.selected + direction) % len(self.options)
-
-    def select(self):
-        if self.selected == 0:  
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
-            return "resume"
-        elif self.selected == 1:  
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
-            return "settings"
-        elif self.selected == 2:  
-            self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
-            time.sleep(0.5)
-            return "quit"
-        
-        
-class PauseMenuSettings:
-    def __init__(self, screen):
-        self.screen = screen
-        self.font = pygame.font.Font(UI_FONT, 40)
-        self.options = [
-            {"name": "Fullscreen", "type": "toggle", "value": False},
-            {"name": "Borderless", "type": "toggle", "value": False},
-            {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600)], "value": 0},
-            {"name": "Back", "type": "action"}
-        ]
-        self.selected = 0
-        self.audio_manager = AudioManager()  
-
-    def display(self):
-        self.screen.fill(WATER_COLOR)
-        
-        for idx, option in enumerate(self.options):
-            color = TEXT_COLOR if idx == self.selected else UI_BG_COLOR
-            text = option["name"]
-            
-            if option["type"] == "toggle":
-                text += f": {'On' if option['value'] else 'Off'}"
-            elif option["type"] == "choice":
-                current_res = option["choices"][option["value"]]
-                text += f": {current_res[0]}x{current_res[1]}" if option["name"] == "Resolution" else f": {current_res}"
-                
-            rendered_text = self.font.render(text, True, color)
-            text_rect = rendered_text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
-            self.screen.blit(rendered_text, text_rect)
-            
-        pygame.display.flip()
-
-    def navigate(self, direction):
-        self.selected = (self.selected + direction) % len(self.options)
-
-    def toggle_option(self):
-        option = self.options[self.selected]
-        
-        if option["type"] == "toggle":
-            option["value"] = not option["value"]
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
-            return option["name"], option["value"]
-        
-        elif option["type"] == "choice":
-            option["value"] = (option["value"] + 1) % len(option["choices"])
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
-            return option["name"], option["choices"][option["value"]]
-        
-        elif option["type"] == "action" and option["name"] == "Back":
-            self.audio_manager.play_sound("../audio/menu/Cancel.wav", volume=2.5)
-            return "Back", None
-        
-        return None, None
-
-
 class Game:
     def __init__(self):
         pygame.init()
+        self.settings = Settings()
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
         
         pygame.display.set_caption('RPG Eldoria')
@@ -271,9 +261,9 @@ class Game:
         self.clock = pygame.time.Clock()
         self.level = Level()
         self.main_menu = MainMenu(self.screen)
-        self.main_menu_settings = MainMenuSettings(self.screen)
+        self.main_menu_settings = MainMenuSettings(self.screen, self.settings)
         self.pause_menu = PauseMenu(self.screen)
-        self.pause_menu_settings = PauseMenuSettings(self.screen)
+        self.pause_menu_settings = PauseMenuSettings(self.screen, self.settings)
         self.fullscreen = False
         self.in_menu = True
         self.in_settings = False
@@ -283,6 +273,8 @@ class Game:
 
         self.intro_played = False
         self.audio_manager = AudioManager()
+
+        self.toggle_fullscreen()  
 
         if not self.intro_played:
             intro = Intro(self.screen)
@@ -404,6 +396,7 @@ class Game:
                             global WIDTH, HEIGTH
                             WIDTH, HEIGTH = event.size
                             self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
+                            self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
 
                 if self.in_menu:
                     self.main_menu.display()
@@ -438,14 +431,17 @@ class Game:
             pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
             self.fullscreen = False
         else:
-            flags = pygame.SRCALPHA if borderless else pygame.FULLSCREEN
+            flags = pygame.NOFRAME if borderless else pygame.FULLSCREEN
             pygame.display.set_mode((WIDTH, HEIGTH), flags)
             self.fullscreen = True
+        self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
+        self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)  # Center the game on the player
     
     def apply_resolution(self, resolution):
         global WIDTH, HEIGTH
         WIDTH, HEIGTH = resolution
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
+        self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
 
 
 if __name__ == '__main__':

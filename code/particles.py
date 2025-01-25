@@ -39,6 +39,7 @@ class AnimationPlayer:
                 self.reflect_images(import_folder('../graphics/particles/leaf6'))
             )
         }
+        self.wind_frames = import_folder('../graphics/environment/wind')
     
     def reflect_images(self, frames):
         new_frames = []
@@ -55,6 +56,9 @@ class AnimationPlayer:
     def create_particles(self, animation_type, pos, groups):
         animation_frames = self.frames[animation_type]
         ParticleEffect(pos, animation_frames, groups)
+
+    def create_wind_effect(self, pos, groups):
+        WindEffect(pos, groups, self.wind_frames)
 
 
 class ParticleEffect(pygame.sprite.Sprite):
@@ -76,3 +80,27 @@ class ParticleEffect(pygame.sprite.Sprite):
 
     def update(self):
         self.animate()
+
+
+class WindEffect(pygame.sprite.Sprite):
+    def __init__(self, pos, groups, frames):
+        super().__init__(groups)
+        self.frames = [pygame.transform.scale(frame, (frame.get_width() // 2, frame.get_height() // 2)) for frame in frames]  # Reduce size
+        self.frame_index = 0
+        self.animation_speed = 0.1
+        self.image = self.frames[self.frame_index]
+        self.rect = self.image.get_rect(center=pos)
+        self.start_time = pygame.time.get_ticks()
+        self.duration = 3000  # 3 seconds
+        self.finished = False
+
+    def animate(self):
+        self.frame_index += self.animation_speed
+        if self.frame_index >= len(self.frames):
+            self.frame_index = 0
+        self.image = self.frames[int(self.frame_index)]
+
+    def update(self):
+        self.animate()
+        if pygame.time.get_ticks() - self.start_time >= self.duration:
+            self.finished = True

@@ -8,7 +8,7 @@ from random import choice, randint
 from weapon import Weapon
 from ui import UI
 from enemy import Enemy
-from particles import AnimationPlayer
+from particles import AnimationPlayer, WindEffect
 from magic import MagicPlayer
 from upgrade import Upgrade
 import json
@@ -49,7 +49,14 @@ class Level:
 		self.load_initial_chunks()
 		os.makedirs(CHUNKS_FOLDER, exist_ok=True)  # Ensure chunks folder exists
 
-		
+		self.wind_effects = pygame.sprite.Group()  # Add this line
+		self.wind_effect_last_spawn_time = pygame.time.get_ticks()  # Add this line
+		self.wind_frames = import_folder('../graphics/environment/wind')  # Preload wind frames
+		self.spawn_wind_effects()  # Add this line
+
+		self.floor_surf = pygame.image.load('../graphics/tilemap/ground.png').convert()
+		self.floor_surf = pygame.transform.scale(self.floor_surf, (WIDTH, HEIGTH))  # Scale the background image
+		self.floor_rect = self.floor_surf.get_rect(topleft=(0, 0))
 
 	def create_map(self):
 		layouts = {
@@ -283,10 +290,27 @@ class Level:
 	def toggle_menu(self):
 		self.game_paused = not self.game_paused 
 
+	def spawn_wind_effects(self):
+		for _ in range(2):  # Limit to 2 wind effects
+			x = randint(self.player.rect.left - 400, self.player.rect.right + 400)
+			y = randint(self.player.rect.top - 400, self.player.rect.bottom + 400)
+			WindEffect((x, y), [self.visible_sprites, self.wind_effects], self.wind_frames)
+
+	def update_wind_effects(self):
+		current_time = pygame.time.get_ticks()
+		if current_time - self.wind_effect_last_spawn_time >= 4000:  # 3 seconds delay
+			self.wind_effect_last_spawn_time = current_time
+			self.spawn_wind_effects()
+
+		for wind_effect in self.wind_effects:
+			if wind_effect.finished:
+				wind_effect.kill()
+
 	def run(self):
 		self.update_chunks()
 		self.visible_sprites.custom_draw(self.player)
 		self.ui.display(self.player)
+		self.update_wind_effects()  
 		
 		if self.game_paused:
 			self.upgrade.display()
