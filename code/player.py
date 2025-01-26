@@ -202,7 +202,6 @@ class Player(Entity):
 		current_time = pygame.time.get_ticks()
 
 		if self.weapon is None:
-			print("Erro: Nenhuma arma definida para o jogador.")
 			return
     
 		if self.attacking:
