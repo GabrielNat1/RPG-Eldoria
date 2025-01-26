@@ -22,8 +22,7 @@ class Player(Entity):
 		self.obstacle_sprites = obstacle_sprites
 
 		# weapons
-		self.weapon = 'sword'
-		self.weapons = ['sword', 'lance', 'axe', 'rapier']  # Initial weapons
+		self.weapons = ['sword']  # Initial weapons
 		self.weapon_index = 0
 		self.weapon = self.weapons[self.weapon_index]
 		self.can_switch_weapon = True

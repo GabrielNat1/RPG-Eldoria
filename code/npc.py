@@ -75,5 +75,6 @@ class NPC(pygame.sprite.Sprite):
                 self.dialogue_stage = 0
                 self.show_dialogue = False
               
-                self.player.weapon = self.player.add_weapon('rail')
+                self.player.weapon = self.player.add_weapon('sai')
                 print('arma adicionada')
+                print(self.player.weapon)
