@@ -21,11 +21,11 @@ class Player(Entity):
 		self.attack_time = None
 		self.obstacle_sprites = obstacle_sprites
 
-		# weapon
-		self.create_attack = create_attack
-		self.destroy_attack = destroy_attack
+		# weapons
+		self.weapon = 'sword'
+		self.weapons = ['sword', 'lance', 'axe', 'rapier']  # Initial weapons
 		self.weapon_index = 0
-		self.weapon = list(weapon_data.keys())[self.weapon_index]
+		self.weapon = self.weapons[self.weapon_index]
 		self.can_switch_weapon = True
 		self.weapon_switch_time = None
 		self.switch_duration_cooldown = 200
@@ -43,11 +43,11 @@ class Player(Entity):
 		self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic' : 100, 'speed': 100, 'stamina': 100}
 		self.health = self.stats['health']  
 		self.energy = self.stats['energy'] * 0.8
-		self.exp = 0  
+		self.exp = 0
 		self.speed = self.stats['speed']
 		self.stamina = self.stats['stamina']
 		self.running = False
-		self.stamina_recovery_time = 2000  # Tempo em milissegundos para recuperar a estamina
+		self.stamina_recovery_time = 2000  
 		self.last_run_time = pygame.time.get_ticks()
 
 		# damage timer
@@ -64,6 +64,18 @@ class Player(Entity):
 		# animation speed
 		self.animation_speed = 0.2  
 
+		# attack methods
+		self.create_attack = create_attack
+		self.destroy_attack = destroy_attack
+  
+	def load_weapon_data(self):
+			self.weapon_data = weapon_data 
+			print("Dados das armas carregados.")
+	def add_weapon(self, weapon_name):
+			if weapon_name not in self.weapons:  
+				self.weapons.append(weapon_name)
+				print(f'Arma {weapon_name} adicionada!')
+             
 	def import_player_assets(self):
 		character_path = '../graphics/player/'
 		self.animations = {'up': [],'down': [],'left': [],'right': [],
@@ -73,6 +85,8 @@ class Player(Entity):
 		for animation in self.animations.keys():
 			full_path = character_path + animation
 			self.animations[animation] = import_folder(full_path)
+    
+   
 
 	def input(self):
 		if not self.attacking:
@@ -126,13 +140,10 @@ class Player(Entity):
 			if keys[pygame.K_q] and self.can_switch_weapon:
 				self.can_switch_weapon = False
 				self.weapon_switch_time = pygame.time.get_ticks()
-				
-				if self.weapon_index < len(list(weapon_data.keys())) - 1:
-					self.weapon_index += 1
-				else:
+				self.weapon_index += 1
+				if self.weapon_index >= len(self.weapons):
 					self.weapon_index = 0
-					
-				self.weapon = list(weapon_data.keys())[self.weapon_index]
+				self.weapon = self.weapons[self.weapon_index]
 
 			if keys[pygame.K_e] and self.can_switch_magic:
 				self.can_switch_magic = False
@@ -162,7 +173,7 @@ class Player(Entity):
 					strength = list(magic_data.values())[self.magic_index]['strength'] + self.stats['magic']
 					cost = list(magic_data.values())[self.magic_index]['cost']
 					self.create_magic(style, strength, cost)
-                        
+    
 
 	def get_status(self):
 
@@ -191,6 +202,10 @@ class Player(Entity):
 	def cooldowns(self):
 		current_time = pygame.time.get_ticks()
 
+		if self.weapon is None:
+			print("Erro: Nenhuma arma definida para o jogador.")
+			return
+    
 		if self.attacking:
 			if current_time - self.attack_time >= self.attack_cooldown + weapon_data[self.weapon]['cooldown']:
 				self.attacking = False
