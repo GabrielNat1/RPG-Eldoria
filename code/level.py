@@ -342,16 +342,16 @@ class Level:
 		if self.game_paused:
 			self.upgrade.display()
 		else:
-			# Atualiza os sprites e a lógica de inimigos, mas apenas se não houver diálogo
+		
 			if not self.npc.show_dialogue:
 				self.visible_sprites.update()
 				self.visible_sprites.enemy_update(self.player)
 				self.player_attack_logic()
-				self.npc.update()  # Atualiza a animação do NPC
-				self.npc.handle_npc_interaction()  # Verifica a interação com o NPC
+				self.npc.update()  
+				self.npc.check_player_distance()  
 
 		if self.npc.show_dialogue:
-			self.npc.display_dialogue()  # Exibe o diálogo com o NPC
+			self.npc.display_dialogue()  
 
 
 	def is_chunk_within_visibility_radius(self, chunk):
