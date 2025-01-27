@@ -60,12 +60,21 @@ class UI:
 			pygame.draw.rect(self.display_surface,UI_BORDER_COLOR,bg_rect,3)
 		return bg_rect
 
-	def weapon_overlay(self,weapon_index,has_switched):
-		bg_rect = self.selection_box(10,630,has_switched)
-		weapon_surf = self.weapon_graphics[weapon_index]
-		weapon_rect = weapon_surf.get_rect(center = bg_rect.center)
+	def weapon_overlay(self, weapon_name, has_switched):
+		if weapon_name is None:
+			print("Erro: Nenhuma arma foi definida.")
+			return
+		if weapon_name not in weapon_data:
+			print(f"Erro: Arma {weapon_name} não encontrada no dicionário.")
+			
 
-		self.display_surface.blit(weapon_surf,weapon_rect)
+		bg_rect = self.selection_box(10, 630, has_switched)
+		
+		weapon_surf = pygame.image.load(weapon_data[weapon_name]['graphic']).convert_alpha()
+		weapon_rect = weapon_surf.get_rect(center=bg_rect.center)
+		
+		self.display_surface.blit(weapon_surf, weapon_rect)
+
 
 	def magic_overlay(self,magic_index,has_switched):
 		bg_rect = self.selection_box(80,635,has_switched)
@@ -81,5 +90,5 @@ class UI:
 
 		self.show_exp(player.exp)
 
-		self.weapon_overlay(player.weapon_index,not player.can_switch_weapon)
-		self.magic_overlay(player.magic_index,not player.can_switch_magic)
+		self.weapon_overlay(player.weapon, not player.can_switch_weapon)
+		self.magic_overlay(player.magic_index, not player.can_switch_magic)

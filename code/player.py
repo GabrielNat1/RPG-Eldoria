@@ -2,6 +2,7 @@ import pygame
 from settings import *
 from support import import_folder
 from entity import Entity
+from ui import UI
 
 class Player(Entity):
 	def __init__(self,pos,groups,obstacle_sprites,create_attack,destroy_attack,create_magic):
@@ -10,11 +11,13 @@ class Player(Entity):
 		self.rect = self.image.get_rect(topleft = pos)
 		self.hitbox = self.rect.inflate(-6,HITBOX_OFFSET['player'])
 		self.initial_position = pos  # => position initial for player
+	   
             
 		# graphics setup
 		self.import_player_assets()
 		self.status = 'down'
-
+		self.ui = UI()
+	
 		# movement 
 		self.attacking = False
 		self.attack_cooldown = 400
@@ -67,13 +70,20 @@ class Player(Entity):
 		self.create_attack = create_attack
 		self.destroy_attack = destroy_attack
   
-	def load_weapon_data(self):
+	def weapon_data(self):
 			self.weapon_data = weapon_data 
 			print("Dados das armas carregados.")
+   
 	def add_weapon(self, weapon_name):
 			if weapon_name not in self.weapons:  
 				self.weapons.append(weapon_name)
 				print(f'Arma {weapon_name} adicionada!')
+    
+			self.weapon = weapon_name  
+			self.weapon_index = self.weapons.index(weapon_name) 
+			print(f'Arma equipada: {self.weapon}, Índice: {self.weapon_index}')
+
+			self.ui.display(self)
              
 	def import_player_assets(self):
 		character_path = '../graphics/player/'

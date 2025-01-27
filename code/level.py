@@ -11,18 +11,18 @@ from enemy import Enemy
 from particles import AnimationPlayer, WindEffect
 from magic import MagicPlayer
 from upgrade import Upgrade
-from npc import NPC  
+from npc import NPC
 import json
 import os
 import shutil  
 import time
 
+
 class Level:
 	def __init__(self):
-		
-		
 
-		# get the display surface 
+  
+		# get the display surface
 		self.display_surface = pygame.display.get_surface()
 		self.game_paused = False
 
@@ -68,24 +68,12 @@ class Level:
 		self.enemy_attack_delay = 3000  # 3 seconds
 		self.game_start_time = pygame.time.get_ticks()
 
-		# NPC
+		# Instance Npc
 		self.npc = NPC(
    		 (self.initial_position[0] + 500, self.initial_position[1]),
    		 [self.visible_sprites, self.obstacle_sprites],
     	 self.player,
    		 self.display_surface)
-		self.dialogue_box = pygame.Surface((WIDTH - 200, 150))
-		self.dialogue_box.fill((0, 0, 0))
-		self.dialogue_box_rect = self.dialogue_box.get_rect(center=(WIDTH // 2, HEIGTH // 1.5))
-		self.dialogue_border_color = (255, 165, 0)  # Orange border color
-		self.dialogue_text = ""
-		self.show_dialogue = False
-		self.typing_effect_index = 0
-		self.typing_effect_speed = 2
-		self.typing_effect_last_update = pygame.time.get_ticks()
-		self.dialogue_finished = False
-		self.dialogue_stage = 0
-		self.dialogue_timer = None
 
 	def create_map(self):
 		layouts = {
@@ -345,54 +333,6 @@ class Level:
 		self.wind_effect_last_spawn_time = pygame.time.get_ticks()  # Reset spawn time
 		self.spawn_wind_effects()
 
-	
-	def handle_npc_interaction(self):
-		if self.npc.rect.colliderect(self.player.rect):
-			keys = pygame.key.get_pressed()
-
-			# Iniciar ou continuar o diálogo
-			if keys[pygame.K_RETURN] and not self.dialogue_finished:
-				if not self.show_dialogue:
-					self.show_dialogue = True
-					self.dialogue_finished = False
-					self.typing_effect_index = 0
-					self.dialogue_timer = pygame.time.get_ticks()
-
-					# Verifica se a quest já foi dada ou não
-					if self.npc.quest_given:
-						self.dialogue_text = "Obrigado pela ajuda! A recompensa já foi dada."
-					else:
-						self.dialogue_text = "Estou perdido... Vá recolher 100 pontos para mim..."
-						self.dialogue_stage = 0  # Garante que a quest comece no estágio inicial
-				else:
-					# Fluxo de diálogo dependendo do estágio atual
-					if self.dialogue_stage == 0:
-						self.dialogue_stage = 1
-						self.dialogue_text = "Em troca te darei uma recompensa."
-					elif self.dialogue_stage == 1:
-						self.dialogue_stage = 2
-						self.dialogue_text = "..."
-					elif self.dialogue_stage == 2:
-						if self.player.exp >= 100 and not self.npc.quest_given:
-							# Dá a missão, remove os pontos e marca como dado
-							self.npc.give_quest()
-							self.dialogue_text = "Obrigado por me ajudar! Aqui está sua recompensa."
-							self.player.weapons.append('sai')  # Adiciona a recompensa (arma)
-						else:
-							self.dialogue_text = "Você precisa de 100 pontos para completar a quest."
-						self.dialogue_stage = 3  # Finaliza o diálogo após a recompensa
-
-			# Avançar no diálogo e resetar após finalizar
-			elif self.dialogue_finished:
-				if self.dialogue_stage == 2:
-					self.show_dialogue = False
-					self.dialogue_stage = 0
-					self.dialogue_timer = pygame.time.get_ticks()
-
-
-
-        
-
 	def run(self):
 		self.update_chunks()
 		self.visible_sprites.custom_draw(self.player)
@@ -402,50 +342,17 @@ class Level:
 		if self.game_paused:
 			self.upgrade.display()
 		else:
-			if not self.show_dialogue:
+			# Atualiza os sprites e a lógica de inimigos, mas apenas se não houver diálogo
+			if not self.npc.show_dialogue:
 				self.visible_sprites.update()
 				self.visible_sprites.enemy_update(self.player)
 				self.player_attack_logic()
-				self.npc.update()
-				self.handle_npc_interaction()  # Verifica a interação com o NPC
+				self.npc.update()  # Atualiza a animação do NPC
+				self.npc.handle_npc_interaction()  # Verifica a interação com o NPC
 
-		if self.show_dialogue:
-			self.display_dialogue()  # Exibe o diálogo com o NPC
+		if self.npc.show_dialogue:
+			self.npc.display_dialogue()  # Exibe o diálogo com o NPC
 
-
-	def display_dialogue(self):
-		pygame.draw.rect(self.display_surface, self.dialogue_border_color, self.dialogue_box_rect.inflate(10, 10), border_radius=10)
-		self.display_surface.blit(self.dialogue_box, self.dialogue_box_rect)
-		font = pygame.font.Font(UI_FONT, UI_FONT_SIZE)
-		current_time = pygame.time.get_ticks()
-		if current_time - self.typing_effect_last_update > self.typing_effect_speed:
-			self.typing_effect_last_update = current_time
-			if self.typing_effect_index < len(self.dialogue_text):
-				self.typing_effect_index += 1
-			else:
-				self.dialogue_finished = True
-
-		text_surface = font.render(self.dialogue_text[:self.typing_effect_index], True, TEXT_COLOR)
-		text_rect = text_surface.get_rect(topleft=(self.dialogue_box_rect.x + 20, self.dialogue_box_rect.y + 20))
-		self.display_surface.blit(text_surface, text_rect)
-
-		if self.dialogue_finished and current_time - self.dialogue_timer > 1000:
-			if self.dialogue_stage == 0:
-				self.dialogue_stage = 1
-				self.dialogue_text = "em troca te darei uma recompensa."
-				self.typing_effect_index = 0
-				self.dialogue_finished = False
-				self.dialogue_timer = pygame.time.get_ticks()
-			elif self.dialogue_stage == 1:
-				self.dialogue_stage = 2
-				self.dialogue_text = "..."
-				self.typing_effect_index = 0
-				self.dialogue_finished = False
-				self.dialogue_timer = pygame.time.get_ticks()
-			elif self.dialogue_stage == 2:
-				self.show_dialogue = False
-				self.dialogue_stage = 0
-				time.sleep(1)  # Pause for 1 second before closing the dialogue box
 
 	def is_chunk_within_visibility_radius(self, chunk):
 		player_pos = self.player.rect.center
