@@ -67,7 +67,7 @@ class Level:
 
 		# Instance for NPC
 		self.npc = NPC(
-   		 (self.initial_position[0] + 800, self.initial_position[1]),
+   		 (self.initial_position[0] + 840, self.initial_position[1]),
    		 [self.visible_sprites, self.obstacle_sprites],
     	 self.player,
    		 self.display_surface)
