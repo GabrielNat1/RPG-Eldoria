@@ -6,30 +6,28 @@ import warnings
 from PIL import Image
 import sys
 
-# Caminho para o diretório de imagens
 folder_path = "../graphics/environment/wind"
 
-# Suprimir mensagens no stderr
 class SuppressOutput:
     def __enter__(self):
         self._original_stderr = sys.stderr
-        self._null = open(os.devnull, 'w')  # Abre um "buraco negro" para mensagens
-        sys.stderr = self._null  # Redireciona o stderr para o null
+        self._null = open(os.devnull, 'w')  
+        sys.stderr = self._null  
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stderr = self._original_stderr  # Restaura o stderr
+        sys.stderr = self._original_stderr 
         self._null.close()
 
-# Processar as imagens sem mensagens no terminal
-with SuppressOutput():  # Tudo dentro desse bloco não terá mensagens no stderr
+
+with SuppressOutput():  
     for filename in os.listdir(folder_path):
         if filename.endswith(".png") or filename.endswith(".jpg"):
             image_path = os.path.join(folder_path, filename)
             try:
                 image = Image.open(image_path)
-                image.load()  # Garante o carregamento da imagem
+                image.load()  
             except Exception as e:
-                pass  # Ignora erros se necessário
+                pass  
 
 def import_csv_layout(path):
 	terrain_map = []
@@ -49,4 +47,3 @@ def import_folder(path):
 			surface_list.append(image_surf)
 
 	return surface_list
-
