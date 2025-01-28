@@ -62,10 +62,11 @@ class UI:
 
 	def weapon_overlay(self, weapon_name, has_switched):
 		if weapon_name is None:
-			print("Erro: Nenhuma arma foi definida.")
+			#print("Erro: Nenhuma arma foi definida.")
 			return
 		if weapon_name not in weapon_data:
-			print(f"Erro: Arma {weapon_name} não encontrada no dicionário.")
+			pass
+			#print(f"Erro: Arma {weapon_name} não encontrada no dicionário.")
 			
 
 		bg_rect = self.selection_box(10, 630, has_switched)

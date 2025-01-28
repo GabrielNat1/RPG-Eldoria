@@ -31,7 +31,6 @@ class Intro:
         time.sleep(1)  # => Pause after
         self.audio_manager.stop_music()  
 
-
 class MainMenu:
     def __init__(self, screen):
         self.screen = screen
@@ -76,8 +75,6 @@ class MainMenu:
             sys.exit()
 
         return None  
-
-
 
 class Settings:
     def __init__(self):
@@ -182,7 +179,6 @@ class PauseMenu:
             time.sleep(0.5)
             return "quit"
         
-        
 class PauseMenuSettings:
     def __init__(self, screen, settings):
         self.screen = screen
@@ -218,7 +214,6 @@ class PauseMenuSettings:
             self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
         return option, value
 
-
 class AudioManager:
     def __init__(self):
         pygame.mixer.init() 
@@ -230,7 +225,8 @@ class AudioManager:
             pygame.mixer.music.set_volume(volume)
             pygame.mixer.music.play(loops)
         except pygame.error as e:
-            print(f"Error loading music: {filename}. Error: {e}")
+            pass
+            #print(f"Error loading music: {filename}. Error: {e}")
 
     #function for effect 
     def play_sound(self, filename, volume=0.5):
@@ -239,7 +235,8 @@ class AudioManager:
             sound.set_volume(volume)
             sound.play()
         except pygame.error as e:
-            print(f"Error loading sound: {filename}. Error: {e}")
+            pass
+            #print(f"Error loading sound: {filename}. Error: {e}")
 
     def stop_music(self):
         pygame.mixer.music.stop()
@@ -471,7 +468,6 @@ class Game:
         WIDTH, HEIGTH = resolution
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
         self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
-
 
 if __name__ == '__main__':
     game = Game()

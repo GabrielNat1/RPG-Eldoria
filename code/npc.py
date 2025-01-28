@@ -2,7 +2,6 @@ import pygame
 from settings import WIDTH, HEIGTH
 from player import Player
 
-
 class NPC(pygame.sprite.Sprite):
     def __init__(self, pos, groups, player, display_surface, npc=None):
         super().__init__(groups)
@@ -21,7 +20,7 @@ class NPC(pygame.sprite.Sprite):
         self.player = player
         self.display_surface = display_surface
 
-     
+        # Dialogue setup
         self.dialogue_box = pygame.Surface((WIDTH - 200, 150))
         self.dialogue_box.fill((0, 0, 0))
         self.dialogue_box_rect = self.dialogue_box.get_rect(
@@ -39,16 +38,12 @@ class NPC(pygame.sprite.Sprite):
         self.player_near = False 
 
     def update(self):
-    
         self.animate()
-
         self.check_player_distance()
-
         if self.show_dialogue:
             self.display_dialogue()
 
     def animate(self):
-   
         current_time = pygame.time.get_ticks()
         if current_time - self.last_update > self.animation_speed * 100:
             self.last_update = current_time
@@ -56,7 +51,6 @@ class NPC(pygame.sprite.Sprite):
             self.image = self.frames[self.current_frame]
 
     def check_player_distance(self):
-        
         player_distance = pygame.math.Vector2(
             self.rect.centerx - self.player.rect.centerx,
             self.rect.centery - self.player.rect.centery,
@@ -64,7 +58,6 @@ class NPC(pygame.sprite.Sprite):
 
         self.player_near = player_distance <= 100  
 
-       
         if self.player_near and not self.show_dialogue and not self.interaction_completed:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RETURN]:  
@@ -72,25 +65,24 @@ class NPC(pygame.sprite.Sprite):
                 self.start_dialogue()
 
     def start_dialogue(self):
-        """Inicia o diálogo de acordo com o estágio atual."""
+        """Starts the dialogue based on current stage"""
         if self.dialogue_stage == 0:
-            self.dialogue_text = "Olá caro jogador..."
+            self.dialogue_text = "Hello dear player!!"
         elif self.dialogue_stage == 1:
-            self.dialogue_text = "Poderia pegar 100 pontos para mim? porfavor "
+            self.dialogue_text = "Could you get 100 points for me? please."
         elif self.dialogue_stage == 2:
-            if self.player.exp >= 100:  # Jogador tem os pontos necessários
-                self.dialogue_text = "Muito obrigado, jogador! Aqui está sua recompensa!!!"
+            if self.player.exp >= 100:
+                self.dialogue_text = "Thank you very much, player! Here's your reward!!!"
                 self.player.exp -= 100
-                self.player.weapons.append("sai")  # Recompensa
+                self.player.weapons.append("sai")
                 self.quest_given = True
-                self.interaction_completed = True  # Bloqueia futuras interações
+                self.interaction_completed = True
             else:
-                self.dialogue_text = "Vá, jogador! Pegue os 100 pontos para mim."
+                self.dialogue_text = "Go, player! Get those 100 points for me."
 
         self.typing_effect_index = 0
 
     def display_dialogue(self):
-        
         pygame.draw.rect(
             self.display_surface,
             self.dialogue_border_color,
@@ -102,7 +94,6 @@ class NPC(pygame.sprite.Sprite):
         font = pygame.font.Font(None, 30)
         current_time = pygame.time.get_ticks()
 
-       
         if current_time - self.typing_effect_last_update > self.typing_effect_speed:
             self.typing_effect_last_update = current_time
             if self.typing_effect_index < len(self.dialogue_text):
@@ -115,14 +106,12 @@ class NPC(pygame.sprite.Sprite):
             topleft=(self.dialogue_box_rect.x + 20, self.dialogue_box_rect.y + 20)
         )
         self.display_surface.blit(text_surface, text_rect)
-
-      
+        
         if self.typing_effect_index == len(self.dialogue_text):
             self.close_dialogue()
 
     def close_dialogue(self):
-      
-        pygame.time.delay(500)  
+        pygame.time.delay(500)
         self.show_dialogue = False
         if self.dialogue_stage < 2:
-            self.dialogue_stage += 1 
+            self.dialogue_stage += 1

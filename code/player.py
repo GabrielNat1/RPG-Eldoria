@@ -10,9 +10,8 @@ class Player(Entity):
 		self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
 		self.rect = self.image.get_rect(topleft = pos)
 		self.hitbox = self.rect.inflate(-6,HITBOX_OFFSET['player'])
-		self.initial_position = pos  # => position initial for player
-	   
-            
+		self.initial_position = pos  # position initial for player
+	    
 		# graphics setup
 		self.import_player_assets()
 		self.status = 'down'
@@ -72,16 +71,16 @@ class Player(Entity):
   
 	def weapon_data(self):
 			self.weapon_data = weapon_data 
-			print("Dados das armas carregados.")
+			#print("Loaded weapons data.")
    
 	def add_weapon(self, weapon_name):
 			if weapon_name not in self.weapons:  
 				self.weapons.append(weapon_name)
-				print(f'Arma {weapon_name} adicionada!')
+				#print(f'Weapon {weapon_name} Added!')
     
 			self.weapon = weapon_name  
 			self.weapon_index = self.weapons.index(weapon_name) 
-			print(f'Arma equipada: {self.weapon}, Índice: {self.weapon_index}')
+			#print(f'Equipped Weapon : {self.weapon}, Index: {self.weapon_index}')
 
 			self.ui.display(self)
              
@@ -167,14 +166,14 @@ class Player(Entity):
     
 			# // mouse input //
 			mouse_buttons = pygame.mouse.get_pressed()
-			if mouse_buttons[0]: # => Left mouse button
+			if mouse_buttons[0]: # Left mouse button
 				if not self.attacking:
 					self.attacking = True
 					self.attack_time = pygame.time.get_ticks()
 					self.create_attack()
 					self.weapon_attack_sound.play()
 
-			if mouse_buttons[2]:  # => Right mouse button
+			if mouse_buttons[2]:  # Right mouse button
 				if not self.attacking:
 					self.attacking = True
 					self.attack_time = pygame.time.get_ticks()
@@ -183,9 +182,7 @@ class Player(Entity):
 					cost = list(magic_data.values())[self.magic_index]['cost']
 					self.create_magic(style, strength, cost)
     
-
 	def get_status(self):
-
 		# idle status
 		if self.direction.x == 0 and self.direction.y == 0:
 			if not 'idle' in self.status and not 'attack' in self.status:
@@ -258,11 +255,13 @@ class Player(Entity):
 	def get_full_weapon_damage(self):
 		base_damage = self.stats['attack']
 		weapon_damage = weapon_data[self.weapon]['damage']
+  
 		return base_damage + weapon_damage
 
 	def get_full_magic_damage(self):
 		base_damage = self.stats['magic']
 		spell_damage = magic_data[self.magic]['strength']
+  
 		return base_damage + spell_damage
 
 	def get_value_by_index(self,index):
@@ -279,6 +278,7 @@ class Player(Entity):
 
 	def blink(self):
 		current_time = pygame.time.get_ticks()
+  
 		if current_time - self.blink_start_time >= 500:
 			self.blinking = False
 			self.vulnerable = True

@@ -17,11 +17,8 @@ import os
 import shutil  
 import time
 
-
 class Level:
 	def __init__(self):
-
-  
 		# get the display surface
 		self.display_surface = pygame.display.get_surface()
 		self.game_paused = False
@@ -54,7 +51,7 @@ class Level:
 
 		self.wind_effect_interval = 4000  # Default to 4 seconds
 		self.wind_effect_duration = 3000  # Default to 3 seconds
-		self.max_wind_effects = 0  # Default to 4 wind effects
+		self.max_wind_effects = 4 # Default to 4 wind effects
 		self.wind_effects = pygame.sprite.Group()
 		self.wind_effect_last_spawn_time = pygame.time.get_ticks()
 		self.wind_frames = import_folder('../graphics/environment/wind')
@@ -68,9 +65,9 @@ class Level:
 		self.enemy_attack_delay = 3000  # 3 seconds
 		self.game_start_time = pygame.time.get_ticks()
 
-		# Instance Npc
+		# Instance for NPC
 		self.npc = NPC(
-   		 (self.initial_position[0] + 500, self.initial_position[1]),
+   		 (self.initial_position[0] + 800, self.initial_position[1]),
    		 [self.visible_sprites, self.obstacle_sprites],
     	 self.player,
    		 self.display_surface)
@@ -130,7 +127,6 @@ class Level:
 									self.damage_player,
 									self.trigger_death_particles,
 									self.add_exp)
-        
         
 	def load_initial_chunks(self):
 		player_chunk = self.get_chunk(self.player.rect.center)
@@ -225,7 +221,6 @@ class Level:
 		for x in range(chunk[0] - self.visible_chunks - 1, chunk[0] + self.visible_chunks + 2):
 			for y in range(chunk[1] - self.visible_chunks - 1, chunk[1] + self.visible_chunks + 2):
 				if (x, y) in self.chunks and not self.is_chunk_visible((x, y), chunk):
-					
 					self.save_chunk((x, y))
 					del self.chunks[(x, y)]
 
@@ -235,6 +230,7 @@ class Level:
 
 	def update_chunks(self):
 		new_chunk = self.get_chunk(self.player.rect.center)
+  
 		if new_chunk != self.current_chunk:
 			self.current_chunk = new_chunk
 			self.load_chunks_around(new_chunk)
@@ -243,6 +239,7 @@ class Level:
 	def save_chunk(self, chunk):
 		chunk_data = self.chunks[chunk]
 		chunk_file = f'{CHUNKS_FOLDER}/chunk_{chunk[0]}_{chunk[1]}.json'
+  
 		with open(chunk_file, 'w') as f:
 			json.dump(chunk_data, f)
 
@@ -252,6 +249,7 @@ class Level:
 	def destroy_attack(self):
 		if self.current_attack:
 			self.current_attack.kill()
+   
 		self.current_attack = None
 
 	def create_magic(self, style, strength, cost):
@@ -342,7 +340,6 @@ class Level:
 		if self.game_paused:
 			self.upgrade.display()
 		else:
-		
 			if not self.npc.show_dialogue:
 				self.visible_sprites.update()
 				self.visible_sprites.enemy_update(self.player)
@@ -353,7 +350,6 @@ class Level:
 		if self.npc.show_dialogue:
 			self.npc.display_dialogue()  
 
-
 	def is_chunk_within_visibility_radius(self, chunk):
 		player_pos = self.player.rect.center
 		visibility_radius = 400
@@ -363,7 +359,6 @@ class Level:
 
 class YSortCameraGroup(pygame.sprite.Group):
 	def __init__(self):
-
 		# general setup 
 		super().__init__()
 		self.display_surface = pygame.display.get_surface()
@@ -376,7 +371,6 @@ class YSortCameraGroup(pygame.sprite.Group):
 		self.floor_rect = self.floor_surf.get_rect(topleft = (0,0))
 
 	def custom_draw(self,player):
-
 		# getting the offset 
 		self.offset.x = player.rect.centerx - self.half_width
 		self.offset.y = player.rect.centery - self.half_height

@@ -81,7 +81,6 @@ class ParticleEffect(pygame.sprite.Sprite):
     def update(self):
         self.animate()
 
-
 class WindEffect(pygame.sprite.Sprite):
     def __init__(self, pos, groups, frames, duration):
         super().__init__(groups)
