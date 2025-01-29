@@ -3,15 +3,17 @@ from settings import *
 from support import import_folder
 from entity import Entity
 from ui import UI
+from npc import NPC, MissionSystem
 
 class Player(Entity):
-	def __init__(self,pos,groups,obstacle_sprites,create_attack,destroy_attack,create_magic):
+	def __init__(self,pos,groups,obstacle_sprites,create_attack,destroy_attack,create_magic, mission_system):
 		super().__init__(groups)
 		self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
 		self.rect = self.image.get_rect(topleft = pos)
 		self.hitbox = self.rect.inflate(-6,HITBOX_OFFSET['player'])
 		self.initial_position = pos  # position initial for player
 	    
+        
 		# graphics setup
 		self.import_player_assets()
 		self.status = 'down'
@@ -68,6 +70,7 @@ class Player(Entity):
 		# attack methods
 		self.create_attack = create_attack
 		self.destroy_attack = destroy_attack
+		
   
 	def weapon_data(self):
 			self.weapon_data = weapon_data 
@@ -286,6 +289,10 @@ class Player(Entity):
 		else:
 			alpha = self.wave_value()
 			self.image.set_alpha(alpha)
+   
+	def restore_mission_state(self):
+			self.mission_state = self.mission_system.get_mission_state()
+			print(f"Restaurando missão para o estado: {self.mission_state}")
 
 	def check_death(self):
 		if self.health <= 0:
@@ -296,6 +303,7 @@ class Player(Entity):
 			self.blinking = True
 			self.blink_start_time = pygame.time.get_ticks()
 			self.vulnerable = False
+			self.restore_mission_state()
 
 	def update(self):
 		if not self.blinking:
@@ -308,3 +316,4 @@ class Player(Entity):
 		self.check_death()
 		if self.blinking:
 			self.blink()
+		

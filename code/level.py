@@ -11,15 +11,17 @@ from enemy import Enemy
 from particles import AnimationPlayer, WindEffect
 from magic import MagicPlayer
 from upgrade import Upgrade
-from npc import NPC
+from npc import NPC, MissionSystem
 import json
 import os
 import shutil  
 import time
 
 class Level:
-	def __init__(self):
+	def __init__(self, mission_system=None):
+		self.mission_system = MissionSystem()
 		# get the display surface
+  
 		self.display_surface = pygame.display.get_surface()
 		self.game_paused = False
 
@@ -31,7 +33,8 @@ class Level:
 		self.current_attack = None
 		self.attack_sprites = pygame.sprite.Group()
 		self.attackable_sprites = pygame.sprite.Group()
-
+	    
+        
 		self.create_map()
 
 		# user interface 
@@ -65,12 +68,15 @@ class Level:
 		self.enemy_attack_delay = 3000  # 3 seconds
 		self.game_start_time = pygame.time.get_ticks()
 
+
 		# Instance for NPC
 		self.npc = NPC(
    		 (self.initial_position[0] + 840, self.initial_position[1]),
    		 [self.visible_sprites, self.obstacle_sprites],
     	 self.player,
-   		 self.display_surface)
+   		 self.display_surface,
+      	 self.mission_system)
+          
 
 	def create_map(self):
 		layouts = {
@@ -112,7 +118,9 @@ class Level:
 									self.obstacle_sprites,
 									self.create_attack,
 									self.destroy_attack,
-									self.create_magic)
+									self.create_magic,
+			                        self.mission_system
+                                    )	
 								self.initial_position = (x, y)  # Store the player's initial position
 							else:
 								if col == '390': monster_name = 'bamboo'
@@ -292,11 +300,15 @@ class Level:
 			self.obstacle_sprites,
 			self.create_attack,
 			self.destroy_attack,
-			self.create_magic)
+			self.create_magic,
+   			self.mission_system,)
+  
 		self.player.health = self.player.stats['health']
 		self.player.blinking = True
 		self.player.blink_start_time = pygame.time.get_ticks()
 		self.player.vulnerable = False
+		if hasattr(self, 'npc'):
+			self.npc.player = self.player
 
 	def trigger_death_particles(self, pos, particle_type):
 		self.animation_player.create_particles(particle_type, pos, self.visible_sprites)
