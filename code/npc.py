@@ -23,7 +23,13 @@ class NPC(pygame.sprite.Sprite):
         self.frames_right = [
             pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_right", f"idle_right_{i}.png")).convert_alpha()
             for i in range(3)
-        ]
+        ]   
+        
+        self.dialogue_images = {
+            0: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_0.png').convert_alpha(),
+            1: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_1.png').convert_alpha(),
+            2: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_2.png').convert_alpha()
+        }
 
         # Variáveis de animação
         self.current_frame = 0
@@ -175,55 +181,46 @@ class NPC(pygame.sprite.Sprite):
             self.is_sound_playing = True
 
     def display_dialogue(self):
-        """Exibe o texto do diálogo na tela, agora com a imagem do NPC à esquerda e a caixa de diálogo bem maior e centralizada."""
-        # Carregar as imagens
+        """Exibe o diálogo do NPC com a imagem correspondente ao estágio atual."""
         dialogue_box = pygame.image.load('../graphics/dialog/UI/DialogBoxFaceset.png').convert_alpha()
-        npc_image = pygame.image.load('../graphics/dialog/OldManDialog/OldManBox.png').convert_alpha()
         
-        # Aumentar o tamanho da caixa de diálogo para 800x200 e centralizá-la
-        dialogue_box_rect = pygame.Rect(WIDTH // 2 - 400, HEIGTH // 1.3, 800, 200)  # Caixa ainda maior, centralizada e mais abaixo
-        
-        # Aumentar a imagem do NPC para 120x120 (ajustado para combinar com a caixa maior)
+        # Selecionar a imagem do NPC correspondente ao estágio do diálogo
+        npc_image = self.dialogue_images.get(self.dialogue_stage, self.dialogue_images[0])
+
+        dialogue_box_rect = pygame.Rect(WIDTH // 2 - 400, HEIGTH // 1.3, 800, 200)
         npc_rect = pygame.Rect(dialogue_box_rect.left + 16, dialogue_box_rect.top + 36, 105, 114)
-        
-        # Desenhar a caixa de diálogo
+
         self.display_surface.blit(dialogue_box, dialogue_box_rect)
-        
-        # Desenhar a imagem do NPC à esquerda dentro da caixa
         self.display_surface.blit(npc_image, npc_rect)
 
-        # Texto do diálogo
-        font = pygame.font.Font(None, 40)  # Aumentei o tamanho da fonte ainda mais
+        font = pygame.font.Font(None, 40)
         current_time = pygame.time.get_ticks()
 
-        # Efeito de digitação
         if current_time - self.typing_effect_last_update > self.typing_effect_speed:
             self.typing_effect_last_update = current_time
             if self.typing_effect_index < len(self.dialogue_text):
                 self.typing_effect_index += 1
 
-        # Desenhar o texto dentro da caixa, à direita da imagem do NPC
         text_surface = font.render(
-            self.dialogue_text[: self.typing_effect_index], True, (0, 0, 0)  # Texto preto
+            self.dialogue_text[: self.typing_effect_index], True, (0, 0, 0)
         )
         text_rect = text_surface.get_rect(
-            topleft=(dialogue_box_rect.left + 140, dialogue_box_rect.top + 50)  # Espaçamento ajustado para a nova caixa
+            topleft=(dialogue_box_rect.left + 140, dialogue_box_rect.top + 50)
         )
         self.display_surface.blit(text_surface, text_rect)
 
-        # Pausa o som quando a barra de espaço é pressionada
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
             if self.is_sound_playing:
-                self.speech_sound.stop()  # Para o som
+                self.speech_sound.stop()
                 self.is_sound_playing = False
 
-        # Verifica se o jogador terminou de digitar
         if self.typing_effect_index == len(self.dialogue_text):
             if self.dialogue_close_time is None:
-                self.dialogue_close_time = pygame.time.get_ticks()  # Registra quando o diálogo termina
-            elif pygame.time.get_ticks() - self.dialogue_close_time > 1000:  # Espera 1 segundo depois do diálogo
+                self.dialogue_close_time = pygame.time.get_ticks()
+            elif pygame.time.get_ticks() - self.dialogue_close_time > 1000:
                 self.close_dialogue()
+
 
     def close_dialogue(self):
         """Fecha o diálogo e para o som de fala."""
