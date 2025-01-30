@@ -268,7 +268,6 @@ class Game:
         self.in_pause_settings = False
         self.in_gameplay = False
         
-
         self.intro_played = False
         self.audio_manager = AudioManager()
 

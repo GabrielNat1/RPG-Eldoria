@@ -13,7 +13,6 @@ class Player(Entity):
 		self.hitbox = self.rect.inflate(-6,HITBOX_OFFSET['player'])
 		self.initial_position = pos  # position initial for player
 	    
-        
 		# graphics setup
 		self.import_player_assets()
 		self.status = 'down'
@@ -71,7 +70,6 @@ class Player(Entity):
 		self.create_attack = create_attack
 		self.destroy_attack = destroy_attack
 		
-  
 	def weapon_data(self):
 			self.weapon_data = weapon_data 
 			#print("Loaded weapons data.")
@@ -97,8 +95,6 @@ class Player(Entity):
 			full_path = character_path + animation
 			self.animations[animation] = import_folder(full_path)
     
-   
-
 	def input(self):
 		if not self.attacking:
 			keys = pygame.key.get_pressed()
@@ -316,4 +312,3 @@ class Player(Entity):
 		self.check_death()
 		if self.blinking:
 			self.blink()
-		

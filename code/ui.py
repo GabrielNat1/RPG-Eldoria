@@ -68,14 +68,12 @@ class UI:
 			pass
 			#print(f"Erro: Arma {weapon_name} não encontrada no dicionário.")
 			
-
 		bg_rect = self.selection_box(10, 630, has_switched)
 		
 		weapon_surf = pygame.image.load(weapon_data[weapon_name]['graphic']).convert_alpha()
 		weapon_rect = weapon_surf.get_rect(center=bg_rect.center)
 		
 		self.display_surface.blit(weapon_surf, weapon_rect)
-
 
 	def magic_overlay(self,magic_index,has_switched):
 		bg_rect = self.selection_box(80,635,has_switched)
