@@ -268,6 +268,8 @@ audio/
 
 - **`menu/`**: This section contains sound effects for the user interface. These sounds are played when interacting with the menu, such as button clicks, selections, and background music. These auditory cues contribute to the overall user experience and atmosphere of the game.
 
+- **`npc/`**: This section contains sound effects for the npc dialog. These sounds are played when interacting with the npc.
+
 ---
 
 ### `settings.py` 🛠️
