@@ -259,6 +259,7 @@ This directory contains all the audio files for the game, categorized into attac
 ```bash
 audio/
 ├── attack/ # sounds for attacking
+├── npc/ # sounds for npc speak
 └── menu/ # sounds sonore for menu
 ```
 
