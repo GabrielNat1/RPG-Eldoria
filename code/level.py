@@ -2,9 +2,8 @@ import pygame
 from settings import *
 from tile import Tile
 from player import Player
-from debug import debug
 from support import *
-from random import choice, randint, random  
+from random import choice, randint
 from weapon import Weapon
 from ui import UI
 from enemy import Enemy
@@ -14,8 +13,6 @@ from upgrade import Upgrade
 from npc import NPC, MissionSystem
 import json
 import os
-import shutil  
-import time
 
 class Level:
 	def __init__(self, mission_system=None):

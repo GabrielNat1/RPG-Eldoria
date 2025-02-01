@@ -3,7 +3,6 @@ from settings import *
 
 class UI:
 	def __init__(self):
-		
 		# general 
 		self.display_surface = pygame.display.get_surface()
 		self.font = pygame.font.Font(UI_FONT,UI_FONT_SIZE)
@@ -25,7 +24,6 @@ class UI:
 		for magic in magic_data.values():
 			magic = pygame.image.load(magic['graphic']).convert_alpha()
 			self.magic_graphics.append(magic)
-
 
 	def show_bar(self,current,max_amount,bg_rect,color):
 		# draw bg 
@@ -62,11 +60,11 @@ class UI:
 
 	def weapon_overlay(self, weapon_name, has_switched):
 		if weapon_name is None:
-			#print("Erro: Nenhuma arma foi definida.")
+			#print("Error: weapon is null | any")
 			return
 		if weapon_name not in weapon_data:
 			pass
-			#print(f"Erro: Arma {weapon_name} não encontrada no dicionário.")
+			#print(f"Error: Weapon is not found {weapon_name} in database ")
 			
 		bg_rect = self.selection_box(10, 630, has_switched)
 		

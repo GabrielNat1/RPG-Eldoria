@@ -3,7 +3,6 @@ from settings import *
 
 class Upgrade:
 	def __init__(self,player):
-
 		# general setup
 		self.display_surface = pygame.display.get_surface()
 		self.player = player
@@ -67,7 +66,6 @@ class Upgrade:
 		self.selection_cooldown()
 
 		for index, item in enumerate(self.item_list):
-
 			# get attributes
 			name = self.attribute_names[index]
 			value = self.player.get_value_by_index(index)
