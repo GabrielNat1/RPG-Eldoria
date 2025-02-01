@@ -87,13 +87,20 @@ class Player(Entity):
              
 	def import_player_assets(self):
 		character_path = '../graphics/player/'
-		self.animations = {'up': [],'down': [],'left': [],'right': [],
-			'right_idle':[],'left_idle':[],'up_idle':[],'down_idle':[],
-			'right_attack':[],'left_attack':[],'up_attack':[],'down_attack':[]}
-
+		self.animations = {
+			'up': [], 'down': [], 'left': [],
+			'left_idle': [], 'up_idle': [], 'down_idle': [],
+			'left_attack': [], 'up_attack': [], 'down_attack': []
+		}
+  
 		for animation in self.animations.keys():
 			full_path = character_path + animation
 			self.animations[animation] = import_folder(full_path)
+
+		self.animations['right'] = [pygame.transform.flip(img, True, False) for img in self.animations['left']]
+		self.animations['right_idle'] = [pygame.transform.flip(img, True, False) for img in self.animations['left_idle']]
+		self.animations['right_attack'] = [pygame.transform.flip(img, True, False) for img in self.animations['left_attack']]
+
     
 	def input(self):
 		if not self.attacking:
