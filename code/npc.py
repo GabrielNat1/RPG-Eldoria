@@ -18,10 +18,7 @@ class NPC(pygame.sprite.Sprite):
             pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_left", f"idle_left_{i}.png")).convert_alpha()
             for i in range(3)
         ]
-        self.frames_right = [
-            pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_right", f"idle_right_{i}.png")).convert_alpha()
-            for i in range(3)
-        ]   
+        self.frames_right = [pygame.transform.flip(frame, True, False) for frame in self.frames_left] 
         
         self.dialogue_images = {
             0: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_0.png').convert_alpha(),
