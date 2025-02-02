@@ -5,31 +5,68 @@ import shutil
 import os
 import settings
 from level import *
-
+ 
 class Intro:
     def __init__(self, screen):
         self.screen = screen
         self.font = pygame.font.Font(UI_FONT, 60)
         self.text = "RPG ELDORIA"
+        self.version_text = "v2.0.0"
         self.audio_manager = AudioManager() 
+
+    def fade_to_black(self, delay=30, alpha_step=4):
+        fade_surface = pygame.Surface((WIDTH, HEIGTH))
+        fade_surface.fill((0, 0, 0)) 
+        for alpha in range(0, 256, alpha_step): 
+            fade_surface.set_alpha(alpha)
+            self.screen.fill(WATER_COLOR)  
+            self.screen.blit(fade_surface, (0, 0))
+            pygame.display.flip()
+            pygame.time.delay(delay)
+
+    def fade_in(self, delay=30, alpha_step=4):
+        fade_surface = pygame.Surface((WIDTH, HEIGTH))
+        fade_surface.fill((0, 0, 0))  
+        for alpha in range(255, -1, -alpha_step):  
+            fade_surface.set_alpha(alpha)
+            self.screen.fill(WATER_COLOR)
+            self.screen.blit(fade_surface, (0, 0))
+            pygame.display.flip()
+            pygame.time.delay(delay)
+            
+    def type_text(self, text, color, center_x, center_y, delay=0.2):
+        displayed_text = ""
+        for char in text:
+            displayed_text += char
+            rendered_text = self.font.render(displayed_text, True, color)
+            text_rect = rendered_text.get_rect(center=(center_x, center_y))
+            self.screen.fill(WATER_COLOR)  
+            self.screen.blit(rendered_text, text_rect)
+            pygame.display.flip()
+            time.sleep(delay)  
 
     def display(self):
         self.audio_manager.play_music("../audio/main_menu.ogg", loops=-1, volume=0.5)  
+        self.screen.fill((0, 0, 0)) 
+        pygame.display.flip()
+        time.sleep(1)
 
-        self.screen.fill(WATER_COLOR)
-        displayed_text = ""
+        self.fade_in(delay=30, alpha_step=4)
 
-        for char in self.text:
-            displayed_text += char
-            rendered_text = self.font.render(displayed_text, True, TEXT_COLOR)
-            text_rect = rendered_text.get_rect(center=(WIDTH // 2, HEIGTH // 2))
-            self.screen.fill(WATER_COLOR)
-            self.screen.blit(rendered_text, text_rect)
-            pygame.display.flip()
-            time.sleep(0.2)  # => effect intro
+        self.type_text(self.text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2, delay=0.1)
+        time.sleep(3) 
 
-        time.sleep(1)  # => Pause after
-        self.audio_manager.stop_music()  
+        self.fade_to_black(delay=30, alpha_step=4)
+
+        self.fade_in(delay=30, alpha_step=4)
+
+        self.type_text(self.version_text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2, delay=0.1)
+        time.sleep(2)  
+
+        self.fade_to_black(delay=30, alpha_step=4)
+
+        time.sleep(1)
+        self.audio_manager.stop_music() 
 
 class MainMenu:
     def __init__(self, screen):
