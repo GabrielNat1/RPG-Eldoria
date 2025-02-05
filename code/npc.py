@@ -142,10 +142,25 @@ class NPC(pygame.sprite.Sprite):
                 self.player.exp -= 1000
                 self.player.weapons.append("lance")
                 self.quest_given = True
+                self.mission_system.complete_mission()
+                self.dialogue_stage += 1 
+            else:
+                self.dialogue_text = "Go, player! Get those 1000 points for me."
+        elif self.dialogue_stage == 3:
+            self.dialogue_text = 'Please, get 200 enemies for 200 exp!'
+            self.mission_system.start_mission()
+            if self.player.exp >= 200:
+                self.dialogue_text = "Congratulation, + 200 exp and Axe!"
+                self.player.exp += 200
+                self.player.weapons.append('axe')
+                self.quest_given = True
+                self.dialogue_text = "Bye!"
                 self.interaction_completed = True
                 self.mission_system.complete_mission()
             else:
-                self.dialogue_text = "Go, player! Get those 1000 points for me."
+                self.dialogue_text = "Go collect 200 exp!"
+
+
 
         self.typing_effect_index = 0  
 
