@@ -11,14 +11,16 @@ from particles import AnimationPlayer, WindEffect
 from magic import MagicPlayer
 from upgrade import Upgrade
 from npc import NPC, MissionSystem
+from chunk_manager import generate_chunk_data, save_chunk_data, load_chunk_data, unload_chunks
 import json
 import os
 
 class Level:
 	def __init__(self, mission_system=None):
+		#mission
 		self.mission_system = MissionSystem()
-		# get the display surface
   
+		# get the display surface
 		self.display_surface = pygame.display.get_surface()
 		self.game_paused = False
 
@@ -31,7 +33,7 @@ class Level:
 		self.attack_sprites = pygame.sprite.Group()
 		self.attackable_sprites = pygame.sprite.Group()
 	    
-        
+		# create map
 		self.create_map()
 
 		# user interface 
@@ -133,123 +135,37 @@ class Level:
 									self.trigger_death_particles,
 									self.add_exp)
         
-	def load_initial_chunks(self):
-		player_chunk = self.get_chunk(self.player.rect.center)
-		self.load_chunks_around(player_chunk)
-
 	def get_chunk(self, position):
-		return (position[0] // (TILESIZE * CHUNKSIZE), position[1] // (TILESIZE * CHUNKSIZE))
+			return (position[0] // (TILESIZE * CHUNKSIZE), position[1] // (TILESIZE * CHUNKSIZE))
 
-	def load_chunks_around(self, chunk):
-		for x in range(chunk[0] - self.visible_chunks, chunk[0] + self.visible_chunks + 1):
-			for y in range(chunk[1] - self.visible_chunks, chunk[1] + self.visible_chunks + 1):
-				if (x, y) not in self.chunks:
-					self.chunks[(x, y)] = self.load_chunk((x, y))
+	def load_initial_chunks(self):
+			player_chunk = self.initial_position  
+			self.load_chunks_around(self.get_chunk(player_chunk))
+   
+	def load_chunks_around(self, center_chunk):
+				for dx in range(-1, 2):
+					for dy in range(-1, 2):
+						chunk_pos = (center_chunk[0] + dx, center_chunk[1] + dy)
+						
+						self.chunks[chunk_pos] = self.load_chunk(chunk_pos)
 
 	def load_chunk(self, chunk):
-		chunk_file = f'{CHUNKS_FOLDER}/chunk_{chunk[0]}_{chunk[1]}.json'
-		if os.path.exists(chunk_file):
-			return self.load_chunk_from_file(chunk_file)
-		else:
-			return self.generate_chunk(chunk)
-
-	def load_chunk_from_file(self, chunk_file):
-		with open(chunk_file, 'r') as f:
-			return json.load(f)
-
-	def generate_chunk(self, chunk):
-		chunk_data = {
-			'boundary': [],
-			'grass': [],
-			'object': [],
-			'entities': []
-		}
-		layouts = {
-			'boundary': import_csv_layout('../map/map_FloorBlocks.csv'),
-			'grass': import_csv_layout('../map/map_Grass.csv'),
-			'object': import_csv_layout('../map/map_Objects.csv'),
-			'entities': import_csv_layout('../map/map_Entities.csv')
-		}
-		graphics = {
-			'grass': import_folder('../graphics/Grass'),
-			'objects': import_folder('../graphics/objects')
-		}
-
-		for style, layout in layouts.items():
-			for row_index, row in enumerate(layout):
-				for col_index, col in enumerate(row):
-					if col != '-1':
-						x = col_index * TILESIZE
-						y = row_index * TILESIZE
-						chunk_x = x // (TILESIZE * CHUNKSIZE)
-						chunk_y = y // (TILESIZE * CHUNKSIZE)
-						if (chunk_x, chunk_y) == chunk:
-							if style == 'boundary':
-								chunk_data['boundary'].append(Tile((x, y), [self.obstacle_sprites], 'invisible'))
-							if style == 'grass':
-								random_grass_image = choice(graphics['grass'])
-								chunk_data['grass'].append(Tile(
-									(x, y),
-									[self.visible_sprites, self.obstacle_sprites, self.attackable_sprites],
-									'grass',
-									random_grass_image))
-							if style == 'object':
-								surf = graphics['objects'][int(col)]
-								chunk_data['object'].append(Tile((x, y), [self.visible_sprites, self.obstacle_sprites], 'object', surf))
-							if style == 'entities':
-								if col == '394' and not hasattr(self, 'player'):
-									self.player = Player(
-										(x, y),
-										[self.visible_sprites],
-										self.obstacle_sprites,
-										self.create_attack,
-										self.destroy_attack,
-										self.create_magic)
-									self.initial_position = (x, y)  # Armazene a posição inicial do jogador
-								elif col != '394':
-									if col == '390': monster_name = 'bamboo'
-									elif col == '391': monster_name = 'spirit'
-									elif col == '392': monster_name = 'raccoon'
-									else: monster_name = 'squid'
-									if not any(enemy.rect.topleft == (x, y) for enemy in self.attackable_sprites):
-										chunk_data['entities'].append(Enemy(
-											monster_name,
-											(x, y),
-											[self.visible_sprites, self.attackable_sprites],
-											self.obstacle_sprites,
-											self.damage_player,
-											self.trigger_death_particles,
-											self.add_exp))
-		return chunk_data
-
-	def unload_chunks(self, chunk):
-		for x in range(chunk[0] - self.visible_chunks - 1, chunk[0] + self.visible_chunks + 2):
-			for y in range(chunk[1] - self.visible_chunks - 1, chunk[1] + self.visible_chunks + 2):
-				if (x, y) in self.chunks and not self.is_chunk_visible((x, y), chunk):
-					self.save_chunk((x, y))
-					del self.chunks[(x, y)]
-
-	def is_chunk_visible(self, chunk, current_chunk):
-		return (current_chunk[0] - self.visible_chunks <= chunk[0] <= current_chunk[0] + self.visible_chunks and
-				current_chunk[1] - self.visible_chunks <= chunk[1] <= current_chunk[1] + self.visible_chunks)
+				chunk_data = load_chunk_data(chunk)
+				if chunk_data is None:
+					#print(f"Gerando novo chunk: {chunk}")
+					chunk_data = generate_chunk_data(chunk)
+					save_chunk_data(chunk, chunk_data)
+				return chunk_data
 
 	def update_chunks(self):
-		new_chunk = self.get_chunk(self.player.rect.center)
-  
-		if new_chunk != self.current_chunk:
-			self.current_chunk = new_chunk
-			self.load_chunks_around(new_chunk)
-			self.unload_chunks(new_chunk)
-
-	def save_chunk(self, chunk):
-		chunk_data = self.chunks[chunk]
-		chunk_file = f'{CHUNKS_FOLDER}/chunk_{chunk[0]}_{chunk[1]}.json'
-  
-		with open(chunk_file, 'w') as f:
-			json.dump(chunk_data, f)
-
+				new_chunk = self.get_chunk(self.player.rect.center)
+				if new_chunk != self.current_chunk:
+					self.current_chunk = new_chunk
+					self.load_chunks_around(new_chunk)
+					unload_chunks(self.chunks, new_chunk, visibility_radius=self.visible_chunks)
+    
 	def create_attack(self):
-		self.current_attack = Weapon(self.player, [self.visible_sprites, self.attack_sprites])
+			self.current_attack = Weapon(self.player, [self.visible_sprites, self.attack_sprites])
 
 	def destroy_attack(self):
 		if self.current_attack:

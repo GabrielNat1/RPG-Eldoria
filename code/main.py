@@ -46,7 +46,7 @@ class Intro:
             time.sleep(delay)  
 
     def display(self):
-        self.audio_manager.play_music("../audio/main_menu.ogg", loops=-1, volume=0.5)  
+        self.audio_manager.play_music("../audio/main_intro.ogg", loops=-1, volume=0.5)  
         self.screen.fill((0, 0, 0)) 
         pygame.display.flip()
         time.sleep(1)
@@ -118,7 +118,7 @@ class Settings:
         self.options = [
             {"name": "Fullscreen", "type": "toggle", "value": True},  # Default to fullscreen
             {"name": "Borderless", "type": "toggle", "value": False},
-            {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600)], "value": 1},  # Default to 1920x1080
+            {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  # Default to 1920x1080
             {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1},  # Default to normal
             {"name": "Back", "type": "action"}
         ]
@@ -320,32 +320,46 @@ class Game:
 
     def apply_game_settings(self):
         game_mode = self.settings.options[3]["value"]
-        self.level.clear_wind_effects()  # Clear existing wind effects
-        if game_mode == 0:  # optimized
-            settings.TILESIZE = 32
-            settings.CHUNKSIZE = 16
-            settings.VISIBLE_CHUNKS = 1
-            self.level.wind_effect_interval = 30000  # 30 seconds
-            self.level.wind_effect_duration = 5000  # 5 seconds
-            self.level.max_wind_effects = 1
-        elif game_mode == 1:  # normal
-            settings.TILESIZE = 64
-            settings.CHUNKSIZE = 32
-            settings.VISIBLE_CHUNKS = 3
-            self.level.wind_effect_interval = 10000  # 10 seconds
-            self.level.wind_effect_duration = 5000  # 5 seconds
-            self.level.max_wind_effects = 3
-        elif game_mode == 2:  # extreme performance
-            settings.TILESIZE = 128
-            settings.CHUNKSIZE = 64
-            settings.VISIBLE_CHUNKS = 6
-            self.level.wind_effect_interval = 10000  # 10 seconds
-            self.level.wind_effect_duration = 5000  # 5 seconds
-            self.level.max_wind_effects = 5
+        game_settings = {
+            0: {"tilesize": 10,
+                "chunksize": 10, 
+                "visible_chunks": 1, 
+                "wind_interval": 30000, "wind_duration": 5000,
+                "max_wind": 1},
+            
+            1: {"tilesize": 25,
+                "chunksize": 25,
+                "visible_chunks": 5,
+                "wind_interval": 20000, "wind_duration": 5000,
+                "max_wind": 3},
+            
+            2: {"tilesize": 30,
+                "chunksize": 30,
+                "visible_chunks": 10,
+                "wind_interval": 10000, "wind_duration": 5000,
+                "max_wind": 5},
+        }
+
+        if game_mode in game_settings:
+            self._apply_level_settings(game_settings[game_mode])
+        else:
+            #print(f"Game Mode Unknown: {game_mode}")
+            pass
+
+    def _apply_level_settings(self, config):
+        self.level.clear_wind_effects()
+
+        settings.TILESIZE = config["tilesize"]
+        settings.CHUNKSIZE = config["chunksize"]
+        settings.VISIBLE_CHUNKS = config["visible_chunks"]
+        
+        self.level.wind_effect_interval = config["wind_interval"]
+        self.level.wind_effect_duration = config["wind_duration"]
+        self.level.max_wind_effects = config["max_wind"]
 
         self.level.update_wind_effects_settings()
-        self.level.spawn_wind_effects()  # Respawn wind effects
-
+        self.level.spawn_wind_effects()
+        
     def run(self):
         try:
             while True:
@@ -373,6 +387,7 @@ class Game:
                                 elif action == "quit":
                                     pygame.quit()
                                     sys.exit()
+                                    del CHUNKS_FOLDER
                             elif event.key == pygame.K_ESCAPE:
                                 pygame.quit()
                                 sys.exit()
@@ -422,7 +437,6 @@ class Game:
                                 self.in_menu = True
 
                     elif self.in_pause_settings:
-                        
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_UP:
                                 self.pause_menu_settings.navigate(-1)

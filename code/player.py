@@ -295,7 +295,7 @@ class Player(Entity):
    
 	def restore_mission_state(self):
 			self.mission_state = self.mission_system.get_mission_state()
-			print(f"Restaurando missão para o estado: {self.mission_state}")
+			#print(f"Restaurando missão para o estado: {self.mission_state}")
 
 	def check_death(self):
 		if self.health <= 0:

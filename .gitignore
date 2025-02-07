@@ -2,3 +2,4 @@
 __pycache__/
 /chunks
 /gitgnore
+__cache_data__

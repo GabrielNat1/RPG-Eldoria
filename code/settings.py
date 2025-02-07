@@ -4,10 +4,10 @@ HEIGTH = 720
 FPS = 60
 
 # chunks config
-TILESIZE = 64  # Default value
-CHUNKSIZE = 32  # Default value
-VISIBLE_CHUNKS = 3 # Default value
-CHUNKS_FOLDER = '../chunks'
+TILESIZE = 64 
+CHUNKSIZE = 24  
+VISIBLE_CHUNKS = 3 
+CHUNKS_FOLDER = './__cache_data__/__chunk_data__'
 
 #hitbox config
 HITBOX_OFFSET = {
