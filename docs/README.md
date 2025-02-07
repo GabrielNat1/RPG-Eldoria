@@ -5,7 +5,7 @@
 <img src='https://github.com/user-attachments/assets/29986fe7-23d2-4662-bc62-96244db0e1c7'>
 
 ## Introduction 🌍
-**RPG Eldoria** is a 2D RPG developed in Python using the Pygame library. Inspired by games like **Stardew Valley** and **Dark Souls**, the game combines a **pixel art** visual style with challenging combat and exploration mechanics. Designed to ensure a smooth and accessible experience, the game implements various optimizations and unique features focused on performance and gameplay depth.
+**RPG Eldoria** is a 2D RPG developed in **Python** using the Pygame library. Inspired by games like **Stardew Valley** and **Dark Souls**, the game combines a **pixel art** visual style with challenging combat and exploration mechanics. Designed to ensure a smooth and accessible experience, the game implements various optimizations and unique features focused on performance and gameplay depth.
 
 <br>
 
