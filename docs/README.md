@@ -78,6 +78,9 @@ RPG-ELDORIA/
 <br>
 
 ### 3. Full Menu System 🖥️
+
+<img width=700 src='https://github.com/user-attachments/assets/e063f96e-00cf-4111-9eb9-9c905143117c'>
+
 The main menu offers several customizable options: <br>
 - **Performance modes**: 
   - **Optimized**: Balances graphics quality and performance.
