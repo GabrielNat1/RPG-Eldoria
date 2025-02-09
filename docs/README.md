@@ -63,6 +63,9 @@ RPG-ELDORIA/
 ---
 
 ### 2. NPC and Quest System 🧑‍🤝‍🧑
+
+<img width=700 src='https://github.com/user-attachments/assets/98f57db8-b1a5-4b6a-bef5-7bb02d1c3bdc'>
+
 - **NPC Interactions**:
   - NPCs are key elements of the game, offering dynamic dialogues with a typing effect for immersion.
   - NPC responses vary depending on the player's progress and accumulated points. <br>
@@ -78,6 +81,10 @@ RPG-ELDORIA/
 <br>
 
 ### 3. Full Menu System 🖥️
+
+<img width=700 src='https://github.com/user-attachments/assets/e063f96e-00cf-4111-9eb9-9c905143117c'>
+<br>
+
 The main menu offers several customizable options: <br>
 - **Performance modes**: 
   - **Optimized**: Balances graphics quality and performance.
@@ -116,6 +123,12 @@ The main menu offers several customizable options: <br>
 ---
 
 ### 6. Combat and Gameplay ⚔️
+
+<img width=700 src='https://github.com/user-attachments/assets/28cd083e-559b-483a-85fc-55cdf75066fc'>
+
+<br>
+
+
 - **Dark Souls-inspired style**:
   - Challenging battles against enemies and bosses (boss fights).
   - Requires strategy and quick reflexes.<br>
