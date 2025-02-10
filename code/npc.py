@@ -149,6 +149,8 @@ class NPC(pygame.sprite.Sprite):
         elif self.dialogue_stage == 3:
             self.dialogue_text = 'Please, get 200 exp!'
             self.mission_system.start_mission()
+            self.dialogue_stage += 1 
+        elif self.dialogue_stage == 4:
             if self.player.exp >= 200:
                 self.dialogue_text = "Congratulation, + 200 exp and Axe!"
                 self.player.exp += 200 
