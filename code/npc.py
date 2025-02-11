@@ -134,12 +134,12 @@ class NPC(pygame.sprite.Sprite):
         if self.dialogue_stage == 0:
             self.dialogue_text = "Hello dear player!!"
         elif self.dialogue_stage == 1:
-            self.dialogue_text = "Could you get 1000 points for me? please."
+            self.dialogue_text = "Could you get 100 points for me? please."
             self.mission_system.start_mission()
         elif self.dialogue_stage == 2:
-            if self.player.exp >= 1000:
+            if self.player.exp >= 100:
                 self.dialogue_text = "Thank you very much! Here your prize: Lance."
-                self.player.exp -= 1000
+                self.player.exp -= 100
                 self.player.weapons.append("lance")
                 self.quest_given = True
                 self.mission_system.complete_mission()
@@ -156,11 +156,55 @@ class NPC(pygame.sprite.Sprite):
                 self.player.exp += 200 
                 self.player.weapons.append('axe')
                 self.quest_given = True
-                self.dialogue_text = "Bye!"
-                self.interaction_completed = True
                 self.mission_system.complete_mission()
+                self.dialogue_stage += 1
             else:
                 self.dialogue_text = "Go collect 200 exp!"
+        elif self.dialogue_stage == 5:
+            self.dialogue_text = 'get 200 exp!'
+            self.mission_system.start_mission()
+            self.dialogue_stage += 1
+        elif self.dialogue_stage == 6:
+            if self.player.exp >= 200:
+                self.dialogue_text = "Congratulation, Get lance!"
+                self.player.exp -= 200
+                self.player.weapons.append('lance')
+                self.quest_given = True
+                self.mission_system.complete_mission()
+                self.dialogue_stage += 1
+            else:
+                self.dialogue_text = "Get 200 exp!"
+        elif self.dialogue_stage == 7:
+            self.dialogue_text = "get 100 more exp!"
+            self.mission_system.start_mission()
+            self.dialogue_stage += 1
+        elif self.dialogue_stage == 8:
+            if self.player.exp >= 100:
+                self.dialogue_text = "Congratulation, Get rapier!"
+                self.player.exp -= 100
+                self.player.weapons.append('rapier')
+                self.quest_given = True
+                self.mission_system.complete_mission()
+                self.dialogue_stage += 1
+            else:
+                self.dialogue_text = "Get 100 exp!"
+        elif self.dialogue_stage == 9:
+            self.dialogue_text = "get 100 more exp!"
+            self.mission_system.start_mission()
+            self.dialogue_stage += 1
+        elif self.dialogue_stage == 10:
+            if self.player.exp >= 100:
+                self.dialogue_text = "Congratulation, Get sai!"
+                self.player.exp -= 100
+                self.player.weapons.append('sai')
+                self.quest_given = True
+                self.mission_system.complete_mission()
+                self.dialogue_stage += 1
+            else:
+                self.dialogue_text = "Get 100 exp!"
+        elif self.dialogue_stage == 11:
+            self.dialogue_text = "thanks for help me, you are a good person!"
+            self.interaction_completed = True
 
         self.typing_effect_index = 0  
         
