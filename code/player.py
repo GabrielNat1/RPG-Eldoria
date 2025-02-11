@@ -295,7 +295,6 @@ class Player(Entity):
    
 	def restore_mission_state(self):
 			self.mission_state = self.mission_system.get_mission_state()
-			#print(f"Restaurando missão para o estado: {self.mission_state}")
 
 	def check_death(self):
 		if self.health <= 0:
@@ -307,7 +306,6 @@ class Player(Entity):
 			self.blink_start_time = pygame.time.get_ticks()
 			self.vulnerable = False
 			self.restore_mission_state()
-
 	def update(self):
 		if not self.blinking:
 			self.input()
