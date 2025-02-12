@@ -129,19 +129,31 @@ class Settings:
 
     def toggle_option(self):
         option = self.options[self.selected]
-        
+
         if option["type"] == "toggle":
             option["value"] = not option["value"]
+            if option["name"] == "Fullscreen" and option["value"]:
+                self.set_option("Borderless", False)
+
+            elif option["name"] == "Borderless" and option["value"]:
+                self.set_option("Fullscreen", False)
+
             return option["name"], option["value"]
-        
+
         elif option["type"] == "choice":
             option["value"] = (option["value"] + 1) % len(option["choices"])
             return option["name"], option["choices"][option["value"]]
-        
+
         elif option["type"] == "action" and option["name"] == "Back":
             return "Back", None
-        
+
         return None, None
+
+    def set_option(self, name, value):
+        for opt in self.options:
+            if opt["name"] == name:
+                opt["value"] = value
+                break
 
 class MainMenuSettings:
     def __init__(self, screen, settings):
@@ -152,7 +164,6 @@ class MainMenuSettings:
 
     def display(self):
         self.screen.fill(WATER_COLOR)
-        
         for idx, option in enumerate(self.settings.options):
             color = TEXT_COLOR if idx == self.settings.selected else UI_BG_COLOR
             text = option["name"]
@@ -504,15 +515,22 @@ class Game:
             shutil.rmtree(CHUNKS_FOLDER)
 
     def toggle_fullscreen(self, borderless=False):
-        if self.fullscreen:
-            pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
-            self.fullscreen = False
+        if borderless:
+            pygame.display.set_mode((WIDTH, HEIGTH), pygame.NOFRAME)  # Sem bordas
+            self.fullscreen = False  # Borderless não é o mesmo que fullscreen
         else:
-            flags = pygame.NOFRAME if borderless else pygame.FULLSCREEN
-            pygame.display.set_mode((WIDTH, HEIGTH), flags)
-            self.fullscreen = True
-        self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
-        self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)  # Center the game on the player
+            if self.fullscreen:
+                pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)  # Com bordas e redimensionável
+                self.fullscreen = False
+            else:
+                pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)  # Fullscreen sem bordas
+                self.fullscreen = True
+
+        # Atualiza o fundo para corresponder ao novo tamanho
+        self.level.floor_surf = pygame.transform.scale(
+            pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH)
+        )
+        self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)  # Centraliza no jogador
     
     def apply_resolution(self, resolution):
         global WIDTH, HEIGTH
