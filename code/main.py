@@ -492,7 +492,7 @@ class Game:
                 elif self.in_pause:
                     self.screen.fill(WATER_COLOR)
                     self.level.visible_sprites.custom_draw(self.level.player)
-                    self.level.ui.display(self.level.player)  # => fix here
+                    self.level.ui.display(self.level.player)  
                     self.pause_menu.display()
                     
                 elif self.in_settings:
@@ -516,21 +516,21 @@ class Game:
 
     def toggle_fullscreen(self, borderless=False):
         if borderless:
-            pygame.display.set_mode((WIDTH, HEIGTH), pygame.NOFRAME)  # Sem bordas
-            self.fullscreen = False  # Borderless não é o mesmo que fullscreen
+            pygame.display.set_mode((WIDTH, HEIGTH), pygame.NOFRAME)  
+            self.fullscreen = False  
         else:
             if self.fullscreen:
-                pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)  # Com bordas e redimensionável
+                pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)  
                 self.fullscreen = False
             else:
-                pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)  # Fullscreen sem bordas
+                pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN) 
                 self.fullscreen = True
 
-        # Atualiza o fundo para corresponder ao novo tamanho
+        
         self.level.floor_surf = pygame.transform.scale(
             pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH)
         )
-        self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)  # Centraliza no jogador
+        self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)  
     
     def apply_resolution(self, resolution):
         global WIDTH, HEIGTH
