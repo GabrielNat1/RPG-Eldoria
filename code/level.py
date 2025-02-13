@@ -204,6 +204,10 @@ class Level:
 			self.animation_player.create_particles(attack_type, self.player.rect.center, [self.visible_sprites])
 			if self.player.health <= 0:
 				self.player.kill()
+				self.player.alive = False
+				if self.current_attack:
+					self.destroy_attack()
+     
 				self.respawn_player()
 
 	def respawn_player(self):
@@ -214,7 +218,7 @@ class Level:
 			self.create_attack,
 			self.destroy_attack,
 			self.create_magic,
-   			self.mission_system,)
+   			self.mission_system)
   
 		self.player.health = self.player.stats['health']
 		self.player.blinking = True
@@ -265,12 +269,12 @@ class Level:
 		if self.game_paused:
 			self.upgrade.display()
 		else:
-			if not self.npc.show_dialogue:
+			if not self.npc.show_dialogue and self.player.health > 0:
 				self.visible_sprites.update()
 				self.visible_sprites.enemy_update(self.player)
 				self.player_attack_logic()
-				self.npc.update()  
-				self.npc.check_player_distance()  
+				self.npc.update()
+				self.npc.check_player_distance()
 
 		if self.npc.show_dialogue:
 			self.npc.display_dialogue()  
