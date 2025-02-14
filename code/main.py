@@ -14,7 +14,7 @@ class Intro:
         self.version_text = "v2.0.0"
         self.audio_manager = AudioManager() 
 
-    def fade_to_black(self, delay=30, alpha_step=4):
+    def fade_to_black(self, delay=10, alpha_step=8): 
         fade_surface = pygame.Surface((WIDTH, HEIGTH))
         fade_surface.fill((0, 0, 0)) 
         for alpha in range(0, 256, alpha_step): 
@@ -24,7 +24,7 @@ class Intro:
             pygame.display.flip()
             pygame.time.delay(delay)
 
-    def fade_in(self, delay=30, alpha_step=4):
+    def fade_in(self, delay=10, alpha_step=8):
         fade_surface = pygame.Surface((WIDTH, HEIGTH))
         fade_surface.fill((0, 0, 0))  
         for alpha in range(255, -1, -alpha_step):  
@@ -34,7 +34,7 @@ class Intro:
             pygame.display.flip()
             pygame.time.delay(delay)
             
-    def type_text(self, text, color, center_x, center_y, delay=0.2):
+    def type_text(self, text, color, center_x, center_y, delay=0.05): 
         displayed_text = ""
         for char in text:
             displayed_text += char
@@ -49,24 +49,24 @@ class Intro:
         self.audio_manager.play_music("../audio/main_intro.ogg", loops=-1, volume=0.5)  
         self.screen.fill((0, 0, 0)) 
         pygame.display.flip()
-        time.sleep(1)
+        time.sleep(0.5)  
 
-        self.fade_in(delay=30, alpha_step=4)
+        self.fade_in(delay=10, alpha_step=8) 
 
-        self.type_text(self.text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2, delay=0.1)
-        time.sleep(3) 
+        self.type_text(self.text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2, delay=0.05)  
+        time.sleep(1)  
 
-        self.fade_to_black(delay=30, alpha_step=4)
+        self.fade_to_black(delay=10, alpha_step=8)  
 
-        self.fade_in(delay=30, alpha_step=4)
+        self.fade_in(delay=10, alpha_step=8) 
 
-        self.type_text(self.version_text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2, delay=0.1)
-        time.sleep(2)  
+        self.type_text(self.version_text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2, delay=0.05)  
+        time.sleep(1)  
 
-        self.fade_to_black(delay=30, alpha_step=4)
+        self.fade_to_black(delay=10, alpha_step=8) 
 
-        time.sleep(1)
-        self.audio_manager.stop_music() 
+        time.sleep(0.5) 
+        self.audio_manager.stop_music()
 
 class MainMenu:
     def __init__(self, screen):
