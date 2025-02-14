@@ -12,7 +12,6 @@ from magic import MagicPlayer
 from upgrade import Upgrade
 from npc import NPC, MissionSystem
 from chunk_manager import generate_chunk_data, save_chunk_data, load_chunk_data, unload_chunks
-import json
 import os
 
 class Level:
