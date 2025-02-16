@@ -7,7 +7,7 @@ FPS = 60
 TILESIZE = 64 
 CHUNKSIZE = 24  
 VISIBLE_CHUNKS = 3 
-CHUNKS_FOLDER = './__cache_data__/chunk_data/level_data'
+CHUNKS_FOLDER = '../code/cache'
 
 #hitbox config
 HITBOX_OFFSET = {
