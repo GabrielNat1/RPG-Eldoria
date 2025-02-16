@@ -421,6 +421,7 @@ class Game:
                                 elif action == "quit":
                                     pygame.quit()
                                     sys.exit()
+                                    del CHUNKS_FOLDER
                             elif event.key == pygame.K_ESCAPE:
                                 self.in_pause = False
                                 self.audio_manager.stop_music()
