@@ -5,7 +5,7 @@ import shutil
 import os
 import settings
 from level import *
-#My dick
+
 class Intro:
     def __init__(self, screen):
         self.screen = screen

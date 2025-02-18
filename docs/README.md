@@ -1,5 +1,5 @@
 <h1 align="center">
-   🎮 <strong>RPG Eldoria</strong> 🎮
+   🎮 <strong>RPG Eldoria.</strong> 🎮
 </h1>
 
 <img src='https://github.com/user-attachments/assets/29986fe7-23d2-4662-bc62-96244db0e1c7'>
