@@ -2,7 +2,7 @@
    🎮 <strong>RPG Eldoria</strong> 🎮
 </h1>
 
-<img src='https://github.com/user-attachments/assets/29986fe7-23d2-4662-bc62-96244db0e1c7'>
+<img src='../assets/background-ninja-adventure-pack.gif'>
 
 ## Introduction 🌍
 **RPG Eldoria** is a 2D RPG developed in **Python** using the Pygame library.. Inspired by games like **Stardew Valley** and **Dark Souls**, the game combines a **pixel art** visual style with challenging combat and exploration mechanics. Designed to ensure a smooth and accessible experience, the game implements various optimizations and unique features focused on performance and gameplay depth.
@@ -64,7 +64,7 @@ RPG-ELDORIA/
 
 ### 2. NPC and Quest System 🧑‍🤝‍🧑
 
-<img width=700 src='https://github.com/user-attachments/assets/98f57db8-b1a5-4b6a-bef5-7bb02d1c3bdc'>
+<img width=700 src='../assets/npc-dialogue-system.gif'>
 
 - **NPC Interactions**:
   - NPCs are key elements of the game, offering dynamic dialogues with a typing effect for immersion.
@@ -82,7 +82,7 @@ RPG-ELDORIA/
 
 ### 3. Full Menu System 🖥️
 
-<img width=700 src='https://github.com/user-attachments/assets/e063f96e-00cf-4111-9eb9-9c905143117c'>
+<img width=700 src='../assets/settings-viewer.gif'>
 <br>
 
 The main menu offers several customizable options: <br>
