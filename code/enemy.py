@@ -25,7 +25,7 @@ class Enemy(Entity):
 		monster_info = monster_data[self.monster_name]
 		self.health = monster_info['health']
 		self.exp = monster_info['exp']
-		self.speed = monster_info['speed']
+		self.speed = monster_info['speed'] * 0.5  # Reduzir a velocidade dos inimigos
 		self.attack_damage = monster_info['damage']
 		self.resistance = monster_info['resistance']
 		self.attack_radius = monster_info['attack_radius']
@@ -52,6 +52,12 @@ class Enemy(Entity):
 		self.death_sound.set_volume(0.6)
 		self.hit_sound.set_volume(0.6)
 		self.attack_sound.set_volume(0.6)
+
+		# respawn
+		self.respawn_time = 10000  # Tempo de reespawn de 1 segundo
+		self.death_time = None
+		self.alive = True  # Adicione esta linha
+		self.initial_position = pos  # Adicione esta linha
 
 	def import_graphics(self,name):
 		self.animations = {'idle':[],'move':[],'attack':[]}
@@ -133,11 +139,22 @@ class Enemy(Entity):
 			self.vulnerable = False
 
 	def check_death(self):
-		if self.health <= 0:
+		if self.health <= 0 and self.alive:
+			self.alive = False
 			self.kill()
-			self.trigger_death_particles(self.rect.center,self.monster_name)
+			self.trigger_death_particles(self.rect.center, self.monster_name)
 			self.add_exp(self.exp)
 			self.death_sound.play()
+			self.death_time = pygame.time.get_ticks()
+
+	def respawn(self):
+		if not self.alive and self.death_time and pygame.time.get_ticks() - self.death_time >= self.respawn_time:
+			self.health = monster_data[self.monster_name]['health']
+			self.alive = True
+			self.add(self.groups())
+			self.death_time = None
+			self.rect.topleft = self.initial_position
+			self.hitbox.topleft = self.initial_position
 
 	def hit_reaction(self):
 		if not self.vulnerable:
@@ -149,7 +166,9 @@ class Enemy(Entity):
 		self.animate()
 		self.cooldowns()
 		self.check_death()
+		self.respawn()  
 
 	def enemy_update(self,player):
 		self.get_status(player)
 		self.actions(player)
+		self.update()
