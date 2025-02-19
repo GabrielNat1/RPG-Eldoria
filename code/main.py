@@ -544,7 +544,7 @@ class Game:
                                     self.toggle_fullscreen(borderless=True)
                                 elif option == "Resolution":
                                     self.apply_resolution(value)
-                                    self.settings.set_option("Fullscreen", False)  # Ensure fullscreen is off
+                                    self.settings.set_option("Fullscreen", False) 
                                 elif option == "Back":
                                     self.in_settings = False
                                     self.in_menu = True
