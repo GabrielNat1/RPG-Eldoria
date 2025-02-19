@@ -402,6 +402,7 @@ Pack Tile used:
   <img src="https://github.com/EnzoHacker.png" alt="Colaborador 2" width="40" height="40">
   <img src="https://github.com/Nathan-Nando22.png" alt="Colaborador 3" width="40" height="40">
   <img src="https://github.com/clear-code-projects.png" alt="Colaborador 4" width="40" height="40">
+  <img src="https://github.com/GabrielNatPr0.png" alt="Colaborador 5" width="40" height="40""
 </div>
 
 
