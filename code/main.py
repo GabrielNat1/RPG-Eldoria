@@ -3,7 +3,7 @@ import sys
 import time
 import shutil  
 import os
-import settings
+import settings as game_settings
 from level import *
 
 class Intro:
@@ -120,6 +120,7 @@ class Settings:
             {"name": "Borderless", "type": "toggle", "value": False},
             {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  # Default to 1920x1080
             {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1},  # Default to normal
+            {"name": "Gamma", "type": "slider", "min": 50, "max": 150, "value": 100},  # Gamma slider
             {"name": "Back", "type": "action"}
         ]
         self.selected = 0
@@ -155,10 +156,17 @@ class Settings:
                 opt["value"] = value
                 break
 
+    def adjust_gamma(self, direction):
+        option = self.options[self.selected]
+        if option["type"] == "slider":
+            option["value"] = max(option["min"], min(option["max"], option["value"] + direction))
+            return option["name"], option["value"]
+        return None, None
+
 class MainMenuSettings:
     def __init__(self, screen, settings):
         self.screen = screen
-        self.font = pygame.font.Font(UI_FONT, 40)
+        self.font = pygame.font.Font(UI_FONT, 40)  # Restore original font size
         self.settings = settings
         self.audio_manager = AudioManager()  
 
@@ -173,11 +181,34 @@ class MainMenuSettings:
             elif option["type"] == "choice":
                 current_res = option["choices"][option["value"]]
                 text += f": {current_res[0]}x{current_res[1]}" if option["name"] == "Resolution" else f": {current_res}"
-                
+            elif option["type"] == "slider":
+                text += f": {option['value']}"
+
             rendered_text = self.font.render(text, True, color)
             text_rect = rendered_text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
             self.screen.blit(rendered_text, text_rect)
-            
+
+        # Display buttons
+        enter_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/ENTER.png').convert_alpha()
+        y_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/Y.png').convert_alpha()
+        esc_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/ESC.png').convert_alpha()
+
+        enter_img = pygame.transform.scale(enter_img, (20, 20))
+        y_img = pygame.transform.scale(y_img, (20, 20))
+        esc_img = pygame.transform.scale(esc_img, (20, 20))
+
+        small_font = pygame.font.Font(UI_FONT, 20)
+        enter_text = small_font.render("Toggle", True, BLACK_COLOR)
+        y_text = small_font.render("Reset", True, BLACK_COLOR)
+        esc_text = small_font.render("Back", True, BLACK_COLOR)
+
+        self.screen.blit(enter_img, (WIDTH - 370, HEIGTH - 30))
+        self.screen.blit(enter_text, (WIDTH - 340, HEIGTH - 30))
+        self.screen.blit(y_img, (WIDTH - 230, HEIGTH - 30))
+        self.screen.blit(y_text, (WIDTH - 200, HEIGTH - 30))
+        self.screen.blit(esc_img, (WIDTH - 110, HEIGTH - 30))
+        self.screen.blit(esc_text, (WIDTH - 80, HEIGTH - 30))
+
         pygame.display.flip()
 
     def navigate(self, direction):
@@ -188,6 +219,27 @@ class MainMenuSettings:
         if option:
             self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
         return option, value
+
+    def adjust_gamma(self, direction):
+        option, value = self.settings.adjust_gamma(direction)
+        if option:
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
+            self.apply_gamma(value)
+        return option, value
+
+    def apply_gamma(self, value):
+        gamma = value / 100.0
+        pygame.display.set_gamma(gamma)
+
+    def reset_settings(self):
+        fullscreen_before_reset = self.settings.options[0]["value"]
+        self.settings = Settings()
+        self.settings.set_option("Fullscreen", fullscreen_before_reset)
+        if fullscreen_before_reset:
+            self.settings.set_option("Borderless", False)
+            game.toggle_fullscreen(borderless=False)
+        else:
+            game.toggle_fullscreen(borderless=True)
 
 class PauseMenu:
     def __init__(self, screen):
@@ -230,7 +282,7 @@ class PauseMenu:
 class PauseMenuSettings:
     def __init__(self, screen, settings):
         self.screen = screen
-        self.font = pygame.font.Font(UI_FONT, 40)
+        self.font = pygame.font.Font(UI_FONT, 40)  # Restore original font size
         self.settings = settings
         self.audio_manager = AudioManager()  
 
@@ -246,11 +298,34 @@ class PauseMenuSettings:
             elif option["type"] == "choice":
                 current_res = option["choices"][option["value"]]
                 text += f": {current_res[0]}x{current_res[1]}" if option["name"] == "Resolution" else f": {current_res}"
-                
+            elif option["type"] == "slider":
+                text += f": {option['value']}"
+
             rendered_text = self.font.render(text, True, color)
             text_rect = rendered_text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
             self.screen.blit(rendered_text, text_rect)
-            
+
+        # Display buttons
+        enter_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/ENTER.png').convert_alpha()
+        y_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/Y.png').convert_alpha()
+        esc_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/ESC.png').convert_alpha()
+
+        enter_img = pygame.transform.scale(enter_img, (20, 20))
+        y_img = pygame.transform.scale(y_img, (20, 20))
+        esc_img = pygame.transform.scale(esc_img, (20, 20))
+
+        small_font = pygame.font.Font(UI_FONT, 20)
+        enter_text = small_font.render("Toggle", True, BLACK_COLOR)
+        y_text = small_font.render("Reset", True, BLACK_COLOR)
+        esc_text = small_font.render("Back", True, BLACK_COLOR)
+
+        self.screen.blit(enter_img, (WIDTH - 370, HEIGTH - 30))
+        self.screen.blit(enter_text, (WIDTH - 340, HEIGTH - 30))
+        self.screen.blit(y_img, (WIDTH - 230, HEIGTH - 30))
+        self.screen.blit(y_text, (WIDTH - 200, HEIGTH - 30))
+        self.screen.blit(esc_img, (WIDTH - 110, HEIGTH - 30))
+        self.screen.blit(esc_text, (WIDTH - 80, HEIGTH - 30))
+
         pygame.display.flip()
 
     def navigate(self, direction):
@@ -261,6 +336,27 @@ class PauseMenuSettings:
         if option:
             self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
         return option, value
+
+    def adjust_gamma(self, direction):
+        option, value = self.settings.adjust_gamma(direction)
+        if option:
+            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
+            self.apply_gamma(value)
+        return option, value
+
+    def apply_gamma(self, value):
+        gamma = value / 100.0
+        pygame.display.set_gamma(gamma)
+
+    def reset_settings(self):
+        fullscreen_before_reset = self.settings.options[0]["value"]
+        self.settings = Settings()
+        self.settings.set_option("Fullscreen", fullscreen_before_reset)
+        if fullscreen_before_reset:
+            self.settings.set_option("Borderless", False)
+            game.toggle_fullscreen(borderless=False)
+        else:
+            game.toggle_fullscreen(borderless=True)
 
 class AudioManager:
     def __init__(self):
@@ -360,9 +456,9 @@ class Game:
     def _apply_level_settings(self, config):
         self.level.clear_wind_effects()
 
-        settings.TILESIZE = config["tilesize"]
-        settings.CHUNKSIZE = config["chunksize"]
-        settings.VISIBLE_CHUNKS = config["visible_chunks"]
+        game_settings.TILESIZE = config["tilesize"]
+        game_settings.CHUNKSIZE = config["chunksize"]
+        game_settings.VISIBLE_CHUNKS = config["visible_chunks"]
         
         self.level.wind_effect_interval = config["wind_interval"]
         self.level.wind_effect_duration = config["wind_duration"]
@@ -373,6 +469,7 @@ class Game:
         
     def run(self):
         try:
+            key_hold_time = 0
             while True:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -433,6 +530,12 @@ class Game:
                                 self.main_menu_settings.navigate(-1)
                             elif event.key == pygame.K_DOWN:
                                 self.main_menu_settings.navigate(1)
+                            elif event.key == pygame.K_LEFT:
+                                self.main_menu_settings.adjust_gamma(-1)
+                                key_hold_time = pygame.time.get_ticks()
+                            elif event.key == pygame.K_RIGHT:
+                                self.main_menu_settings.adjust_gamma(1)
+                                key_hold_time = pygame.time.get_ticks()
                             elif event.key == pygame.K_RETURN:
                                 option, value = self.main_menu_settings.toggle_option()
                                 if option == "Fullscreen":
@@ -441,21 +544,33 @@ class Game:
                                     self.toggle_fullscreen(borderless=True)
                                 elif option == "Resolution":
                                     self.apply_resolution(value)
+                                    self.settings.set_option("Fullscreen", False)  # Ensure fullscreen is off
                                 elif option == "Back":
                                     self.in_settings = False
                                     self.in_menu = True
+                            elif event.key == pygame.K_y:
+                                fullscreen_before_reset = self.settings.options[0]["value"]
+                                self.main_menu_settings.reset_settings()  # Reset settings to default
+                                self.pause_menu_settings.reset_settings()  # Reset pause menu settings to default
+                                self.settings.set_option("Fullscreen", fullscreen_before_reset)
                             elif event.key == pygame.K_ESCAPE:
                                 self.in_settings = False
                                 self.in_menu = True
+                        elif event.type == pygame.KEYUP:
+                            key_hold_time = 0
 
                     elif self.in_pause_settings:
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_UP:
                                 self.pause_menu_settings.navigate(-1)
-                                
                             elif event.key == pygame.K_DOWN:
                                 self.pause_menu_settings.navigate(1)
-                                
+                            elif event.key == pygame.K_LEFT:
+                                self.pause_menu_settings.adjust_gamma(-1)
+                                key_hold_time = pygame.time.get_ticks()
+                            elif event.key == pygame.K_RIGHT:
+                                self.pause_menu_settings.adjust_gamma(1)
+                                key_hold_time = pygame.time.get_ticks()
                             elif event.key == pygame.K_RETURN:
                                 option, value = self.pause_menu_settings.toggle_option()
                                 if option == "Fullscreen":
@@ -464,10 +579,15 @@ class Game:
                                     self.toggle_fullscreen(borderless=True)
                                 elif option == "Resolution":
                                     self.apply_resolution(value)
+                                    self.settings.set_option("Fullscreen", False)  # Ensure fullscreen is off
                                 elif option == "Back":
                                     self.in_pause_settings = False
                                     self.in_pause = True
-                                
+                            elif event.key == pygame.K_y:
+                                fullscreen_before_reset = self.settings.options[0]["value"]
+                                self.main_menu_settings.reset_settings()  # Reset settings to default
+                                self.pause_menu_settings.reset_settings()  # Reset pause menu settings to default
+                                self.settings.set_option("Fullscreen", fullscreen_before_reset)
                             elif event.key == pygame.K_ESCAPE:
                                 self.in_pause_settings = False
                                 self.in_pause = True
@@ -486,6 +606,16 @@ class Game:
                             WIDTH, HEIGTH = event.size
                             self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
                             self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
+
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT]:
+                    if pygame.time.get_ticks() - key_hold_time > 100:
+                        self.main_menu_settings.adjust_gamma(-1)
+                        key_hold_time = pygame.time.get_ticks()
+                elif keys[pygame.K_RIGHT]:
+                    if pygame.time.get_ticks() - key_hold_time > 100:
+                        self.main_menu_settings.adjust_gamma(1)
+                        key_hold_time = pygame.time.get_ticks()
 
                 if self.in_menu:
                     self.main_menu.display()

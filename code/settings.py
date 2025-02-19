@@ -66,3 +66,13 @@ monster_data = {
     'spirit': {'health': 100, 'exp': 110, 'damage': 8, 'attack_type': 'thunder', 'attack_sound': '../audio/attack/fireball.wav', 'speed': 4, 'resistance': 3, 'attack_radius': 60, 'notice_radius': 350},
     'bamboo': {'health': 70, 'exp': 120, 'damage': 6, 'attack_type': 'leaf_attack', 'attack_sound': '../audio/attack/slash.wav', 'speed': 3, 'resistance': 3, 'attack_radius': 50, 'notice_radius': 300}
 }
+
+# Settings
+settings = [
+    {"name": "Fullscreen", "type": "toggle", "value": True},
+    {"name": "Borderless", "type": "toggle", "value": False},
+    {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},
+    {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1},
+    {"name": "Gamma", "type": "slider", "value": 50, "min": 0, "max": 100},  # Default to 50
+    {"name": "Back", "type": "action"}
+]
