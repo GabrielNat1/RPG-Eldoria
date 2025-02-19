@@ -550,8 +550,8 @@ class Game:
                                     self.in_menu = True
                             elif event.key == pygame.K_y:
                                 fullscreen_before_reset = self.settings.options[0]["value"]
-                                self.main_menu_settings.reset_settings()  # Reset settings to default
-                                self.pause_menu_settings.reset_settings()  # Reset pause menu settings to default
+                                self.main_menu_settings.reset_settings()  
+                                self.pause_menu_settings.reset_settings()  
                                 self.settings.set_option("Fullscreen", fullscreen_before_reset)
                             elif event.key == pygame.K_ESCAPE:
                                 self.in_settings = False
