@@ -66,6 +66,9 @@ class Level:
 		self.enemy_attack_delay = 3000  # 3 seconds
 		self.game_start_time = pygame.time.get_ticks()
 
+		self.last_respawn_time = pygame.time.get_ticks()
+		self.raccoon_respawn_time = 600000  # 10 minutes
+		self.last_raccoon_respawn_time = pygame.time.get_ticks()
 
 		# Instance for NPC
 		self.npc = NPC(
@@ -87,6 +90,8 @@ class Level:
 			'grass': import_folder('../graphics/Grass'),
 			'objects': import_folder('../graphics/objects')
 		}
+
+		self.enemy_spawn_points = []  # Lista para armazenar pontos de spawn dos inimigos
 
 		for style, layout in layouts.items():
 			for row_index, row in enumerate(layout):
@@ -125,7 +130,7 @@ class Level:
 								elif col == '391': monster_name = 'spirit'
 								elif col == '392': monster_name = 'raccoon'
 								else: monster_name = 'squid'
-								Enemy(
+								enemy = Enemy(
 									monster_name,
 									(x, y),
 									[self.visible_sprites, self.attackable_sprites],
@@ -133,6 +138,7 @@ class Level:
 									self.damage_player,
 									self.trigger_death_particles,
 									self.add_exp)
+								self.enemy_spawn_points.append((monster_name, (x, y)))  # Adicionar ponto de spawn
         
 	def get_chunk(self, position):
 			return (position[0] // (TILESIZE * CHUNKSIZE), position[1] // (TILESIZE * CHUNKSIZE))
@@ -226,6 +232,48 @@ class Level:
 		if hasattr(self, 'npc'):
 			self.npc.player = self.player
 
+	def respawn_enemies(self):
+		current_time = pygame.time.get_ticks()
+		if current_time - self.last_respawn_time >= 20000:  # 20 seconds
+			for monster_name, spawn_point in self.enemy_spawn_points:
+				if monster_name != 'raccoon':
+					enemy_exists = any(
+						enemy.monster_name == monster_name and enemy.rect.topleft == spawn_point and enemy.alive
+						for enemy in self.visible_sprites
+						if isinstance(enemy, Enemy)
+					)
+					if not enemy_exists:
+						enemy = Enemy(
+							monster_name,
+							spawn_point,
+							[self.visible_sprites, self.attackable_sprites],
+							self.obstacle_sprites,
+							self.damage_player,
+							self.trigger_death_particles,
+							self.add_exp)
+						self.visible_sprites.add(enemy)
+			self.last_respawn_time = current_time
+
+		if current_time - self.last_raccoon_respawn_time >= self.raccoon_respawn_time:  # 10 minutes
+			for monster_name, spawn_point in self.enemy_spawn_points:
+				if monster_name == 'raccoon':
+					enemy_exists = any(
+						enemy.monster_name == monster_name and enemy.rect.topleft == spawn_point and enemy.alive
+						for enemy in self.visible_sprites
+						if isinstance(enemy, Enemy)
+					)
+					if not enemy_exists:
+						enemy = Enemy(
+							monster_name,
+							spawn_point,
+							[self.visible_sprites, self.attackable_sprites],
+							self.obstacle_sprites,
+							self.damage_player,
+							self.trigger_death_particles,
+							self.add_exp)
+						self.visible_sprites.add(enemy)
+			self.last_raccoon_respawn_time = current_time
+
 	def trigger_death_particles(self, pos, particle_type):
 		self.animation_player.create_particles(particle_type, pos, self.visible_sprites)
 
@@ -275,8 +323,12 @@ class Level:
 				self.npc.update()
 				self.npc.check_player_distance()
 
+			# Atualizar inimigos para permitir reespawn
+			if not self.game_paused:
+				self.respawn_enemies()  # Ensure enemies respawn correctly
+
 		if self.npc.show_dialogue:
-			self.npc.display_dialogue()  
+			self.npc.display_dialogue()
 
 	def is_chunk_within_visibility_radius(self, chunk):
 		player_pos = self.player.rect.center
