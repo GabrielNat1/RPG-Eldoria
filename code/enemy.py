@@ -166,7 +166,7 @@ class Enemy(Entity):
 		self.animate()
 		self.cooldowns()
 		self.check_death()
-		self.respawn()  # Ensure respawn is called during update
+		self.respawn()  
 
 	def enemy_update(self,player):
 		self.get_status(player)
