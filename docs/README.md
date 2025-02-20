@@ -154,20 +154,20 @@ The main menu offers several customizable options: <br>
 This file is the entry point to the game, containing the main function to initialize and run the game. It also applies the game settings and controls the flow of execution.
 ```bash
 code.py/
-├── debug.py    # Handles debugging features and logs for the game.
-├── enemy.py    # Contains the logic for enemy behaviors and AI.
-├── entity.py   # Base class for all entities in the game, including NPCs and players.
-├── level.py    # Manages the game levels and interactions between entities.
-├── magic.py    # Handles magical abilities, effects, and spells.
-├── main.py     # The main script to initialize and run the game.
-├── npc.py      # Manages NPCs, their dialogue, and quests.
-├── particles.py# Handles the creation and behavior of particle effects.
-├── player.py   # Defines the player character, their attributes, and actions.
-├── settings.py # Configuration file for game settings (resolution, performance modes, etc.).
-├── support.py  # Provides utility functions to support other modules.
-├── tile.py     # Manages tiles and map rendering.
-├── ui.py       # Handles the user interface, including buttons and menus.
-└── upgrade.py  # Handles upgrading systems for player attributes.
+├── debug.py     # Handles debugging features and logs for the game.
+├── enemy.py     # Contains the logic for enemy behaviors and AI.
+├── entity.py    # Base class for all entities in the game, including NPCs and players.
+├── level.py     # Manages the game levels and interactions between entities.
+├── magic.py     # Handles magical abilities, effects, and spells.
+├── main.py      # The main script to initialize and run the game.
+├── npc.py       # Manages NPCs, their dialogue, and quests.
+├── particles.py # Handles the creation and behavior of particle effects.
+├── player.py    # Defines the player character, their attributes, and actions.
+├── settings.py  # Configuration file for game settings (resolution, performance modes, etc.).
+├── support.py   # Provides utility functions to support other modules.
+├── tile.py      # Manages tiles and map rendering.
+├── ui.py        # Handles the user interface, including buttons and menus.
+└── upgrade.py   # Handles upgrading systems for player attributes.
 ```
 
 - **Tiles Regeneration**: 
