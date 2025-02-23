@@ -91,7 +91,7 @@ class Level:
 			'objects': import_folder('../graphics/objects')
 		}
 
-		self.enemy_spawn_points = []  # Lista para armazenar pontos de spawn dos inimigos
+		self.enemy_spawn_points = []  # Store enemy spawn points
 
 		for style, layout in layouts.items():
 			for row_index, row in enumerate(layout):
@@ -110,8 +110,10 @@ class Level:
 								random_grass_image)
 
 						if style == 'object':
-							surf = graphics['objects'][int(col)]
-							Tile((x, y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
+							object_index = int(col)
+							if object_index < len(graphics['objects']):
+								surf = graphics['objects'][object_index]
+								Tile((x, y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
 
 						if style == 'entities':
 							if col == '394' and not hasattr(self, 'player'):
@@ -234,7 +236,7 @@ class Level:
 
 	def respawn_enemies(self):
 		current_time = pygame.time.get_ticks()
-		if current_time - self.last_respawn_time >= 20000:  # 20 seconds
+		if current_time - self.last_respawn_time >= 900000: 
 			for monster_name, spawn_point in self.enemy_spawn_points:
 				if monster_name != 'raccoon':
 					enemy_exists = any(
