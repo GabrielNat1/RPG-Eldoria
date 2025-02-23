@@ -192,7 +192,6 @@ This ensures that the game runs efficiently on various systems while providing a
 Developed by
 ```bash
   - GabrielNat1
-  - ClearCode
 ```
 
 <br>
@@ -207,8 +206,7 @@ Pack Tile used:
 <div style="display: flex; justify-content: space-around;">
   <img src="https://github.com/GabrielNat1.png" alt="Colaborador 1" width="40" height="40">
   <img src="https://github.com/EnzoHacker.png" alt="Colaborador 2" width="40" height="40">
-  <img src="https://github.com/Nathan-Nando22.png" alt="Colaborador 3" width="40" height="40">
-  <img src="https://github.com/clear-code-projects.png" alt="Colaborador 4" width="40" height="40">
+  <img src="https://github.com/Nathan-Nando22.png" alt="Colaborador 3" width="40" height="40">>
   <img src="https://github.com/GabrielNatPr0.png" alt="Colaborador 5" width="40" height="40""
 </div>
 
