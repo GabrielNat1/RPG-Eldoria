@@ -15,9 +15,11 @@ from chunk_manager import generate_chunk_data, save_chunk_data, load_chunk_data,
 import os
 
 class Level:
+	shared_wind_frames = None
+
 	def __init__(self, mission_system=None):
 		#mission
-		self.mission_system = MissionSystem()
+		self.mission_system = mission_system if mission_system else MissionSystem()
   
 		# get the display surface
 		self.display_surface = pygame.display.get_surface()
@@ -55,7 +57,7 @@ class Level:
 		self.max_wind_effects = 4 # Default to 4 wind effects
 		self.wind_effects = pygame.sprite.Group()
 		self.wind_effect_last_spawn_time = pygame.time.get_ticks()
-		self.wind_frames = import_folder('../graphics/environment/wind')
+		self.load_wind_frames()
 		self.spawn_wind_effects()
 
 		self.floor_surf = pygame.image.load('../graphics/tilemap/ground.png').convert()
@@ -139,7 +141,8 @@ class Level:
 									self.obstacle_sprites,
 									self.damage_player,
 									self.trigger_death_particles,
-									self.add_exp)
+									self.add_exp,
+									self.mission_system)
 								self.enemy_spawn_points.append((monster_name, (x, y)))  # Adicionar ponto de spawn
         
 	def get_chunk(self, position):
@@ -308,6 +311,11 @@ class Level:
 		self.wind_effects.empty()  # Clear existing wind effects
 		self.wind_effect_last_spawn_time = pygame.time.get_ticks()  # Reset spawn time
 		self.spawn_wind_effects()
+
+	def load_wind_frames(self):
+		if Level.shared_wind_frames is None:
+			Level.shared_wind_frames = import_folder('../graphics/environment/wind')
+		self.wind_frames = Level.shared_wind_frames
 
 	def run(self):
 		self.update_chunks()

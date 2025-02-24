@@ -3,23 +3,11 @@ import os
 from settings import WIDTH, HEIGTH
 
 class NPC(pygame.sprite.Sprite):
+    shared_frames = {}
+
     def __init__(self, pos, groups, player, display_surface, mission_system=None):
         super().__init__(groups)
-        # Sprites Npc
-        self.frames_up = [
-            pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_up", f"idle_up_{i}.png")).convert_alpha()
-            for i in range(3)
-        ]
-        self.frames_down = [
-            pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_down", f"idle_down_{i}.png")).convert_alpha()
-            for i in range(3)
-        ]
-        self.frames_left = [
-            pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_left", f"idle_left_{i}.png")).convert_alpha()
-            for i in range(3)
-        ]
-        self.frames_right = [pygame.transform.flip(frame, True, False) for frame in self.frames_left] 
-        
+        self.load_frames()
         self.dialogue_images = {
             0: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_0.png').convert_alpha(),
             1: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_1.png').convert_alpha(),
@@ -62,6 +50,27 @@ class NPC(pygame.sprite.Sprite):
         # System Missions
         self.mission_system = mission_system if mission_system else MissionSystem()
 
+    def load_frames(self):
+        if not NPC.shared_frames:
+            NPC.shared_frames['up'] = [
+                pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_up", f"idle_up_{i}.png")).convert_alpha()
+                for i in range(3)
+            ]
+            NPC.shared_frames['down'] = [
+                pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_down", f"idle_down_{i}.png")).convert_alpha()
+                for i in range(3)
+            ]
+            NPC.shared_frames['left'] = [
+                pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_left", f"idle_left_{i}.png")).convert_alpha()
+                for i in range(3)
+            ]
+            NPC.shared_frames['right'] = [pygame.transform.flip(frame, True, False) for frame in NPC.shared_frames['left']]
+
+        self.frames_up = NPC.shared_frames['up']
+        self.frames_down = NPC.shared_frames['down']
+        self.frames_left = NPC.shared_frames['left']
+        self.frames_right = NPC.shared_frames['right']
+
     def update_direction(self):
         """Update Direction for npc"""
         interaction_distance = 200 
@@ -76,8 +85,7 @@ class NPC(pygame.sprite.Sprite):
                     self.facing = "left" 
                 elif distance_x < 0:
                     self.facing = "right"  
-
-            if abs(distance_y) > abs(distance_x):  
+            else:
                 if distance_y > 0:
                     self.facing = "up"  
                 elif distance_y < 0:
@@ -111,25 +119,6 @@ class NPC(pygame.sprite.Sprite):
                 self.show_dialogue = True
                 self.start_dialogue()
     
-    def update_direction(self):
-        interaction_distance = 200  
-        distance_x = self.rect.centerx - self.player.rect.centerx
-        distance_y = self.rect.centery - self.player.rect.centery
-
-        distance_to_player = pygame.math.Vector2(distance_x, distance_y).length()
-        if distance_to_player <= interaction_distance:
-            if abs(distance_x) > abs(distance_y): 
-                if distance_x > 0:
-                    self.facing = "left" 
-                elif distance_x < 0:
-                    self.facing = "right"  
-
-            if abs(distance_y) > abs(distance_x): 
-                if distance_y > 0:
-                    self.facing = "up" 
-                elif distance_y < 0:
-                    self.facing = "down" 
-
     def start_dialogue(self):
         if self.dialogue_stage == 0:
             self.dialogue_text = "Hello dear player!!"
@@ -175,35 +164,38 @@ class NPC(pygame.sprite.Sprite):
             else:
                 self.dialogue_text = "Get 200 exp!"
         elif self.dialogue_stage == 7:
-            self.dialogue_text = "get 100 more exp!"
+            self.dialogue_text = "Please, kill 5 enemies for me."
+
             self.mission_system.start_mission()
             self.dialogue_stage += 1
         elif self.dialogue_stage == 8:
-            if self.player.exp >= 100:
-                self.dialogue_text = "Congratulation, Get rapier!"
-                self.player.exp -= 100
+            if self.mission_system.enemies_killed >= 5:
+                self.dialogue_text = "Please, kill 5 enemies for me."
+                self.player.exp += 100
                 self.player.weapons.append('rapier')
                 self.quest_given = True
                 self.mission_system.complete_mission()
                 self.dialogue_stage += 1
             else:
-                self.dialogue_text = "Get 100 exp!"
+                self.dialogue_text = "You need to kill 5 enemies."
+                
+                
         elif self.dialogue_stage == 9:
-            self.dialogue_text = "get 100 more exp!"
+            self.dialogue_text = "Final mission, find and kill the boss RACCOON."
             self.mission_system.start_mission()
             self.dialogue_stage += 1
         elif self.dialogue_stage == 10:
-            if self.player.exp >= 100:
-                self.dialogue_text = "Congratulation, Get sai!"
-                self.player.exp -= 100
+            if self.mission_system.boss_killed:
+                self.dialogue_text = "Thank you!! Here is your prize: sai and 100xp."
+                self.player.exp += 100
                 self.player.weapons.append('sai')
                 self.quest_given = True
                 self.mission_system.complete_mission()
                 self.dialogue_stage += 1
             else:
-                self.dialogue_text = "Get 100 exp!"
+                self.dialogue_text = "You need to kill the boss RACCOON."
         elif self.dialogue_stage == 11:
-            self.dialogue_text = "thanks for help me, you are a good person!"
+            self.dialogue_text = "Thanks for helping me, you are a good person!"
             self.interaction_completed = True
 
         self.typing_effect_index = 0  
@@ -289,6 +281,8 @@ class NPC(pygame.sprite.Sprite):
 class MissionSystem:
     def __init__(self):
         self.mission_state = "not_start"
+        self.enemies_killed = 0
+        self.boss_killed = False
 
     def get_mission_state(self):
         return self.mission_state
@@ -299,6 +293,14 @@ class MissionSystem:
 
     def start_mission(self):
         self.set_mission_state("in_progress")
+        self.enemies_killed = 0
+        self.boss_killed = False
 
     def complete_mission(self):
         self.set_mission_state("completed")
+
+    def enemy_killed(self):
+        self.enemies_killed += 1
+
+    def boss_killed(self):
+        self.boss_killed = True

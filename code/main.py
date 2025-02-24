@@ -5,6 +5,7 @@ import shutil
 import os
 import settings as game_settings
 from level import *
+from PIL import Image, ImageSequence  
 
 class Intro:
     def __init__(self, screen):
@@ -69,6 +70,8 @@ class Intro:
         self.audio_manager.stop_music()
 
 class MainMenu:
+    shared_background_frames = None # gif frames
+
     def __init__(self, screen):
         self.screen = screen
         self.font_title = pygame.font.Font(UI_FONT, 60)
@@ -76,10 +79,42 @@ class MainMenu:
         self.title = "RPG ELDORIA"
         self.options = ["New Game", "Settings", "Quit Game"]
         self.selected_option = 0
-        self.audio_manager = AudioManager()  
+        self.audio_manager = AudioManager()
+        self.load_background_frames()
+        self.current_frame = 0
+        self.last_frame_time = pygame.time.get_ticks()
+
+        self.screen.blit(self.background_frames[self.current_frame], (0, 0))
+        pygame.display.update()
+
+    def load_background_frames(self):
+        if MainMenu.shared_background_frames is None:
+            gif = Image.open('../graphics/background/background.gif')
+            frames = []
+
+            for frame in ImageSequence.Iterator(gif):
+                img = pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode).convert_alpha()
+                scaled_img = pygame.transform.scale(img, (WIDTH, HEIGTH))
+                frames.append(scaled_img)
+
+            frames = [frame for frame in frames if not self.is_white_frame(frame)]
+            
+            MainMenu.shared_background_frames = frames
+
+        self.background_frames = MainMenu.shared_background_frames
+
+    def is_white_frame(self, frame):
+        avg_color = pygame.transform.average_color(frame)
+        return avg_color == (255, 255, 255, 255)  
 
     def display(self):
-        self.screen.fill(WATER_COLOR)
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_frame_time > 90:
+            self.current_frame = (self.current_frame + 1) % len(self.background_frames)
+            self.last_frame_time = current_time
+
+        # Garante que o fundo não pisque branco
+        self.screen.blit(self.background_frames[self.current_frame], (0, 0))
 
         # Render title
         title_surface = self.font_title.render(self.title, True, TEXT_COLOR)
@@ -93,25 +128,26 @@ class MainMenu:
             option_rect = option_surface.get_rect(center=(WIDTH // 2, HEIGTH // 2 + i * 50))
             self.screen.blit(option_surface, option_rect)
 
-        pygame.display.flip()
+        pygame.display.update()
 
     def navigate(self, direction):
         self.selected_option = (self.selected_option + direction) % len(self.options)
 
     def select(self):
-        if self.selected_option == 0:  
+        if self.selected_option == 0:
             self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
             return "new_game"
-        elif self.selected_option == 1: 
+        elif self.selected_option == 1:
             self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
             return "settings"
-        elif self.selected_option == 2:  
+        elif self.selected_option == 2:
             self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
             time.sleep(1)
             pygame.quit()
             sys.exit()
 
-        return None  
+        return None
+
 
 class Settings:
     def __init__(self):
@@ -411,6 +447,7 @@ class Game:
         self.in_pause = False
         self.in_pause_settings = False
         self.in_gameplay = False
+        self.in_upgrade = False
         
         self.intro_played = False
         self.audio_manager = AudioManager()
@@ -600,12 +637,20 @@ class Game:
                                 self.audio_manager.play_music("../audio/pause_menu.ogg", loops=-1, volume=0.5)
                             elif event.key == pygame.K_f:
                                 self.toggle_fullscreen()
+                            elif event.key == pygame.K_u:
+                                self.in_upgrade = True
+                                self.level.toggle_menu()
 
                         if event.type == pygame.VIDEORESIZE:
                             global WIDTH, HEIGTH
                             WIDTH, HEIGTH = event.size
                             self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
                             self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
+
+                    elif self.in_upgrade:
+                        if event.type == pygame.KEYDOWN and (event.key == pygame.K_u or event.key == pygame.K_ESCAPE):
+                            self.in_upgrade = False
+                            self.level.toggle_menu()
 
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_LEFT]:
@@ -636,6 +681,11 @@ class Game:
                     self.screen.fill(WATER_COLOR)
                     self.level.run()
                     pygame.display.update()
+
+                elif self.in_upgrade:
+                    if self.level.upgrade.display():
+                        self.in_upgrade = False
+                        self.level.toggle_menu()
 
                 self.clock.tick(FPS)
         finally:
