@@ -375,8 +375,9 @@ class YSortCameraGroup(pygame.sprite.Group):
 				self.display_surface.blit(sprite.image,offset_pos)
 
 	def is_sprite_visible(self, sprite):
-		return (self.offset.x - TILESIZE <= sprite.rect.x <= self.offset.x + self.display_surface.get_width() + TILESIZE and
-				self.offset.y - TILESIZE <= sprite.rect.y <= self.offset.y + self.display_surface.get_height() + TILESIZE)
+		buffer = TILESIZE * 3  # Buffer to ensure objects and enemies are fully off-screen before disappearing
+		return (self.offset.x - buffer <= sprite.rect.right <= self.offset.x + self.display_surface.get_width() + buffer and
+				self.offset.y - buffer <= sprite.rect.bottom <= self.offset.y + self.display_surface.get_height() + buffer)
 
 	def enemy_update(self,player):
 		enemy_sprites = [sprite for sprite in self.sprites() if hasattr(sprite,'sprite_type') and sprite.sprite_type == 'enemy']
