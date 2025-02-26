@@ -50,7 +50,7 @@ RPG-ELDORIA/
 - **Map based on chunks**:
   - The world is divided into small areas called **chunks**.
   - Only chunks near the player are loaded, optimizing performance and reducing memory usage.
-  - Explored chunks are temporarily stored in a folder called `chunk`.
+  - Explored chunks are temporarily stored in a folder called `chunk`!
     - After the player exits the game, the folder is automatically cleared.
     - In the future, the **save progress** feature will be added to preserve explored areas.
   - **Dynamic loading**: Chunks are loaded automatically as the player approaches new areas. <br>

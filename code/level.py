@@ -162,7 +162,6 @@ class Level:
 	def load_chunk(self, chunk):
 				chunk_data = load_chunk_data(chunk)
 				if chunk_data is None:
-					#print(f"Gerando novo chunk: {chunk}")
 					chunk_data = generate_chunk_data(chunk)
 					save_chunk_data(chunk, chunk_data)
 				return chunk_data
@@ -342,7 +341,7 @@ class Level:
 
 	def is_chunk_within_visibility_radius(self, chunk):
 		player_pos = self.player.rect.center
-		visibility_radius = 400
+		visibility_radius = 2000
 		chunk_center = (chunk[0] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2, chunk[1] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2)
 		distance = ((chunk_center[0] - player_pos[0]) ** 2 + (chunk_center[1] - player_pos[1]) ** 2) ** 0.5
 		return distance < visibility_radius
