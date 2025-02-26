@@ -6,6 +6,7 @@ import os
 import settings as game_settings
 from level import *
 from PIL import Image, ImageSequence  
+from debug import *
 
 class Intro:
     def __init__(self, screen):
@@ -680,6 +681,9 @@ class Game:
                 elif self.in_gameplay:
                     self.screen.fill(WATER_COLOR)
                     self.level.run()
+                    #show_fps(self.clock)  # Show FPS
+                    #show_memory_usage()  # Show memory usage
+                    
                     pygame.display.update()
 
                 elif self.in_upgrade:
