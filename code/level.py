@@ -162,7 +162,6 @@ class Level:
 	def load_chunk(self, chunk):
 				chunk_data = load_chunk_data(chunk)
 				if chunk_data is None:
-					#print(f"Gerando novo chunk: {chunk}")
 					chunk_data = generate_chunk_data(chunk)
 					save_chunk_data(chunk, chunk_data)
 				return chunk_data

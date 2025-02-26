@@ -56,10 +56,10 @@ class Enemy(Entity):
         self.attack_sound.set_volume(0.6)
 
         # respawn
-        self.respawn_time = 10000  # Tempo de reespawn de 1 segundo
+        self.respawn_time = 5000  
         self.death_time = None
-        self.alive = True  # Adicione esta linha
-        self.initial_position = pos  # Adicione esta linha
+        self.alive = True  
+        self.initial_position = pos  
 
         # mission system
         self.mission_system = mission_system
