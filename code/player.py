@@ -71,6 +71,11 @@ class Player(Entity):
         # attack methods
         self.create_attack = create_attack
         self.destroy_attack = destroy_attack
+
+        # fade effect
+        self.fade_effect = False
+        self.fade_start_time = None
+        self.fade_duration = 1000  # 1 second
         
     def weapon_data(self):
             self.weapon_data = weapon_data 
@@ -313,6 +318,20 @@ class Player(Entity):
             self.blink_start_time = pygame.time.get_ticks()
             self.vulnerable = False
             self.restore_mission_state()
+            self.start_fade_effect()
+
+    def start_fade_effect(self):
+        self.fade_effect = True
+        self.fade_start_time = pygame.time.get_ticks()
+
+    def apply_fade_effect(self):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.fade_start_time >= self.fade_duration:
+            self.fade_effect = False
+        else:
+            alpha = 255 * (1 - (current_time - self.fade_start_time) / self.fade_duration)
+            self.image.set_alpha(alpha)
+
     def update(self):
         if not self.blinking:
             self.input()
@@ -324,3 +343,5 @@ class Player(Entity):
         self.check_death()
         if self.blinking:
             self.blink()
+        if self.fade_effect:
+            self.apply_fade_effect()

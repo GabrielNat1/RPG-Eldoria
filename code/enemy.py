@@ -34,6 +34,9 @@ class Enemy(Entity):
         self.notice_radius = monster_info['notice_radius']
         self.attack_type = monster_info['attack_type']
 
+        if self.monster_name == 'raccoon':
+            self.health *= 2  # Double the health of the raccoon
+
         # player interaction
         self.can_attack = True
         self.attack_time = None
