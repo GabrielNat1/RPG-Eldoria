@@ -76,3 +76,6 @@ settings = [
     {"name": "Gamma", "type": "slider", "value": 50, "min": 0, "max": 100},  # Default to 50
     {"name": "Back", "type": "action"}
 ]
+
+ENEMY_SPAWN_DISTANCE = 1500  
+ENEMY_DESPAWN_DISTANCE = 2000 

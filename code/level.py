@@ -143,7 +143,8 @@ class Level:
 									self.trigger_death_particles,
 									self.add_exp,
 									self.mission_system)
-								self.enemy_spawn_points.append((monster_name, (x, y)))  # Adicionar ponto de spawn
+								self.visible_sprites.add(enemy)  
+								self.enemy_spawn_points.append((monster_name, (x, y)))  
         
 	def get_chunk(self, position):
 			return (position[0] // (TILESIZE * CHUNKSIZE), position[1] // (TILESIZE * CHUNKSIZE))
@@ -238,44 +239,63 @@ class Level:
 
 	def respawn_enemies(self):
 		current_time = pygame.time.get_ticks()
-		if current_time - self.last_respawn_time >= 900000: 
+		 # Para inimigos comuns, espera de 30000 ms (30s)
+		if current_time - self.last_respawn_time >= 30000: 
 			for monster_name, spawn_point in self.enemy_spawn_points:
 				if monster_name != 'raccoon':
-					enemy_exists = any(
-						enemy.monster_name == monster_name and enemy.rect.topleft == spawn_point and enemy.alive
-						for enemy in self.visible_sprites
-						if isinstance(enemy, Enemy)
-					)
-					if not enemy_exists:
-						enemy = Enemy(
-							monster_name,
-							spawn_point,
-							[self.visible_sprites, self.attackable_sprites],
-							self.obstacle_sprites,
-							self.damage_player,
-							self.trigger_death_particles,
-							self.add_exp)
-						self.visible_sprites.add(enemy)
+					spawn_vec = pygame.math.Vector2(spawn_point)
+					player_vec = pygame.math.Vector2(self.player.rect.center)
+					distance = (player_vec - spawn_vec).magnitude()
+					# Debug: print("Distance to", spawn_point, "=", distance)
+					if distance <= ENEMY_SPAWN_DISTANCE:
+						enemy_exists = any(
+							isinstance(sprite, Enemy) and 
+							sprite.monster_name == monster_name and 
+							sprite.alive and
+							sprite.rect.topleft == spawn_point
+							for sprite in self.visible_sprites
+						)
+						if not enemy_exists:
+							enemy = Enemy(
+								monster_name,
+								spawn_point,
+								[self.visible_sprites, self.attackable_sprites],
+								self.obstacle_sprites,
+								self.damage_player,
+								self.trigger_death_particles,
+								self.add_exp,
+								self.mission_system
+							)
+							self.visible_sprites.add(enemy)
 			self.last_respawn_time = current_time
 
-		if current_time - self.last_raccoon_respawn_time >= self.raccoon_respawn_time:  # 10 minutes
+		if current_time - self.last_raccoon_respawn_time >= 60000:  
 			for monster_name, spawn_point in self.enemy_spawn_points:
 				if monster_name == 'raccoon':
-					enemy_exists = any(
-						enemy.monster_name == monster_name and enemy.rect.topleft == spawn_point and enemy.alive
-						for enemy in self.visible_sprites
-						if isinstance(enemy, Enemy)
-					)
-					if not enemy_exists:
-						enemy = Enemy(
-							monster_name,
-							spawn_point,
-							[self.visible_sprites, self.attackable_sprites],
-							self.obstacle_sprites,
-							self.damage_player,
-							self.trigger_death_particles,
-							self.add_exp)
-						self.visible_sprites.add(enemy)
+					spawn_vec = pygame.math.Vector2(spawn_point)
+					player_vec = pygame.math.Vector2(self.player.rect.center)
+					distance = (player_vec - spawn_vec).magnitude()
+					# Debug: print("Distance for raccoon at", spawn_point, "=", distance)
+					if distance <= ENEMY_SPAWN_DISTANCE:
+						enemy_exists = any(
+							isinstance(sprite, Enemy) and 
+							sprite.monster_name == monster_name and 
+							sprite.alive and
+							sprite.rect.topleft == spawn_point
+							for sprite in self.visible_sprites
+						)
+						if not enemy_exists:
+							enemy = Enemy(
+								monster_name,
+								spawn_point,
+								[self.visible_sprites, self.attackable_sprites],
+								self.obstacle_sprites,
+								self.damage_player,
+								self.trigger_death_particles,
+								self.add_exp,
+								self.mission_system
+							)
+							self.visible_sprites.add(enemy)
 			self.last_raccoon_respawn_time = current_time
 
 	def trigger_death_particles(self, pos, particle_type):

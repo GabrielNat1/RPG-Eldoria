@@ -194,6 +194,12 @@ class Enemy(Entity):
             self.rect.topleft = self.initial_position
             self.hitbox.topleft = self.initial_position
 
+    def check_despawn(self, player):
+        distance = self.get_player_distance_direction(player)[0]
+        if distance > ENEMY_DESPAWN_DISTANCE:
+            self.kill()
+            self.alive = False
+
     def hit_reaction(self):
         if not self.vulnerable:
             self.direction *= -self.resistance
@@ -209,4 +215,5 @@ class Enemy(Entity):
     def enemy_update(self,player):
         self.get_status(player)
         self.actions(player)
+        self.check_despawn(player)
         self.update()
