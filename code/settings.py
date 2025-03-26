@@ -79,3 +79,12 @@ settings = [
 
 ENEMY_SPAWN_DISTANCE = 1500  
 ENEMY_DESPAWN_DISTANCE = 2000 
+
+# Novo modo de performance
+PERFORMANCE_MODE = 'optimized'  # opções: 'optimized', 'normal', 'extreme performance'
+
+# Ajuste de chunks visíveis conforme o modo
+if PERFORMANCE_MODE == 'optimized':
+    VISIBLE_CHUNKS = 2
+else:
+    VISIBLE_CHUNKS = 3

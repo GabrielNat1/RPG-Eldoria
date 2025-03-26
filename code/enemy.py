@@ -6,6 +6,11 @@ from support import *
 class Enemy(Entity):
     shared_animations = {}
 
+    # Adiciona controle de remoção global (definir no início do arquivo ou logo após a definição da classe)
+    MAX_DESPAWNS_PER_FRAME = 1
+    last_despawn_frame = 0
+    despawn_count = 0
+
     def __init__(self, monster_name, pos, groups, obstacle_sprites, damage_player, trigger_death_particles, add_exp, mission_system=None):
 
         # general setup
@@ -187,9 +192,13 @@ class Enemy(Entity):
 
     def respawn(self):
         if not self.alive and self.death_time and pygame.time.get_ticks() - self.death_time >= self.respawn_time:
-            self.health = monster_data[self.monster_name]['health']
+            # Cache o dicionário do monstro para melhor performance
+            data = monster_data[self.monster_name]
+            self.health = data['health']
             self.alive = True
-            self.add(self.groups())
+            # Verifica se já não está no grupo para evitar alocações duplicadas
+            if self not in self.groups():
+                self.add(self.groups())
             self.death_time = None
             self.rect.topleft = self.initial_position
             self.hitbox.topleft = self.initial_position
@@ -197,8 +206,15 @@ class Enemy(Entity):
     def check_despawn(self, player):
         distance = self.get_player_distance_direction(player)[0]
         if distance > ENEMY_DESPAWN_DISTANCE:
-            self.kill()
-            self.alive = False
+            current_time = pygame.time.get_ticks()
+            # Reseta a contagem por quadro
+            if current_time != Enemy.last_despawn_frame:
+                Enemy.last_despawn_frame = current_time
+                Enemy.despawn_count = 0
+            if Enemy.despawn_count < Enemy.MAX_DESPAWNS_PER_FRAME:
+                Enemy.despawn_count += 1
+                self.kill()
+                self.alive = False
 
     def hit_reaction(self):
         if not self.vulnerable:
