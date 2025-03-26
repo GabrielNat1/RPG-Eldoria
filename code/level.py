@@ -150,8 +150,10 @@ class Level:
 									self.add_exp,
 									self.mission_system)
 								self.visible_sprites.add(enemy)  
-								self.enemy_spawn_points.append((monster_name, (x, y)))  
-        
+								# Adiciona spawn apenas se não estiver na lista
+								if (monster_name, (x, y)) not in self.enemy_spawn_points:
+									self.enemy_spawn_points.append((monster_name, (x, y)))  
+
 	def get_chunk(self, position):
 			return (position[0] // (TILESIZE * CHUNKSIZE), position[1] // (TILESIZE * CHUNKSIZE))
 
@@ -252,7 +254,7 @@ class Level:
 		spawns_this_frame = 0
 
 		for monster_name, spawn_point in self.enemy_spawn_points:
-			delay = 60000 if monster_name == 'raccoon' else 30000
+			delay = 60000  # Aguarda 1 minuto para respawn de qualquer inimigo
 			if current_time - self.last_spawn_times.get(spawn_point, 0) < delay:
 				continue
 
@@ -262,11 +264,12 @@ class Level:
 			if distance > ENEMY_SPAWN_DISTANCE:
 				continue
 
+			# Verifica se já existe um inimigo próximo (tolerância de 50 pixels)
 			enemy_exists = any(
 				isinstance(sprite, Enemy) and 
 				sprite.monster_name == monster_name and 
 				sprite.alive and
-				sprite.rect.topleft == spawn_point
+				(pygame.math.Vector2(sprite.rect.center) - pygame.math.Vector2(spawn_point)).magnitude() < 50
 				for sprite in self.visible_sprites
 			)
 			if enemy_exists:

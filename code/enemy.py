@@ -63,8 +63,8 @@ class Enemy(Entity):
         self.hit_sound.set_volume(0.6)
         self.attack_sound.set_volume(0.6)
 
-        # respawn
-        self.respawn_time = 5000  
+        # respawn - atualize para 60.000ms
+        self.respawn_time = 60000  
         self.death_time = None
         self.alive = True  
         self.initial_position = pos  
@@ -207,14 +207,23 @@ class Enemy(Entity):
         distance = self.get_player_distance_direction(player)[0]
         if distance > ENEMY_DESPAWN_DISTANCE:
             current_time = pygame.time.get_ticks()
-            # Reseta a contagem por quadro
-            if current_time != Enemy.last_despawn_frame:
-                Enemy.last_despawn_frame = current_time
-                Enemy.despawn_count = 0
-            if Enemy.despawn_count < Enemy.MAX_DESPAWNS_PER_FRAME:
-                Enemy.despawn_count += 1
-                self.kill()
-                self.alive = False
+            # Se ainda não iniciou o timer, inicia-o
+            if not hasattr(self, 'despawn_timer'):
+                self.despawn_timer = current_time
+            else:
+                # Se já passou o tempo de espera (3000ms), efetua o despawn
+                if current_time - self.despawn_timer >= 3000:
+                    if current_time != Enemy.last_despawn_frame:
+                        Enemy.last_despawn_frame = current_time
+                        Enemy.despawn_count = 0
+                    if Enemy.despawn_count < Enemy.MAX_DESPAWNS_PER_FRAME:
+                        Enemy.despawn_count += 1
+                        self.kill()
+                        self.alive = False
+        else:
+            # Se o inimigo volta para perto, reseta o timer
+            if hasattr(self, 'despawn_timer'):
+                del self.despawn_timer
 
     def hit_reaction(self):
         if not self.vulnerable:
