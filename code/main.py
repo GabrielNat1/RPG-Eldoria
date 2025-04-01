@@ -157,7 +157,7 @@ class Settings:
             {"name": "Borderless", "type": "toggle", "value": False},
             {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  # Default to 1920x1080
             {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1},  # Default to normal
-            {"name": "Gamma", "type": "slider", "min": 50, "max": 150, "value": 100},  # Gamma slider
+            {"name": "Gamma", "type": "slider", "min": 0, "max": 100, "value": 50},  # Gamma slider
             {"name": "Back", "type": "action"}
         ]
         self.selected = 0
