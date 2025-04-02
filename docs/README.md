@@ -13,32 +13,6 @@
 
 The project directory is organized to separate the different parts of the game, such as audio, graphics, and code. Below is an overview of the directory structure:
 
-```plaintext
-RPG-ELDORIA/
-├── audio/                     # Game audio files 🎶
-├── code/                      # Game source code 💻
-├── docs/                      # Project documentation 📄
-├── graphics/                  # Visual assets for the game 🎨
-│   ├── dialog/                # Dialogue boxes and fonts for NPCs 🗨️
-│   ├── environment/           # Environment elements and map objects 🌿
-│   ├── font/                  # Fonts used in the game 🅰️
-│   ├── grass/                 # Grass sprites 🌾
-│   ├── icon/                  # Game icons 🔑
-│   ├── monsters/              # Monster and enemy sprites 👹
-│   ├── npc/                   # NPC sprites and animations 🧑‍🤝‍🧑
-│   ├── objects/               # Interactive objects in the map 🧳
-│   ├── particles/             # Particle effects ✨
-│   ├── player/                # Player character sprites 🧑‍🎮
-│   ├── run_right/             # Running animation to the right ➡️
-│   ├── test/                  # Test resources 🧪
-│   ├── tilemap/               # Map and tilesets 🗺️
-│   ├── ui/                    # User interface elements 🖥️
-├── map/                       # Game map files 🌍
-├── weapons/                   # Weapon sprites 🏹
-├── warn.txt                   # Game warnings and logs ⚠️
-├── .gitignore                 # Git ignored files 🚫
-├── requirements.txt           # List of project dependencies 📑
-```
 
 <br>
 
@@ -54,12 +28,7 @@ RPG-ELDORIA/
     - After the player exits the game, the folder is automatically cleared.
     - In the future, the **save progress** feature will be added to preserve explored areas.
   - **Dynamic loading**: Chunks are loaded automatically as the player approaches new areas. <br>
-
-- **Benefits**:
-  - Reduces resource usage on lower-spec machines.
-  - Decreases overall game loading times.
-  - Ensures previously visited areas don't need to be reloaded during the same session.
-
+  
 ---
 
 ### 2. NPC and Quest System 🧑‍🤝‍🧑
@@ -150,26 +119,6 @@ The main menu offers several customizable options: <br>
 
 ## File Overview 📂
 
-### Code.py 📂
-This file is the entry point to the game, containing the main function to initialize and run the game. It also applies the game settings and controls the flow of execution.
-```bash
-code.py/
-├── debug.py     # Handles debugging features and logs for the game.
-├── enemy.py     # Contains the logic for enemy behaviors and AI.
-├── entity.py    # Base class for all entities in the game, including NPCs and players.
-├── level.py     # Manages the game levels and interactions between entities.
-├── magic.py     # Handles magical abilities, effects, and spells.
-├── main.py      # The main script to initialize and run the game.
-├── npc.py       # Manages NPCs, their dialogue, and quests.
-├── particles.py # Handles the creation and behavior of particle effects.
-├── player.py    # Defines the player character, their attributes, and actions.
-├── settings.py  # Configuration file for game settings (resolution, performance modes, etc.).
-├── support.py   # Provides utility functions to support other modules.
-├── tile.py      # Manages tiles and map rendering.
-├── ui.py        # Handles the user interface, including buttons and menus.
-└── upgrade.py   # Handles upgrading systems for player attributes.
-```
-
 - **Tiles Regeneration**: 
   - In **Optimized Mode** 🏞️, the tile size (`TILESIZE`) is smaller, and fewer chunks are loaded, which results in fewer resources being used by the game, helping it run smoothly on lower-performance systems. This reduces the visual detail of the environment, but the player still experiences a playable and optimized version of the game.
   - In **Normal Mode** 🎮, the tile size and the number of visible chunks are set to medium values. This strikes a balance between performance and visual quality, allowing the game to run well while providing a good level of detail.
@@ -180,11 +129,6 @@ code.py/
     - In **Optimized Mode** 🛠️, the wind effects appear less frequently and last for a shorter duration to reduce the strain on the system.
     - In **Normal Mode** 🌿, the wind effects occur more regularly and last a bit longer, balancing performance and realism.
     - In **Extreme Mode** 🌪️, wind effects are more frequent and longer, adding to the immersive experience with enhanced visual effects.
-
-By adjusting these settings based on the player's choice, the game optimizes its performance, ensuring it can run efficiently on various systems while providing a suitable visual experience for each mode. 🌬️🖥️🎮
-
-
-This ensures that the game runs efficiently on various systems while providing an enjoyable experience.
 
 <br><br>
 
@@ -200,15 +144,5 @@ Pack Tile used:
 ```
   - NinjaAdventurePack
 ```
-
-### Contributors
-
-<div style="display: flex; justify-content: space-around;">
-  <img src="https://github.com/GabrielNat1.png" alt="Colaborador 1" width="40" height="40">
-  <img src="https://github.com/EnzoHacker.png" alt="Colaborador 2" width="40" height="40">
-  <img src="https://github.com/Nathan-Nando22.png" alt="Colaborador 3" width="40" height="40">
-  <img src="https://github.com/GabrielNatPr0.png" alt="Colaborador 5" width="40" height="40">
-</div>
-
 
 ---
