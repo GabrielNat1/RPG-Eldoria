@@ -98,9 +98,9 @@ class Enemy(Entity):
             direction = pygame.math.Vector2()
 
         if self.monster_name == 'raccoon':
-            if distance <= 350 and not self.fight_music_playing:  # Increased distance
+            if distance <= 750 and not self.fight_music_playing:  # Increased distance
                 self.start_fight_music()
-            elif distance > 350 and self.fight_music_playing:
+            elif distance > 750 and self.fight_music_playing:
                 self.stop_fight_music()
 
         return (distance,direction)

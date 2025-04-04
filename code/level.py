@@ -7,7 +7,7 @@ from random import choice, randint
 from weapon import Weapon
 from ui import UI
 from enemy import Enemy
-from particles import AnimationPlayer, WindEffect
+from particles import AnimationPlayer, WindEffect, RainEffect
 from magic import MagicPlayer
 from upgrade import Upgrade
 from npc import NPC, MissionSystem
@@ -35,6 +35,7 @@ class Level:
 		self.attackable_sprites = pygame.sprite.Group()
 	    
 		# create map
+		self.initial_position = None  # Define a posição inicial como None inicialmente
 		self.create_map()
 
 		# user interface 
@@ -86,6 +87,11 @@ class Level:
    		 self.display_surface,
       	 self.mission_system)
           
+		# Initialize rain effect at the initial position
+		self.rain_effect = RainEffect(self.initial_position, [self.visible_sprites])
+		if hasattr(self, 'player'):
+			self.rain_effect.set_player(self.player)  # Associar o jogador ao RainEffect
+		self.rain_effect.set_obstacle_sprites(self.obstacle_sprites)  # Associar obstáculos ao RainEffect
 
 	def create_map(self):
 		layouts = {
@@ -245,6 +251,9 @@ class Level:
 		if hasattr(self, 'npc'):
 			self.npc.player = self.player
 
+		# Update the player reference in RainEffect
+		self.rain_effect.set_player(self.player)
+
 	def respawn_enemies(self):
 		current_time = pygame.time.get_ticks()
 		if not hasattr(self, 'last_spawn_times'):
@@ -306,8 +315,8 @@ class Level:
 
 	def spawn_wind_effects(self):
 		for _ in range(self.max_wind_effects):
-			x = randint(self.player.rect.left - 400, self.player.rect.right + 400)
-			y = randint(self.player.rect.top - 400, self.player.rect.bottom + 400)
+			x = randint(int(self.player.rect.left) - 400, int(self.player.rect.right) + 400)
+			y = randint(int(self.player.rect.top) - 400, int(self.player.rect.bottom) + 400)
 			WindEffect((x, y), [self.visible_sprites, self.wind_effects], self.wind_frames, self.wind_effect_duration)
 
 	def update_wind_effects(self):
@@ -336,6 +345,9 @@ class Level:
 		self.ui.display(self.player)
 		self.update_wind_effects()
 
+		# Update rain effect
+		self.rain_effect.update()
+
 		if self.game_paused:
 			self.upgrade.display()
 		else:
@@ -359,6 +371,9 @@ class Level:
 		chunk_center = (chunk[0] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2, chunk[1] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2)
 		distance = ((chunk_center[0] - player_pos[0]) ** 2 + (chunk_center[1] - player_pos[1]) ** 2) ** 0.5
 		return distance < visibility_radius
+
+	def stop_rain(self):
+		self.rain_effect.stop_rain_sound()
 
 class YSortCameraGroup(pygame.sprite.Group):
 	def __init__(self):

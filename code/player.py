@@ -11,8 +11,8 @@ class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, mission_system):
         super().__init__(groups)
         self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
-        self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(-6, HITBOX_OFFSET['player'])
+        self.rect = self.image.get_rect(topleft=pos)  # Ensure rect is a valid pygame.Rect
+        self.hitbox = self.rect.inflate(-6, HITBOX_OFFSET['player'])  # Sync hitbox with rect
         self.initial_position = pos
 
         # graphics setup
@@ -332,10 +332,22 @@ class Player(Entity):
             alpha = 255 * (1 - (current_time - self.fade_start_time) / self.fade_duration)
             self.image.set_alpha(alpha)
 
+    def move(self, speed):
+        # Override move to ensure rect and hitbox are always synchronized
+        if self.direction.magnitude() != 0:
+            self.direction = self.direction.normalize()
+
+        self.hitbox.x += self.direction.x * speed
+        self.collision('horizontal')
+        self.hitbox.y += self.direction.y * speed
+        self.collision('vertical')
+        self.rect.topleft = self.hitbox.topleft  # Sync rect with hitbox
+
     def update(self):
         if not self.blinking:
             self.input()
             self.move(self.speed)
+        self.rect.topleft = self.hitbox.topleft  # Sync rect with hitbox
         self.cooldowns()
         self.get_status()
         self.animate()
