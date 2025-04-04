@@ -6,7 +6,7 @@ from support import *
 class Enemy(Entity):
     shared_animations = {}
 
-    # Adiciona controle de remoção global (definir no início do arquivo ou logo após a definição da classe)
+    # despawn settings
     MAX_DESPAWNS_PER_FRAME = 1
     last_despawn_frame = 0
     despawn_count = 0
@@ -192,11 +192,9 @@ class Enemy(Entity):
 
     def respawn(self):
         if not self.alive and self.death_time and pygame.time.get_ticks() - self.death_time >= self.respawn_time:
-            # Cache o dicionário do monstro para melhor performance
             data = monster_data[self.monster_name]
             self.health = data['health']
             self.alive = True
-            # Verifica se já não está no grupo para evitar alocações duplicadas
             if self not in self.groups():
                 self.add(self.groups())
             self.death_time = None
@@ -207,11 +205,10 @@ class Enemy(Entity):
         distance = self.get_player_distance_direction(player)[0]
         if distance > ENEMY_DESPAWN_DISTANCE:
             current_time = pygame.time.get_ticks()
-            # Se ainda não iniciou o timer, inicia-o
+        
             if not hasattr(self, 'despawn_timer'):
                 self.despawn_timer = current_time
             else:
-                # Se já passou o tempo de espera (3000ms), efetua o despawn
                 if current_time - self.despawn_timer >= 3000:
                     if current_time != Enemy.last_despawn_frame:
                         Enemy.last_despawn_frame = current_time
@@ -221,7 +218,7 @@ class Enemy(Entity):
                         self.kill()
                         self.alive = False
         else:
-            # Se o inimigo volta para perto, reseta o timer
+            # timer reset 
             if hasattr(self, 'despawn_timer'):
                 del self.despawn_timer
 

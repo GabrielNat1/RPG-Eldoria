@@ -7,7 +7,7 @@ FPS = 60
 TILESIZE = 64 
 CHUNKSIZE = 24  
 VISIBLE_CHUNKS = 3 
-CHUNKS_FOLDER = '../code/cache'
+CHUNKS_FOLDER = './cache'
 
 #hitbox config
 HITBOX_OFFSET = {
@@ -77,14 +77,25 @@ settings = [
     {"name": "Back", "type": "action"}
 ]
 
+"""
+    -------------------------------------------
+    Performance Mode Settings
+    - enemy spawn distance: 1500
+    - enemy despawn distance: 2000
+    - optimized: 1 chunk visible
+    - normal: 2 chunks visible
+    - extreme performance: 3 chunks visible
+    -------------------------------------------
+"""
+
 ENEMY_SPAWN_DISTANCE = 1500  
 ENEMY_DESPAWN_DISTANCE = 2000 
 
-# Novo modo de performance
-PERFORMANCE_MODE = 'optimized'  # opções: 'optimized', 'normal', 'extreme performance'
+PERFORMANCE_MODE = 'normal'  # Default performance mode
 
-# Ajuste de chunks visíveis conforme o modo
 if PERFORMANCE_MODE == 'optimized':
+    VISIBLE_CHUNKS = 1  
+elif PERFORMANCE_MODE == 'normal':
     VISIBLE_CHUNKS = 2
 else:
     VISIBLE_CHUNKS = 3

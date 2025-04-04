@@ -49,7 +49,7 @@ class Level:
 		# chunks
 		self.chunks = {}
 		self.current_chunk = None
-		from settings import PERFORMANCE_MODE, VISIBLE_CHUNKS  # novo import
+		from settings import PERFORMANCE_MODE, VISIBLE_CHUNKS  # novo import rain
 		if PERFORMANCE_MODE == 'optimized':
 			self.visible_chunks = VISIBLE_CHUNKS    # Menos chunks carregados
 			self.wind_effect_interval = 6000         # Menor frequência de efeitos
