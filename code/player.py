@@ -137,8 +137,8 @@ class Player(Entity):
             else:
                 self.direction.x = 0
 
-            # running input
-            if keys[pygame.K_LSHIFT] and self.stamina > 0:
+            # running input (only if moving)
+            if (self.direction.x != 0 or self.direction.y != 0) and keys[pygame.K_LSHIFT] and self.stamina > 0:
                 self.running = True
                 self.speed = self.stats['speed'] * 1.5
                 self.stamina -= 0.5
