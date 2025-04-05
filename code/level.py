@@ -35,7 +35,7 @@ class Level:
 		self.attackable_sprites = pygame.sprite.Group()
 	    
 		# create map
-		self.initial_position = None  # Define a posição inicial como None inicialmente
+		self.initial_position = None 
 		self.create_map()
 
 		# user interface 
@@ -49,11 +49,11 @@ class Level:
 		# chunks
 		self.chunks = {}
 		self.current_chunk = None
-		from settings import PERFORMANCE_MODE, VISIBLE_CHUNKS  # novo import rain
+		
 		if PERFORMANCE_MODE == 'optimized':
-			self.visible_chunks = VISIBLE_CHUNKS    # Menos chunks carregados
-			self.wind_effect_interval = 6000         # Menor frequência de efeitos
-			self.wind_effect_duration = 2000         # Duração reduzida
+			self.visible_chunks = VISIBLE_CHUNKS    
+			self.wind_effect_interval = 6000         
+			self.wind_effect_duration = 2000        
 		else:
 			self.visible_chunks = VISIBLE_CHUNKS
 			self.wind_effect_interval = 4000
@@ -61,14 +61,14 @@ class Level:
 		self.load_initial_chunks()
 		os.makedirs(CHUNKS_FOLDER, exist_ok=True)  # Ensure chunks folder exists
 
-		self.max_wind_effects = 4 # Default to 4 wind effects
+		self.max_wind_effects = 4 
 		self.wind_effects = pygame.sprite.Group()
 		self.wind_effect_last_spawn_time = pygame.time.get_ticks()
 		self.load_wind_frames()
 		self.spawn_wind_effects()
 
 		self.floor_surf = pygame.image.load('../graphics/tilemap/ground.png').convert()
-		self.floor_surf = pygame.transform.scale(self.floor_surf, (WIDTH, HEIGTH))  # Scale the background image
+		self.floor_surf = pygame.transform.scale(self.floor_surf, (WIDTH, HEIGTH)) 
 		self.floor_rect = self.floor_surf.get_rect(topleft=(0, 0))
 
 		# Add a delay before enemies can attack the player
@@ -90,8 +90,8 @@ class Level:
 		# Initialize rain effect at the initial position
 		self.rain_effect = RainEffect(self.initial_position, [self.visible_sprites])
 		if hasattr(self, 'player'):
-			self.rain_effect.set_player(self.player)  # Associar o jogador ao RainEffect
-		self.rain_effect.set_obstacle_sprites(self.obstacle_sprites)  # Associar obstáculos ao RainEffect
+			self.rain_effect.set_player(self.player)  
+		self.rain_effect.set_obstacle_sprites(self.obstacle_sprites)  
 
 	def create_map(self):
 		layouts = {
@@ -156,9 +156,10 @@ class Level:
 									self.add_exp,
 									self.mission_system)
 								self.visible_sprites.add(enemy)  
-								# Adiciona spawn apenas se não estiver na lista
+								
 								if (monster_name, (x, y)) not in self.enemy_spawn_points:
 									self.enemy_spawn_points.append((monster_name, (x, y)))  
+         
 
 	def get_chunk(self, position):
 			return (position[0] // (TILESIZE * CHUNKSIZE), position[1] // (TILESIZE * CHUNKSIZE))
@@ -258,12 +259,12 @@ class Level:
 		current_time = pygame.time.get_ticks()
 		if not hasattr(self, 'last_spawn_times'):
 			self.last_spawn_times = {spawn_point: 0 for _, spawn_point in self.enemy_spawn_points}
-		LOAD_IMMEDIATE_DISTANCE = 500  # Se a distância for maior, spawn de um por quadro
-		MAX_SPAWNS_PER_FRAME = 2       # Limite de spawns por quadro
+		LOAD_IMMEDIATE_DISTANCE = 500 
+		MAX_SPAWNS_PER_FRAME = 2     
 		spawns_this_frame = 0
 
 		for monster_name, spawn_point in self.enemy_spawn_points:
-			delay = 60000  # Aguarda 1 minuto para respawn de qualquer inimigo
+			delay = 60000 
 			if current_time - self.last_spawn_times.get(spawn_point, 0) < delay:
 				continue
 
@@ -273,7 +274,6 @@ class Level:
 			if distance > ENEMY_SPAWN_DISTANCE:
 				continue
 
-			# Verifica se já existe um inimigo próximo (tolerância de 50 pixels)
 			enemy_exists = any(
 				isinstance(sprite, Enemy) and 
 				sprite.monster_name == monster_name and 
@@ -358,7 +358,6 @@ class Level:
 				self.npc.update()
 				self.npc.check_player_distance()
 
-			# Atualizar inimigos para permitir reespawn
 			if not self.game_paused:
 				self.respawn_enemies()  # Ensure enemies respawn correctly
 
