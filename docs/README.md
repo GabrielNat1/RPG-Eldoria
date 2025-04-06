@@ -9,13 +9,6 @@
 
 <br>
 
-## Directory Structure 📂
-
-The project directory is organized to separate the different parts of the game, such as audio, graphics, and code. Below is an overview of the directory structure:
-
-
-<br>
-
 ---
 
 ## Key Features ⚙️
@@ -114,21 +107,6 @@ The main menu offers several customizable options: <br>
 - **SQLite** (future): For implementing the save system 💾. <br>
 
 ---
-
-<br>
-
-## File Overview 📂
-
-- **Tiles Regeneration**: 
-  - In **Optimized Mode** 🏞️, the tile size (`TILESIZE`) is smaller, and fewer chunks are loaded, which results in fewer resources being used by the game, helping it run smoothly on lower-performance systems. This reduces the visual detail of the environment, but the player still experiences a playable and optimized version of the game.
-  - In **Normal Mode** 🎮, the tile size and the number of visible chunks are set to medium values. This strikes a balance between performance and visual quality, allowing the game to run well while providing a good level of detail.
-  - In **Extreme Mode** ⚡, larger tiles and more visible chunks are rendered, making the game look more detailed but demanding more resources from the system.
-
-- **Wind Effects** 🌬️:
-  - The wind effects, such as their interval (`wind_effect_interval`) and duration (`wind_effect_duration`), are also modified depending on the performance mode.
-    - In **Optimized Mode** 🛠️, the wind effects appear less frequently and last for a shorter duration to reduce the strain on the system.
-    - In **Normal Mode** 🌿, the wind effects occur more regularly and last a bit longer, balancing performance and realism.
-    - In **Extreme Mode** 🌪️, wind effects are more frequent and longer, adding to the immersive experience with enhanced visual effects.
 
 <br><br>
 
