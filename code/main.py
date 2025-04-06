@@ -7,6 +7,7 @@ import settings as game_settings
 from level import *
 from PIL import Image, ImageSequence  
 from debug import *
+from support import check_os_and_limit_memory
 
 class Intro:
     def __init__(self, screen):
@@ -724,5 +725,6 @@ class Game:
         self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
 
 if __name__ == '__main__':
+    check_os_and_limit_memory(356)  
     game = Game()
     game.run()

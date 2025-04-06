@@ -1,6 +1,10 @@
 import pygame
 from csv import reader
 from os import walk
+import platform
+
+if platform.system() in ["Linux", "Darwin"]: 
+    import resource
 
 image_cache = {}
 
@@ -38,3 +42,20 @@ def import_folder(path):
     except Exception as e:
         print(f"Erro ao acessar o diretório {path}: {e}")
         return []
+
+def check_os_and_limit_memory(memory_limit_mb):
+    """
+    Scans the operating system and applies a RAM limiter
+    on macOS or Linux systems.
+
+    :p aram memory_limit_mb: Memory limit in MB.
+    """
+    os_name = platform.system()
+    if os_name in ["Linux", "Darwin"]:
+        soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+        memory_limit_bytes = memory_limit_mb * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_AS, (memory_limit_bytes, hard))
+        #print(f"Limite de memória definido para {memory_limit_mb} MB no {os_name}.")
+    else:
+        #print(f"Sistema operacional {os_name} não suporta limitador de memória.")
+        pass
