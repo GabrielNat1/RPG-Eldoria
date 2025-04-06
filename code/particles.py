@@ -170,6 +170,24 @@ class FloorDrop(pygame.sprite.Sprite):
         if time_alive > self.duration:
             self.kill()
 
+class LeafEffect(pygame.sprite.Sprite):
+    def __init__(self, pos, groups, frames):
+        super().__init__(groups)
+        self.frames = frames
+        self.frame_index = 0
+        self.animation_speed = 0.05  # Slower animation speed
+        self.image = self.frames[self.frame_index]
+        self.rect = self.image.get_rect(center=pos)
+
+    def animate(self):
+        self.frame_index += self.animation_speed
+        if self.frame_index >= len(self.frames):
+            self.frame_index = 0
+        self.image = self.frames[int(self.frame_index)]
+
+    def update(self):
+        self.animate()
+
 class RainEffect:
     def __init__(self, initial_position, groups):
         self.position = pygame.math.Vector2(initial_position)  # Use initial position as a starting point
@@ -191,6 +209,10 @@ class RainEffect:
         self.rain_duration = 80000  
         self.rain_interval = 80000  
         self.last_rain_check = pygame.time.get_ticks()
+        self.leaf_frames = import_folder('../graphics/particles/leaf4')  # Use only leaf4 frames
+        self.leaf_effects = pygame.sprite.Group()
+        self.leaf_spawn_interval = 5000  # Interval for spawning leaf effects
+        self.last_leaf_spawn_time = pygame.time.get_ticks()
 
     def create_drops(self):
         screen = pygame.display.get_surface()
@@ -237,6 +259,16 @@ class RainEffect:
                 )
             self.last_floor_spawn = current_time
 
+    def create_leaf_effects(self):
+        screen = pygame.display.get_surface()
+        screen_width = screen.get_width()
+        screen_height = screen.get_height()
+
+        for _ in range(6):  # Spawn 6 leaf effects
+            x = randint(int(self.position.x - screen_width // 2), int(self.position.x + screen_width // 2))
+            y = randint(int(self.position.y - screen_height // 2), int(self.position.y + screen_height // 2))
+            LeafEffect((x, y), self.groups, self.leaf_frames)
+
     def update(self):
         current_time = pygame.time.get_ticks()
 
@@ -262,6 +294,15 @@ class RainEffect:
                 self.create_floor_drops()
                 self.last_spawn_time = current_time
 
+        # Handle leaf effects only during rain
+        if self.is_raining:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.last_leaf_spawn_time >= self.leaf_spawn_interval:
+                self.last_leaf_spawn_time = current_time
+                self.create_leaf_effects()
+
+        self.leaf_effects.update()
+
     def stop_rain_sound(self):
         self.rain_sound.stop()
 
@@ -271,3 +312,6 @@ class RainEffect:
 
     def set_obstacle_sprites(self, obstacle_sprites):
         self.obstacle_sprites = obstacle_sprites
+
+    def is_raining(self):
+        return self.is_raining

@@ -321,6 +321,14 @@ class Level:
 
 	def update_wind_effects(self):
 		current_time = pygame.time.get_ticks()
+
+		# Stop wind effects if it's raining
+		if self.rain_effect.is_raining:
+			for wind_effect in self.wind_effects:
+				wind_effect.kill()
+			return
+
+		# Resume wind effects if not raining
 		if current_time - self.wind_effect_last_spawn_time >= self.wind_effect_interval:
 			self.wind_effect_last_spawn_time = current_time
 			self.spawn_wind_effects()
@@ -345,8 +353,10 @@ class Level:
 		self.ui.display(self.player)
 		self.update_wind_effects()
 
-		# Update rain effect
+		# Update rain and leaf effects
 		self.rain_effect.update()
+		if self.rain_effect.is_raining:
+			self.rain_effect.leaf_effects.draw(self.display_surface)  # Draw leaf effects only during rain
 
 		if self.game_paused:
 			self.upgrade.display()
