@@ -3,6 +3,7 @@ import pickle
 from random import randint
 from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER
 from support import import_csv_layout, import_folder
+import gc  
 
 def get_chunk_file(chunk):
     return os.path.join(CHUNKS_FOLDER, f"chunk_{chunk[0]}_{chunk[1]}.dat")
@@ -107,3 +108,4 @@ def unload_chunks(chunks_dict, current_chunk, visibility_radius=2):
         data = chunks_dict[chunk_pos]
         save_chunk_data(chunk_pos, data)
         del chunks_dict[chunk_pos]
+    gc.collect()
