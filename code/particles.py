@@ -1,6 +1,7 @@
 import pygame
 from support import import_folder
 from random import choice, randint
+import gc
 import player
 
 class AnimationPlayer:
@@ -104,6 +105,8 @@ class WindEffect(pygame.sprite.Sprite):
         self.animate()
         if pygame.time.get_ticks() - self.start_time >= self.duration:
             self.finished = True
+        if self.finished:
+            self.kill()
 
 class RainDrop(pygame.sprite.Sprite):
     def __init__(self, surf, pos, groups, player):
@@ -138,6 +141,7 @@ class RainDrop(pygame.sprite.Sprite):
         # Kill if too far from player
         if abs(self.relative_pos.y) > 1000 or abs(self.relative_pos.x) > 1000:
             self.kill()
+            gc.collect()  # Trigger garbage collection for optimization
 
 class FloorDrop(pygame.sprite.Sprite):
     def __init__(self, pos, frames, groups):
@@ -169,6 +173,7 @@ class FloorDrop(pygame.sprite.Sprite):
         
         if time_alive > self.duration:
             self.kill()
+            gc.collect()  # Trigger garbage collection for optimization
 
 class LeafEffect(pygame.sprite.Sprite):
     def __init__(self, pos, groups, frames):
@@ -178,12 +183,15 @@ class LeafEffect(pygame.sprite.Sprite):
         self.animation_speed = 0.05  # Slower animation speed
         self.image = self.frames[self.frame_index]
         self.rect = self.image.get_rect(center=pos)
+        self.loop_completed = False  # Track if the first loop is completed
 
     def animate(self):
         self.frame_index += self.animation_speed
         if self.frame_index >= len(self.frames):
-            self.frame_index = 0
-        self.image = self.frames[int(self.frame_index)]
+            self.loop_completed = True  # Mark loop as completed
+            self.kill()  # Delete the sprite after the first loop
+        else:
+            self.image = self.frames[int(self.frame_index)]
 
     def update(self):
         self.animate()
@@ -264,10 +272,10 @@ class RainEffect:
         screen_width = screen.get_width()
         screen_height = screen.get_height()
 
-        for _ in range(6):  # Spawn 6 leaf effects
+        for _ in range(4):  # Ensure at least 4 leaf effects
             x = randint(int(self.position.x - screen_width // 2), int(self.position.x + screen_width // 2))
             y = randint(int(self.position.y - screen_height // 2), int(self.position.y + screen_height // 2))
-            LeafEffect((x, y), self.groups, self.leaf_frames)
+            LeafEffect((x, y), self.groups, self.leaf_frames)  # Pass player reference
 
     def update(self):
         current_time = pygame.time.get_ticks()
@@ -283,10 +291,11 @@ class RainEffect:
         if self.is_raining and current_time - self.rain_start_time >= self.rain_duration:
             self.is_raining = False
             self.rain_sound.stop()  # Stop rain sound
+            self.leaf_effects.empty()  # Kill all leaf effects when rain stops
 
         # Update rain drops and floor drops only if it's raining
         if self.is_raining:
-            if self.player is not None:  # Verificar se o jogador está associado
+            if self.player is not None:  # Ensure player is associated
                 self.position = pygame.math.Vector2(self.player.rect.center)
 
             if current_time - self.last_spawn_time > self.spawn_interval:
@@ -294,14 +303,13 @@ class RainEffect:
                 self.create_floor_drops()
                 self.last_spawn_time = current_time
 
-        # Handle leaf effects only during rain
-        if self.is_raining:
-            current_time = pygame.time.get_ticks()
+            # Handle leaf effects
             if current_time - self.last_leaf_spawn_time >= self.leaf_spawn_interval:
                 self.last_leaf_spawn_time = current_time
                 self.create_leaf_effects()
 
         self.leaf_effects.update()
+        gc.collect()  # Trigger garbage collection for optimization
 
     def stop_rain_sound(self):
         self.rain_sound.stop()

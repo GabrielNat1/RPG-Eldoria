@@ -190,6 +190,12 @@ class Enemy(Entity):
                     self.mission_system.boss_killed = True
                     self.stop_fight_music()
 
+            # Notify the level about the death time
+            if hasattr(self, 'initial_position') and hasattr(self, 'groups'):
+                for group in self.groups():
+                    if hasattr(group, 'add_enemy_death_time'):
+                        group.add_enemy_death_time(self.initial_position)
+
     def respawn(self):
         if not self.alive and self.death_time and pygame.time.get_ticks() - self.death_time >= self.respawn_time:
             data = monster_data[self.monster_name]

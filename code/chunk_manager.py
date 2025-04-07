@@ -108,4 +108,4 @@ def unload_chunks(chunks_dict, current_chunk, visibility_radius=2):
         data = chunks_dict[chunk_pos]
         save_chunk_data(chunk_pos, data)
         del chunks_dict[chunk_pos]
-    gc.collect()
+    gc.collect()  # Trigger garbage collection after unloading chunks

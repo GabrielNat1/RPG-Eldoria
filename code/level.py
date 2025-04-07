@@ -7,12 +7,13 @@ from random import choice, randint
 from weapon import Weapon
 from ui import UI
 from enemy import Enemy
-from particles import AnimationPlayer, WindEffect, RainEffect
+from particles import AnimationPlayer, WindEffect, RainEffect, LeafEffect
 from magic import MagicPlayer
 from upgrade import Upgrade
 from npc import NPC, MissionSystem
 from chunk_manager import generate_chunk_data, save_chunk_data, load_chunk_data, unload_chunks
 import os
+import gc
 
 class Level:
 	shared_wind_frames = None
@@ -92,6 +93,8 @@ class Level:
 		if hasattr(self, 'player'):
 			self.rain_effect.set_player(self.player)  
 		self.rain_effect.set_obstacle_sprites(self.obstacle_sprites)  
+
+		self.leaf_effects = pygame.sprite.Group()  # Add leaf_effects group
 
 	def create_map(self):
 		layouts = {
@@ -188,14 +191,13 @@ class Level:
 					self.current_chunk = new_chunk
 					self.load_chunks_around(new_chunk)
 					unload_chunks(self.chunks, new_chunk, visibility_radius=self.visible_chunks)
-    
+
 	def create_attack(self):
 			self.current_attack = Weapon(self.player, [self.visible_sprites, self.attack_sprites])
 
 	def destroy_attack(self):
 		if self.current_attack:
 			self.current_attack.kill()
-   
 		self.current_attack = None
 
 	def create_magic(self, style, strength, cost):
@@ -244,7 +246,6 @@ class Level:
 			self.destroy_attack,
 			self.create_magic,
    			self.mission_system)
-  
 		self.player.health = self.player.stats['health']
 		self.player.blinking = True
 		self.player.blink_start_time = pygame.time.get_ticks()
@@ -261,6 +262,9 @@ class Level:
 			self.last_spawn_times = {spawn_point: 0 for _, spawn_point in self.enemy_spawn_points}
 		LOAD_IMMEDIATE_DISTANCE = 500 
 		MAX_SPAWNS_PER_FRAME = 2     
+		MAX_NEARBY_ENEMIES = 1  # Limit to 1 enemy near the player
+		NEARBY_DISTANCE = 300  # Distance to check nearby enemies
+		RESPAWN_DELAY_AFTER_DEATH = 5000  # 5 seconds delay after death
 		spawns_this_frame = 0
 
 		for monster_name, spawn_point in self.enemy_spawn_points:
@@ -271,6 +275,21 @@ class Level:
 			spawn_vec = pygame.math.Vector2(spawn_point)
 			player_vec = pygame.math.Vector2(self.player.rect.center)
 			distance = (player_vec - spawn_vec).magnitude()
+
+			# Skip respawn if player is too close to the spawn point
+			if distance < NEARBY_DISTANCE:
+				continue
+
+			# Check nearby enemies
+			nearby_enemies = [
+				sprite for sprite in self.visible_sprites
+				if isinstance(sprite, Enemy) and
+				(pygame.math.Vector2(sprite.rect.center) - player_vec).magnitude() < NEARBY_DISTANCE
+			]
+			if len(nearby_enemies) > MAX_NEARBY_ENEMIES:
+				continue
+
+			# Skip respawn if too far from the player
 			if distance > ENEMY_SPAWN_DISTANCE:
 				continue
 
@@ -283,6 +302,11 @@ class Level:
 			)
 			if enemy_exists:
 				continue
+
+			# Ensure the enemy has been dead for at least the respawn delay
+			if hasattr(self, 'enemy_death_times') and spawn_point in self.enemy_death_times:
+				if current_time - self.enemy_death_times[spawn_point] < RESPAWN_DELAY_AFTER_DEATH:
+					continue
 
 			enemy = Enemy(
 				monster_name,
@@ -300,6 +324,11 @@ class Level:
 
 			if distance > LOAD_IMMEDIATE_DISTANCE or spawns_this_frame >= MAX_SPAWNS_PER_FRAME:
 				break
+
+	def add_enemy_death_time(self, spawn_point):
+		if not hasattr(self, 'enemy_death_times'):
+			self.enemy_death_times = {}
+		self.enemy_death_times[spawn_point] = pygame.time.get_ticks()
 
 	def trigger_death_particles(self, pos, particle_type):
 		self.animation_player.create_particles(particle_type, pos, self.visible_sprites)
@@ -333,6 +362,7 @@ class Level:
 			self.wind_effect_last_spawn_time = current_time
 			self.spawn_wind_effects()
 
+		# Remove finished wind effects
 		for wind_effect in self.wind_effects:
 			if wind_effect.finished:
 				wind_effect.kill()
@@ -347,11 +377,47 @@ class Level:
 			Level.shared_wind_frames = import_folder('../graphics/environment/wind')
 		self.wind_frames = Level.shared_wind_frames
 
+	def clear_leaf_effects(self):
+		self.leaf_effects.empty()  # Clear all leaf effects
+
+	def spawn_leaf_effects(self):
+		for _ in range(self.max_wind_effects):  # Reuse max_wind_effects for consistency
+			x = randint(int(self.player.rect.left) - 400, int(self.player.rect.right) + 400)
+			y = randint(int(self.player.rect.top) - 400, int(self.player.rect.bottom) + 400)
+			LeafEffect((x, y), [self.visible_sprites, self.leaf_effects], self.animation_player.frames['leaf'][0])  # Use first leaf frame set
+
+	def update_leaf_effects(self):
+		current_time = pygame.time.get_ticks()
+
+		# Remove all leaf effects if rain stops
+		if not self.rain_effect.is_raining:
+			self.clear_leaf_effects()  # Clear all leaf effects immediately
+			return
+
+		# Spawn new leaf effects periodically
+		if current_time - self.wind_effect_last_spawn_time >= self.wind_effect_interval:
+			self.wind_effect_last_spawn_time = current_time
+			self.spawn_leaf_effects()
+
+		# Remove leaf effects that are too far from the player
+		for leaf_effect in self.leaf_effects:
+			if leaf_effect.rect.centerx < self.player.rect.left - 1000 or \
+			   leaf_effect.rect.centerx > self.player.rect.right + 1000 or \
+			   leaf_effect.rect.centery < self.player.rect.top - 1000 or \
+			   leaf_effect.rect.centery > self.player.rect.bottom + 1000:
+				leaf_effect.kill()
+
+	def update_leaf_effects_settings(self):
+		self.leaf_effects.empty()  # Clear existing leaf effects
+		self.wind_effect_last_spawn_time = pygame.time.get_ticks()  # Reset spawn time
+		self.spawn_leaf_effects()
+
 	def run(self):
 		self.update_chunks()
 		self.visible_sprites.custom_draw(self.player)
 		self.ui.display(self.player)
 		self.update_wind_effects()
+		self.update_leaf_effects()  # Add leaf effects update logic
 
 		# Update rain and leaf effects
 		self.rain_effect.update()
@@ -397,6 +463,20 @@ class YSortCameraGroup(pygame.sprite.Group):
 		self.floor_surf = pygame.image.load('../graphics/tilemap/ground.png').convert()
 		self.floor_rect = self.floor_surf.get_rect(topleft = (0,0))
 
+	def draw_shadows(self, player):
+		light_source = pygame.math.Vector2(player.rect.centerx, player.rect.centery - 100)  # Light source above the player
+		shadow_color = (0, 0, 0, 100)  # Semi-transparent black for shadows
+
+		for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
+			if hasattr(sprite, 'shadow') and self.is_sprite_visible(sprite):
+				offset_pos = sprite.rect.topleft - self.offset
+				shadow_offset = pygame.math.Vector2(offset_pos) - light_source
+				shadow_offset.scale_to_length(20)  # Shadow length
+				shadow_rect = sprite.rect.move(shadow_offset.x, shadow_offset.y)
+				shadow_surface = pygame.Surface(sprite.image.get_size(), pygame.SRCALPHA)
+				shadow_surface.fill(shadow_color)
+				self.display_surface.blit(shadow_surface, shadow_rect.topleft)
+
 	def custom_draw(self,player):
 		# getting the offset 
 		self.offset.x = player.rect.centerx - self.half_width
@@ -405,6 +485,9 @@ class YSortCameraGroup(pygame.sprite.Group):
 		# drawing the floor
 		floor_offset_pos = self.floor_rect.topleft - self.offset
 		self.display_surface.blit(self.floor_surf,floor_offset_pos)
+
+		# Draw shadows before sprites
+		self.draw_shadows(player)
 
 		# for sprite in self.sprites():
 		for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery):
