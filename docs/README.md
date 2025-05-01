@@ -19,3 +19,4 @@
 - [Installation Guide](./technical.md#installation)
 - [Game Controls](./gameplay.md#controls)
 - [Report a Bug](../SECURITY.md#reporting-a-vulnerability)
+- [Wiki the game](https://github.com/GabrielNat1/RPG-Eldoria.wiki.git)
