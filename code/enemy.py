@@ -56,12 +56,12 @@ class Enemy(Entity):
         self.invincibility_duration = 300
 
         # sounds
-        self.death_sound = pygame.mixer.Sound('../audio/death.wav')
-        self.hit_sound = pygame.mixer.Sound('../audio/hit.wav')
+        self.death_sound = pygame.mixer.Sound(AUDIO_PATHS['death'])
+        self.hit_sound = pygame.mixer.Sound(AUDIO_PATHS['hit'])
         self.attack_sound = pygame.mixer.Sound(monster_info['attack_sound'])
-        self.death_sound.set_volume(0.6)
-        self.hit_sound.set_volume(0.6)
-        self.attack_sound.set_volume(0.6)
+        self.death_sound.set_volume(VOLUME_SETTINGS['enemy_effects'])
+        self.hit_sound.set_volume(VOLUME_SETTINGS['enemy_effects'])
+        self.attack_sound.set_volume(VOLUME_SETTINGS['enemy_effects'])
 
         # respawn - atualize para 60.000ms
         self.respawn_time = 60000  
@@ -73,8 +73,8 @@ class Enemy(Entity):
         self.mission_system = mission_system
         self.player_near = False
         self.fight_music_playing = False
-        self.fight_music = pygame.mixer.Sound('../audio/fight.ogg')  # Preload fight music
-        self.main_music_path = '../audio/main.ogg'  # Path to main music
+        self.fight_music = pygame.mixer.Sound(AUDIO_PATHS['fight'])  # Preload fight music
+        self.main_music_path = AUDIO_PATHS['main_game']  # Path to main music
         self.music_channel = pygame.mixer.Channel(1)  # Use a separate channel for music
 
     def load_animations(self, name):

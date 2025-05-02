@@ -1,6 +1,6 @@
 import pygame
 import os
-from settings import WIDTH, HEIGTH
+from settings import WIDTH, HEIGTH, AUDIO_PATHS
 
 class NPC(pygame.sprite.Sprite):
     shared_frames = {}
@@ -43,7 +43,7 @@ class NPC(pygame.sprite.Sprite):
         self.facing = "down"  # normal down
 
         # Sound npc talking
-        self.speech_sound = pygame.mixer.Sound('../audio/npc/talking_sfx/Talking.mp3')
+        self.speech_sound = pygame.mixer.Sound(AUDIO_PATHS['npc_talk'])
         self.is_playing_speech = False
         self.is_sound_playing = False  
 

@@ -3,7 +3,7 @@ import sys
 import time
 import shutil  
 import os
-import settings as game_settings
+from settings import *  # Change to import all from settings
 from level import *
 from PIL import Image, ImageSequence  
 from debug import *
@@ -49,7 +49,7 @@ class Intro:
             time.sleep(delay)  
 
     def display(self):
-        self.audio_manager.play_music("../audio/main_intro.ogg", loops=-1, volume=0.5)  
+        self.audio_manager.play_music(AUDIO_PATHS['intro'], loops=-1, volume=VOLUME_SETTINGS['music'])  
         self.screen.fill((0, 0, 0)) 
         pygame.display.flip()
         time.sleep(0.5)  
@@ -137,13 +137,13 @@ class MainMenu:
 
     def select(self):
         if self.selected_option == 0:
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
             return "new_game"
         elif self.selected_option == 1:
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
             return "settings"
         elif self.selected_option == 2:
-            self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_back'], volume=VOLUME_SETTINGS['menu_effects'])
             time.sleep(1)
             pygame.quit()
             sys.exit()
@@ -158,6 +158,7 @@ class Settings:
             {"name": "Borderless", "type": "toggle", "value": False},
             {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  # Default to 1920x1080
             {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1},  # Default to normal
+            {"name": "Volume", "type": "slider", "min": 0, "max": 100, "value": 50},  # Add volume control
             {"name": "Gamma", "type": "slider", "min": 0, "max": 100, "value": 50},  # Gamma slider
             {"name": "Back", "type": "action"}
         ]
@@ -182,6 +183,9 @@ class Settings:
         elif option["type"] == "choice":
             option["value"] = (option["value"] + 1) % len(option["choices"])
             return option["name"], option["choices"][option["value"]]
+
+        elif option["type"] == "slider":
+            return option["name"], option["value"]
 
         elif option["type"] == "action" and option["name"] == "Back":
             return "Back", None
@@ -254,15 +258,20 @@ class MainMenuSettings:
 
     def toggle_option(self):
         option, value = self.settings.toggle_option()
+        if option == "Volume":
+            self.audio_manager.update_volume(value)
         if option:
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
         return option, value
 
     def adjust_gamma(self, direction):
         option, value = self.settings.adjust_gamma(direction)
-        if option:
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
+        if option == "Volume":
+            self.audio_manager.update_volume(value)
+        elif option == "Gamma":
             self.apply_gamma(value)
+        if option:
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
         return option, value
 
     def apply_gamma(self, value):
@@ -307,13 +316,13 @@ class PauseMenu:
 
     def select(self):
         if self.selected == 0:  
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
             return "resume"
         elif self.selected == 1:  
-            self.audio_manager.play_sound("../audio/menu/Menu1.wav", volume=2.5)
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
             return "settings"
         elif self.selected == 2:  
-            self.audio_manager.play_sound("../audio/menu/Menu6.wav", volume=2.5)
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_back'], volume=VOLUME_SETTINGS['menu_effects'])
             time.sleep(0.5)
             return "quit"
         
@@ -371,15 +380,20 @@ class PauseMenuSettings:
 
     def toggle_option(self):
         option, value = self.settings.toggle_option()
+        if option == "Volume":
+            self.audio_manager.update_volume(value)
         if option:
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
         return option, value
 
     def adjust_gamma(self, direction):
         option, value = self.settings.adjust_gamma(direction)
-        if option:
-            self.audio_manager.play_sound("../audio/menu/Menu9.wav", volume=2.5)
+        if option == "Volume":
+            self.audio_manager.update_volume(value)
+        elif option == "Gamma":
             self.apply_gamma(value)
+        if option:
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
         return option, value
 
     def apply_gamma(self, value):
@@ -398,27 +412,34 @@ class PauseMenuSettings:
 
 class AudioManager:
     def __init__(self):
-        pygame.mixer.init() 
+        pygame.mixer.init()
+        self.update_volume(50)  # Set default volume
 
-    #function for music
-    def play_music(self, filename, loops=0, volume=0.5):
+    def update_volume(self, value):
+        # Convert 0-100 range to 0-1 range
+        volume = value / 100
+        pygame.mixer.music.set_volume(volume)
+        VOLUME_SETTINGS['music'] = volume
+        VOLUME_SETTINGS['menu_effects'] = volume * 5  # Keep menu sounds slightly louder
+        VOLUME_SETTINGS['enemy_effects'] = volume
+
+    def play_music(self, filename, loops=0, volume=None):
         try:
             pygame.mixer.music.load(filename)
-            pygame.mixer.music.set_volume(volume)
+            final_volume = volume if volume is not None else VOLUME_SETTINGS['music']
+            pygame.mixer.music.set_volume(final_volume)
             pygame.mixer.music.play(loops)
-        except pygame.error as e:
+        except pygame.error:
             pass
-            #print(f"Error loading music: {filename}. Error: {e}")
 
-    #function for effect 
-    def play_sound(self, filename, volume=0.5):
+    def play_sound(self, filename, volume=None):
         try:
             sound = pygame.mixer.Sound(filename)
-            sound.set_volume(volume)
+            final_volume = volume if volume is not None else VOLUME_SETTINGS['menu_effects']
+            sound.set_volume(final_volume)
             sound.play()
-        except pygame.error as e:
+        except pygame.error:
             pass
-            #print(f"Error loading sound: {filename}. Error: {e}")
 
     def stop_music(self):
         pygame.mixer.music.stop()
@@ -461,7 +482,7 @@ class Game:
             intro.display()
             self.intro_played = True
 
-        self.audio_manager.play_music("../audio/main_menu.ogg", loops=-1, volume=0.5)
+        self.audio_manager.play_music(AUDIO_PATHS['main_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
         self.apply_game_settings()
 
     def apply_game_settings(self):
@@ -495,9 +516,11 @@ class Game:
     def _apply_level_settings(self, config):
         self.level.clear_wind_effects()
 
-        game_settings.TILESIZE = config["tilesize"]
-        game_settings.CHUNKSIZE = config["chunksize"]
-        game_settings.VISIBLE_CHUNKS = config["visible_chunks"]
+        # Update these references to use the imported constants directly
+        global TILESIZE, CHUNKSIZE, VISIBLE_CHUNKS
+        TILESIZE = config["tilesize"]
+        CHUNKSIZE = config["chunksize"]
+        VISIBLE_CHUNKS = config["visible_chunks"]
         
         self.level.wind_effect_interval = config["wind_interval"]
         self.level.wind_effect_duration = config["wind_duration"]
@@ -527,7 +550,7 @@ class Game:
                                     self.in_menu = False
                                     self.in_gameplay = True
                                     self.audio_manager.stop_music()
-                                    self.audio_manager.play_music("../audio/main.ogg", loops=-1, volume=0.5)
+                                    self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1, volume=VOLUME_SETTINGS['music'])
                                 elif action == "settings":
                                     self.in_menu = False
                                     self.in_settings = True
@@ -550,7 +573,7 @@ class Game:
                                 if action == "resume":
                                     self.in_pause = False
                                     self.audio_manager.stop_music()
-                                    self.audio_manager.play_music("../audio/main.ogg", loops=-1, volume=0.5)
+                                    self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1, volume=VOLUME_SETTINGS['music'])
                                 elif action == "settings":
                                     self.in_pause = False
                                     self.in_pause_settings = True
@@ -561,7 +584,7 @@ class Game:
                             elif event.key == pygame.K_ESCAPE:
                                 self.in_pause = False
                                 self.audio_manager.stop_music()
-                                self.audio_manager.play_music("../audio/main.ogg", loops=-1, volume=0.5)
+                                self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1, volume=VOLUME_SETTINGS['music'])
 
                     elif self.in_settings:
                         if event.type == pygame.KEYDOWN:
@@ -636,7 +659,7 @@ class Game:
                             if event.key == pygame.K_ESCAPE:
                                 self.in_pause = True
                                 self.audio_manager.stop_music()
-                                self.audio_manager.play_music("../audio/pause_menu.ogg", loops=-1, volume=0.5)
+                                self.audio_manager.play_music(AUDIO_PATHS['pause_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
                             elif event.key == pygame.K_f:
                                 self.toggle_fullscreen()
                             elif event.key == pygame.K_u:

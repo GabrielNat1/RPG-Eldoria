@@ -1,3 +1,18 @@
+"""
+    -------------------------------------------
+    @ *settings.py* 
+    
+    @ *note: This file contains all game configuration variables including:* @
+    - Display settings (resolution, FPS)
+    - Game constants (tile size, chunk size)
+    - UI configuration and colors
+    - Weapon and magic system data
+    - Enemy statistics and behavior
+    - Performance settings
+    - Audio paths and volume controls
+    -------------------------------------------
+
+"""
 
 WIDTH = 1280
 HEIGTH = 720
@@ -99,3 +114,40 @@ elif PERFORMANCE_MODE == 'normal':
     VISIBLE_CHUNKS = 2
 else:
     VISIBLE_CHUNKS = 3
+
+
+
+"""
+    -------------------------------------------
+    
+            @ *constants audio* @
+    
+    -------------------------------------------
+    
+"""
+
+# Audio paths and settings
+AUDIO_PATHS = {
+    'intro': "../audio/main_intro.ogg",
+    'menu_select': "../audio/menu/Menu1.wav",
+    'menu_back': "../audio/menu/Menu6.wav",
+    'menu_change': "../audio/menu/Menu9.wav",
+    'main_menu': "../audio/main_menu.ogg",
+    'pause_menu': "../audio/pause_menu.ogg",
+    'main_game': "../audio/main.ogg",  
+    'heal': '../audio/heal.wav',
+    'flame': '../audio/Fire.wav',
+    'death': '../audio/death.wav',
+    'hit': '../audio/hit.wav',
+    'fight': '../audio/fight.ogg',
+    'npc_talk': '../audio/npc/talking_sfx/Talking.mp3'  
+}
+
+VOLUME_SETTINGS = {
+    'music': 0.5,
+    'menu_effects': 2.5,
+    'enemy_effects': 0.6
+}
+
+# Audio settings
+MASTER_VOLUME = 0.5
