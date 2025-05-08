@@ -1,4 +1,5 @@
 import pygame
+import asyncio
 from settings import *
 from tile import Tile
 from player import Player
@@ -11,7 +12,8 @@ from particles import AnimationPlayer, WindEffect, RainEffect, LeafEffect
 from magic import MagicPlayer
 from upgrade import Upgrade
 from npc import NPC, MissionSystem
-from chunk_manager import generate_chunk_data, save_chunk_data, load_chunk_data, unload_chunks
+from chunk_manager import *
+from paths import get_asset_path
 import os
 import gc
 
@@ -68,7 +70,7 @@ class Level:
 		self.load_wind_frames()
 		self.spawn_wind_effects()
 
-		self.floor_surf = pygame.image.load('../graphics/tilemap/ground.png').convert()
+		self.floor_surf = pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert()
 		self.floor_surf = pygame.transform.scale(self.floor_surf, (WIDTH, HEIGTH)) 
 		self.floor_rect = self.floor_surf.get_rect(topleft=(0, 0))
 
@@ -98,14 +100,14 @@ class Level:
 
 	def create_map(self):
 		layouts = {
-			'boundary': import_csv_layout('../map/map_FloorBlocks.csv'),
-			'grass': import_csv_layout('../map/map_Grass.csv'),
-			'object': import_csv_layout('../map/map_Objects.csv'),
-			'entities': import_csv_layout('../map/map_Entities.csv')
+			'boundary': import_csv_layout(get_asset_path('map', 'map_FloorBlocks.csv')),
+			'grass': import_csv_layout(get_asset_path('map', 'map_Grass.csv')),
+			'object': import_csv_layout(get_asset_path('map', 'map_Objects.csv')),
+			'entities': import_csv_layout(get_asset_path('map', 'map_Entities.csv'))
 		}
 		graphics = {
-			'grass': import_folder('../graphics/Grass'),
-			'objects': import_folder('../graphics/objects')
+			'grass': import_folder(get_asset_path('graphics', 'Grass')),
+			'objects': import_folder(get_asset_path('graphics', 'objects'))
 		}
 
 		self.enemy_spawn_points = []  # Store enemy spawn points
@@ -172,25 +174,29 @@ class Level:
 			self.load_chunks_around(self.get_chunk(player_chunk))
    
 	def load_chunks_around(self, center_chunk):
-				for dx in range(-1, 2):
-					for dy in range(-1, 2):
-						chunk_pos = (center_chunk[0] + dx, center_chunk[1] + dy)
-						
-						self.chunks[chunk_pos] = self.load_chunk(chunk_pos)
+		for dx in range(-1, 2):
+			for dy in range(-1, 2):
+				chunk_pos = (center_chunk[0] + dx, center_chunk[1] + dy)
+				if chunk_pos not in self.chunks:
+					self.chunks[chunk_pos] = self.load_chunk(chunk_pos)
 
 	def load_chunk(self, chunk):
-				chunk_data = load_chunk_data(chunk)
-				if chunk_data is None:
-					chunk_data = generate_chunk_data(chunk)
-					save_chunk_data(chunk, chunk_data)
-				return chunk_data
+		chunk_data = load_chunk_data(chunk)
+		if chunk_data is None:
+			chunk_data = generate_chunk_data(chunk)
+			save_chunk_data(chunk, chunk_data)
+		return chunk_data
 
 	def update_chunks(self):
-				new_chunk = self.get_chunk(self.player.rect.center)
-				if new_chunk != self.current_chunk:
-					self.current_chunk = new_chunk
-					self.load_chunks_around(new_chunk)
-					unload_chunks(self.chunks, new_chunk, visibility_radius=self.visible_chunks)
+		new_chunk = self.get_chunk(self.player.rect.center)
+		if new_chunk != self.current_chunk:
+			self.current_chunk = new_chunk
+			for dx in range(-1, 2):
+				for dy in range(-1, 2):
+					chunk_pos = (new_chunk[0] + dx, new_chunk[1] + dy)
+					if chunk_pos not in self.chunks:
+						self.chunks[chunk_pos] = self.load_chunk(chunk_pos)
+			unload_chunks(self.chunks, new_chunk, visibility_radius=self.visible_chunks)
 
 	def create_attack(self):
 			self.current_attack = Weapon(self.player, [self.visible_sprites, self.attack_sprites])
@@ -374,7 +380,7 @@ class Level:
 
 	def load_wind_frames(self):
 		if Level.shared_wind_frames is None:
-			Level.shared_wind_frames = import_folder('../graphics/environment/wind')
+			Level.shared_wind_frames = import_folder(get_asset_path('graphics', 'environment', 'wind'))
 		self.wind_frames = Level.shared_wind_frames
 
 	def clear_leaf_effects(self):
@@ -460,7 +466,7 @@ class YSortCameraGroup(pygame.sprite.Group):
 		self.offset = pygame.math.Vector2()
 
 		# creating the floor
-		self.floor_surf = pygame.image.load('../graphics/tilemap/ground.png').convert()
+		self.floor_surf = pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert()
 		self.floor_rect = self.floor_surf.get_rect(topleft = (0,0))
 
 	def draw_shadows(self, player):

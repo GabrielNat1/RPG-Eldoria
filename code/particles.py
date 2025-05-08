@@ -3,45 +3,46 @@ from support import import_folder
 from random import choice, randint
 import gc
 import player
+from paths import get_asset_path
 
 class AnimationPlayer:
     def __init__(self):
         self.frames = {
             # magic
-            'flame': import_folder('../graphics/particles/flame/frames'),
-            'aura': import_folder('../graphics/particles/aura'),
-            'heal': import_folder('../graphics/particles/heal/frames'),
+            'flame': import_folder(get_asset_path('graphics', 'particles', 'flame', 'frames')),
+            'aura': import_folder(get_asset_path('graphics', 'particles', 'aura')),
+            'heal': import_folder(get_asset_path('graphics', 'particles', 'heal', 'frames')),
 
             # attacks
-            'claw': import_folder('../graphics/particles/claw'),
-            'slash': import_folder('../graphics/particles/slash'),
-            'sparkle': import_folder('../graphics/particles/sparkle'),
-            'leaf_attack': import_folder('../graphics/particles/leaf_attack'),
-            'thunder': import_folder('../graphics/particles/thunder'),
+            'claw': import_folder(get_asset_path('graphics', 'particles', 'claw')),
+            'slash': import_folder(get_asset_path('graphics', 'particles', 'slash')),
+            'sparkle': import_folder(get_asset_path('graphics', 'particles', 'sparkle')),
+            'leaf_attack': import_folder(get_asset_path('graphics', 'particles', 'leaf_attack')),
+            'thunder': import_folder(get_asset_path('graphics', 'particles', 'thunder')),
 
             # monster deaths
-            'squid': import_folder('../graphics/particles/smoke_orange'),
-            'raccoon': import_folder('../graphics/particles/raccoon'),
-            'spirit': import_folder('../graphics/particles/nova'),
-            'bamboo': import_folder('../graphics/particles/bamboo'),
+            'squid': import_folder(get_asset_path('graphics', 'particles', 'smoke_orange')),
+            'raccoon': import_folder(get_asset_path('graphics', 'particles', 'raccoon')),
+            'spirit': import_folder(get_asset_path('graphics', 'particles', 'nova')),
+            'bamboo': import_folder(get_asset_path('graphics', 'particles', 'bamboo')),
 
             # leaves 
             'leaf': (
-                import_folder('../graphics/particles/leaf1'),
-                import_folder('../graphics/particles/leaf2'),
-                import_folder('../graphics/particles/leaf3'),
-                import_folder('../graphics/particles/leaf4'),
-                import_folder('../graphics/particles/leaf5'),
-                import_folder('../graphics/particles/leaf6'),
-                self.reflect_images(import_folder('../graphics/particles/leaf1')),
-                self.reflect_images(import_folder('../graphics/particles/leaf2')),
-                self.reflect_images(import_folder('../graphics/particles/leaf3')),
-                self.reflect_images(import_folder('../graphics/particles/leaf4')),
-                self.reflect_images(import_folder('../graphics/particles/leaf5')),
-                self.reflect_images(import_folder('../graphics/particles/leaf6'))
+                import_folder(get_asset_path('graphics', 'particles', 'leaf1')),
+                import_folder(get_asset_path('graphics', 'particles', 'leaf2')),
+                import_folder(get_asset_path('graphics', 'particles', 'leaf3')),
+                import_folder(get_asset_path('graphics', 'particles', 'leaf4')),
+                import_folder(get_asset_path('graphics', 'particles', 'leaf5')),
+                import_folder(get_asset_path('graphics', 'particles', 'leaf6')),
+                self.reflect_images(import_folder(get_asset_path('graphics', 'particles', 'leaf1'))),
+                self.reflect_images(import_folder(get_asset_path('graphics', 'particles', 'leaf2'))),
+                self.reflect_images(import_folder(get_asset_path('graphics', 'particles', 'leaf3'))),
+                self.reflect_images(import_folder(get_asset_path('graphics', 'particles', 'leaf4'))),
+                self.reflect_images(import_folder(get_asset_path('graphics', 'particles', 'leaf5'))),
+                self.reflect_images(import_folder(get_asset_path('graphics', 'particles', 'leaf6')))
             )
         }
-        self.wind_frames = import_folder('../graphics/environment/wind')
+        self.wind_frames = import_folder(get_asset_path('graphics', 'environment', 'wind'))
     
     def reflect_images(self, frames):
         new_frames = []
@@ -114,7 +115,7 @@ class RainDrop(pygame.sprite.Sprite):
         self.sprite_type = 'rain'
         self.image = pygame.transform.scale(surf, (12, 22))
         self.frame_index = 0
-        self.frames = import_folder('../graphics/environment/drops')
+        self.frames = import_folder(get_asset_path('graphics', 'environment', 'drops'))
         self.animation_speed = 0.15
         self.rect = self.image.get_rect(topleft=pos)
         self.initial_pos = pygame.math.Vector2(pos)
@@ -200,15 +201,15 @@ class RainEffect:
     def __init__(self, initial_position, groups):
         self.position = pygame.math.Vector2(initial_position)  # Use initial position as a starting point
         self.groups = groups
-        self.rain_drops = import_folder('../graphics/environment/drops')  # Load drop sprites
-        self.floor_frames = import_folder('../graphics/environment/floor')  # Load floor sprites
+        self.rain_drops = import_folder(get_asset_path('graphics', 'environment', 'drops'))  # Load drop sprites
+        self.floor_frames = import_folder(get_asset_path('graphics', 'environment', 'floor'))  # Load floor sprites
         self.spawn_interval = 60  # Reduced frequency of drops
         self.floor_spawn_interval = 300  # Adjusted for floor drops
         self.last_spawn_time = pygame.time.get_ticks()
         self.last_floor_spawn = pygame.time.get_ticks()
 
         # Load rain sound
-        self.rain_sound = pygame.mixer.Sound('../audio/rain.wav')
+        self.rain_sound = pygame.mixer.Sound(get_asset_path('audio', 'rain.wav'))
         self.rain_sound.set_volume(1.0)  # Adjust volume
         self.player = None  # Initialize player as None
         self.obstacle_sprites = None  # Placeholder for obstacle sprites
@@ -217,7 +218,7 @@ class RainEffect:
         self.rain_duration = 80000  
         self.rain_interval = 80000  
         self.last_rain_check = pygame.time.get_ticks()
-        self.leaf_frames = import_folder('../graphics/particles/leaf4')  # Use only leaf4 frames
+        self.leaf_frames = import_folder(get_asset_path('graphics', 'particles', 'leaf4'))  # Use only leaf4 frames
         self.leaf_effects = pygame.sprite.Group()
         self.leaf_spawn_interval = 5000  # Interval for spawning leaf effects
         self.last_leaf_spawn_time = pygame.time.get_ticks()

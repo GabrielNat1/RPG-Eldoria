@@ -1,5 +1,5 @@
 import pygame
-import os
+from paths import get_asset_path
 from settings import WIDTH, HEIGTH, AUDIO_PATHS
 
 class NPC(pygame.sprite.Sprite):
@@ -9,9 +9,9 @@ class NPC(pygame.sprite.Sprite):
         super().__init__(groups)
         self.load_frames()
         self.dialogue_images = {
-            0: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_0.png').convert_alpha(),
-            1: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_1.png').convert_alpha(),
-            2: pygame.image.load('../graphics/dialog/OldManDialog/OldManBox_2.png').convert_alpha()
+            0: pygame.image.load(get_asset_path('graphics', 'dialog', 'OldManDialog', 'OldManBox_0.png')).convert_alpha(),
+            1: pygame.image.load(get_asset_path('graphics', 'dialog', 'OldManDialog', 'OldManBox_1.png')).convert_alpha(),
+            2: pygame.image.load(get_asset_path('graphics', 'dialog', 'OldManDialog', 'OldManBox_2.png')).convert_alpha()
         }
 
         # Animation Npc
@@ -53,15 +53,15 @@ class NPC(pygame.sprite.Sprite):
     def load_frames(self):
         if not NPC.shared_frames:
             NPC.shared_frames['up'] = [
-                pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_up", f"idle_up_{i}.png")).convert_alpha()
+                pygame.image.load(get_asset_path('graphics', 'npc', 'oldman', 'idle_up', f'idle_up_{i}.png')).convert_alpha()
                 for i in range(3)
             ]
             NPC.shared_frames['down'] = [
-                pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_down", f"idle_down_{i}.png")).convert_alpha()
+                pygame.image.load(get_asset_path('graphics', 'npc', 'oldman', 'idle_down', f'idle_down_{i}.png')).convert_alpha()
                 for i in range(3)
             ]
             NPC.shared_frames['left'] = [
-                pygame.image.load(os.path.join("../", "graphics", "npc", "oldman", "idle_left", f"idle_left_{i}.png")).convert_alpha()
+                pygame.image.load(get_asset_path('graphics', 'npc', 'oldman', 'idle_left', f'idle_left_{i}.png')).convert_alpha()
                 for i in range(3)
             ]
             NPC.shared_frames['right'] = [pygame.transform.flip(frame, True, False) for frame in NPC.shared_frames['left']]
@@ -206,7 +206,7 @@ class NPC(pygame.sprite.Sprite):
             self.is_sound_playing = True
 
     def display_dialogue(self):
-        dialogue_box = pygame.image.load('../graphics/dialog/UI/DialogBoxFaceset.png').convert_alpha()
+        dialogue_box = pygame.image.load(get_asset_path('graphics', 'dialog', 'UI', 'DialogBoxFaceset.png')).convert_alpha()
         
         npc_image = self.dialogue_images.get(self.dialogue_stage, self.dialogue_images[0])
 

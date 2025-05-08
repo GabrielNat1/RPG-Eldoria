@@ -8,6 +8,10 @@ from level import *
 from PIL import Image, ImageSequence  
 from debug import *
 from support import check_os_and_limit_memory
+from paths import get_asset_path
+
+# Add base path resolution
+base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
 class Intro:
     def __init__(self, screen):
@@ -91,7 +95,8 @@ class MainMenu:
 
     def load_background_frames(self):
         if MainMenu.shared_background_frames is None:
-            gif = Image.open('../graphics/background/background.gif')
+            gif_path = get_asset_path('graphics', 'background', 'background.gif')
+            gif = Image.open(gif_path)
             frames = []
 
             for frame in ImageSequence.Iterator(gif):
@@ -231,9 +236,9 @@ class MainMenuSettings:
             self.screen.blit(rendered_text, text_rect)
 
         # Display buttons
-        enter_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/ENTER.png').convert_alpha()
-        y_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/Y.png').convert_alpha()
-        esc_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/ESC.png').convert_alpha()
+        enter_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'ENTER.png')).convert_alpha()
+        y_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'Y.png')).convert_alpha()
+        esc_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'ESC.png')).convert_alpha()
 
         enter_img = pygame.transform.scale(enter_img, (20, 20))
         y_img = pygame.transform.scale(y_img, (20, 20))
@@ -353,9 +358,9 @@ class PauseMenuSettings:
             self.screen.blit(rendered_text, text_rect)
 
         # Display buttons
-        enter_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/ENTER.png').convert_alpha()
-        y_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/Y.png').convert_alpha()
-        esc_img = pygame.image.load('../graphics/environment/sprite_buttons_menu/ESC.png').convert_alpha()
+        enter_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'ENTER.png')).convert_alpha()
+        y_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'Y.png')).convert_alpha()
+        esc_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'ESC.png')).convert_alpha()
 
         enter_img = pygame.transform.scale(enter_img, (20, 20))
         y_img = pygame.transform.scale(y_img, (20, 20))
@@ -454,7 +459,7 @@ class Game:
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
         
         pygame.display.set_caption('RPG Eldoria')
-        icon_path = '../graphics/icon/icon.game.data.ico'  
+        icon_path = get_asset_path('graphics', 'icon', 'game.ico')
         icon = pygame.image.load(icon_path)
         pygame.display.set_icon(icon)
         
@@ -670,7 +675,8 @@ class Game:
                             global WIDTH, HEIGTH
                             WIDTH, HEIGTH = event.size
                             self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
-                            self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
+                            ground_path = get_asset_path('graphics', 'tilemap', 'ground.png')
+                            self.level.floor_surf = pygame.transform.scale(pygame.image.load(ground_path).convert(), (WIDTH, HEIGTH))  # Scale the background image
 
                     elif self.in_upgrade:
                         if event.type == pygame.KEYDOWN and (event.key == pygame.K_u or event.key == pygame.K_ESCAPE):
@@ -737,7 +743,7 @@ class Game:
 
         
         self.level.floor_surf = pygame.transform.scale(
-            pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH)
+            pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), (WIDTH, HEIGTH)
         )
         self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)  
     
@@ -745,7 +751,9 @@ class Game:
         global WIDTH, HEIGTH
         WIDTH, HEIGTH = resolution
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
-        self.level.floor_surf = pygame.transform.scale(pygame.image.load('../graphics/tilemap/ground.png').convert(), (WIDTH, HEIGTH))  # Scale the background image
+        self.level.floor_surf = pygame.transform.scale(
+            pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), (WIDTH, HEIGTH)
+        )
 
 if __name__ == '__main__':
     check_os_and_limit_memory(356)  

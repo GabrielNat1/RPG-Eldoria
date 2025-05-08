@@ -3,6 +3,7 @@ import pickle
 from random import randint
 from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER
 from support import import_csv_layout, import_folder
+from paths import get_asset_path
 import gc  
 
 def get_chunk_file(chunk):
@@ -17,14 +18,14 @@ def generate_chunk_data(chunk):
     }
     
     layouts = {
-        'boundary': import_csv_layout('../map/map_FloorBlocks.csv'),
-        'grass': import_csv_layout('../map/map_Grass.csv'),
-        'object': import_csv_layout('../map/map_Objects.csv'),
-        'entities': import_csv_layout('../map/map_Entities.csv')
+        'boundary': import_csv_layout(get_asset_path('map', 'map_FloorBlocks.csv')),
+        'grass': import_csv_layout(get_asset_path('map', 'map_Grass.csv')),
+        'object': import_csv_layout(get_asset_path('map', 'map_Objects.csv')),
+        'entities': import_csv_layout(get_asset_path('map', 'map_Entities.csv'))
     }
     graphics = {
-        'grass': import_folder('../graphics/Grass'),
-        'objects': import_folder('../graphics/Objects')
+        'grass': import_folder(get_asset_path('graphics', 'Grass')),
+        'objects': import_folder(get_asset_path('graphics', 'Objects'))
     }
     
     for style, layout in layouts.items():

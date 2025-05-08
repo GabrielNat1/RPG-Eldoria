@@ -2,6 +2,7 @@ import pygame
 from settings import *
 from entity import Entity
 from support import *
+from paths import get_asset_path
 
 class Enemy(Entity):
     shared_animations = {}
@@ -56,8 +57,8 @@ class Enemy(Entity):
         self.invincibility_duration = 300
 
         # sounds
-        self.death_sound = pygame.mixer.Sound(AUDIO_PATHS['death'])
-        self.hit_sound = pygame.mixer.Sound(AUDIO_PATHS['hit'])
+        self.death_sound = pygame.mixer.Sound(get_asset_path('audio', 'death.wav'))
+        self.hit_sound = pygame.mixer.Sound(get_asset_path('audio', 'hit.wav'))
         self.attack_sound = pygame.mixer.Sound(monster_info['attack_sound'])
         self.death_sound.set_volume(VOLUME_SETTINGS['enemy_effects'])
         self.hit_sound.set_volume(VOLUME_SETTINGS['enemy_effects'])
@@ -80,9 +81,9 @@ class Enemy(Entity):
     def load_animations(self, name):
         if name not in Enemy.shared_animations:
             animations = {'idle': [], 'move': [], 'attack': []}
-            main_path = f'../graphics/monsters/{name}/'
+            main_path = get_asset_path('graphics', 'monsters', name)
             for animation in animations.keys():
-                animations[animation] = import_folder(main_path + animation)
+                animations[animation] = import_folder(os.path.join(main_path, animation))
             Enemy.shared_animations[name] = animations
 
         self.animations = Enemy.shared_animations[name]

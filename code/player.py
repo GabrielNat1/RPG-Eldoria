@@ -4,13 +4,14 @@ from support import import_folder
 from entity import Entity
 from ui import UI
 from npc import NPC, MissionSystem
+from paths import get_asset_path
 
 class Player(Entity):
     shared_animations = {}
 
     def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, mission_system):
         super().__init__(groups)
-        self.image = pygame.image.load('../graphics/test/player.png').convert_alpha()
+        self.image = pygame.image.load(get_asset_path('graphics', 'test', 'player.png')).convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)  # Ensure rect is a valid pygame.Rect
         self.hitbox = self.rect.inflate(-6, HITBOX_OFFSET['player'])  # Sync hitbox with rect
         self.initial_position = pos
@@ -62,7 +63,7 @@ class Player(Entity):
         self.blink_start_time = None
 
         # import a sound
-        self.weapon_attack_sound = pygame.mixer.Sound('../audio/sword.wav')
+        self.weapon_attack_sound = pygame.mixer.Sound(get_asset_path('audio', 'sword.wav'))
         self.weapon_attack_sound.set_volume(0.4)
 
         # animation speed
@@ -93,7 +94,7 @@ class Player(Entity):
             self.ui.display(self)
              
     def import_player_assets(self):
-        character_path = '../graphics/player/'
+        character_path = get_asset_path('graphics', 'player')
         if not Player.shared_animations:
             animations = {
                 'up': [], 'down': [], 'left': [],
@@ -102,7 +103,7 @@ class Player(Entity):
             }
 
             for animation in animations.keys():
-                full_path = character_path + animation
+                full_path = character_path + '/' + animation
                 animations[animation] = import_folder(full_path)
 
             animations['right'] = [pygame.transform.flip(img, True, False) for img in animations['left']]

@@ -14,6 +14,13 @@
 
 """
 
+import os
+import sys
+from paths import *
+
+# Add base path resolution at the top
+base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+
 WIDTH = 1280
 HEIGTH = 720
 FPS = 60
@@ -37,7 +44,7 @@ BAR_HEIGHT = 20
 HEALTH_BAR_WIDTH = 200
 ENERGY_BAR_WIDTH = 140
 ITEM_BOX_SIZE = 80
-UI_FONT = '../graphics/font/joystix.ttf'
+UI_FONT = get_asset_path('graphics', 'font', 'joystix.ttf')
 UI_FONT_SIZE = 18
 
 # General colors
@@ -61,25 +68,33 @@ UPGRADE_BG_COLOR_SELECTED = '#EEEEEE'
 
 # Weapons
 weapon_data = {
-    'sword': {'cooldown': 100, 'damage': 15, 'graphic': '../graphics/weapons/sword/full.png'},
-    'lance': {'cooldown': 400, 'damage': 30, 'graphic': '../graphics/weapons/lance/full.png'},
-    'axe': {'cooldown': 300, 'damage': 20, 'graphic': '../graphics/weapons/axe/full.png'},
-    'rapier': {'cooldown': 50, 'damage': 8, 'graphic': '../graphics/weapons/rapier/full.png'},
-    'sai': {'cooldown': 80, 'damage': 10, 'graphic': '../graphics/weapons/sai/full.png'}
+    'sword': {'cooldown': 100, 'damage': 15, 'graphic': get_asset_path('graphics', 'weapons', 'sword', 'full.png')},
+    'lance': {'cooldown': 400, 'damage': 30, 'graphic': get_asset_path('graphics', 'weapons', 'lance', 'full.png')},
+    'axe': {'cooldown': 300, 'damage': 20, 'graphic': get_asset_path('graphics', 'weapons', 'axe', 'full.png')},
+    'rapier': {'cooldown': 50, 'damage': 8, 'graphic': get_asset_path('graphics', 'weapons', 'rapier', 'full.png')},
+    'sai': {'cooldown': 80, 'damage': 10, 'graphic': get_asset_path('graphics', 'weapons', 'sai', 'full.png')}
 }
 
 # Magic
 magic_data = {
-    'flame': {'strength': 5, 'cost': 20, 'graphic': '../graphics/particles/flame/fire.png'},
-    'heal': {'strength': 20, 'cost': 10, 'graphic': '../graphics/particles/heal/heal.png'}
+    'flame': {'strength': 5, 'cost': 20, 'graphic': get_asset_path('graphics', 'particles', 'flame', 'fire.png')},
+    'heal': {'strength': 20, 'cost': 10, 'graphic': get_asset_path('graphics', 'particles', 'heal', 'heal.png')}
 }
 
 # Enemy
 monster_data = {
-    'squid': {'health': 100, 'exp': 100, 'damage': 20, 'attack_type': 'slash', 'attack_sound': '../audio/attack/slash.wav', 'speed': 3, 'resistance': 3, 'attack_radius': 80, 'notice_radius': 360},
-    'raccoon': {'health': 300, 'exp': 250, 'damage': 40, 'attack_type': 'claw', 'attack_sound': '../audio/attack/claw.wav', 'speed': 2, 'resistance': 3, 'attack_radius': 120, 'notice_radius': 400},
-    'spirit': {'health': 100, 'exp': 110, 'damage': 8, 'attack_type': 'thunder', 'attack_sound': '../audio/attack/fireball.wav', 'speed': 4, 'resistance': 3, 'attack_radius': 60, 'notice_radius': 350},
-    'bamboo': {'health': 70, 'exp': 120, 'damage': 6, 'attack_type': 'leaf_attack', 'attack_sound': '../audio/attack/slash.wav', 'speed': 3, 'resistance': 3, 'attack_radius': 50, 'notice_radius': 300}
+    'squid': {'health': 100, 'exp': 100, 'damage': 20, 'attack_type': 'slash', 
+              'attack_sound': get_asset_path('audio', 'attack', 'slash.wav'), 
+              'speed': 3, 'resistance': 3, 'attack_radius': 80, 'notice_radius': 360},
+    'raccoon': {'health': 300, 'exp': 250, 'damage': 40, 'attack_type': 'claw',
+                'attack_sound': get_asset_path('audio', 'attack', 'claw.wav'),
+                'speed': 2, 'resistance': 3, 'attack_radius': 120, 'notice_radius': 400},
+    'spirit': {'health': 100, 'exp': 110, 'damage': 8, 'attack_type': 'thunder',
+               'attack_sound': get_asset_path('audio', 'attack', 'slash.wav'), # Alterado para usar slash.wav
+               'speed': 4, 'resistance': 3, 'attack_radius': 60, 'notice_radius': 350},
+    'bamboo': {'health': 70, 'exp': 120, 'damage': 6, 'attack_type': 'leaf_attack',
+               'attack_sound': get_asset_path('audio', 'attack', 'slash.wav'), # Alterado para usar slash.wav
+               'speed': 3, 'resistance': 3, 'attack_radius': 50, 'notice_radius': 300}
 }
 
 # Settings
@@ -128,19 +143,19 @@ else:
 
 # Audio paths and settings
 AUDIO_PATHS = {
-    'intro': "../audio/main_intro.ogg",
-    'menu_select': "../audio/menu/Menu1.wav",
-    'menu_back': "../audio/menu/Menu6.wav",
-    'menu_change': "../audio/menu/Menu9.wav",
-    'main_menu': "../audio/main_menu.ogg",
-    'pause_menu': "../audio/pause_menu.ogg",
-    'main_game': "../audio/main.ogg",  
-    'heal': '../audio/heal.wav',
-    'flame': '../audio/Fire.wav',
-    'death': '../audio/death.wav',
-    'hit': '../audio/hit.wav',
-    'fight': '../audio/fight.ogg',
-    'npc_talk': '../audio/npc/talking_sfx/Talking.mp3'  
+    'intro': get_asset_path('audio', 'main_intro.ogg'),
+    'menu_select': get_asset_path('audio', 'menu', 'Menu1.wav'),
+    'menu_back': get_asset_path('audio', 'menu', 'Menu6.wav'),
+    'menu_change': get_asset_path('audio', 'menu', 'Menu9.wav'),
+    'main_menu': get_asset_path('audio', 'main_menu.ogg'),
+    'pause_menu': get_asset_path('audio', 'pause_menu.ogg'),
+    'main_game': get_asset_path('audio', 'main.ogg'),
+    'heal': get_asset_path('audio', 'heal.wav'),
+    'flame': get_asset_path('audio', 'Fire.wav'),
+    'death': get_asset_path('audio', 'death.wav'),
+    'hit': get_asset_path('audio', 'hit.wav'),
+    'fight': get_asset_path('audio', 'fight.ogg'),
+    'npc_talk': get_asset_path('audio', 'npc', 'talking_sfx', 'Talking.mp3')
 }
 
 VOLUME_SETTINGS = {
