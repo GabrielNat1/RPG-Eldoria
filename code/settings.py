@@ -29,7 +29,7 @@ FPS = 60
 TILESIZE = 64 
 CHUNKSIZE = 24  
 VISIBLE_CHUNKS = 3 
-CHUNKS_FOLDER = './cache'
+CHUNKS_FOLDER = os.path.join(base_path, 'cache')
 
 #hitbox config
 HITBOX_OFFSET = {

@@ -452,36 +452,130 @@ class AudioManager:
     def set_music_volume(self, volume):
         pygame.mixer.music.set_volume(volume)
 
-class Game:
+class LoadingWindow:
     def __init__(self):
-        pygame.init()
-        self.settings = Settings()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
+        # Fixed size for loading window
+        self.width = 600
+        self.height = 200
         
-        pygame.display.set_caption('RPG Eldoria')
+        # Get user's screen resolution
+        screen_info = pygame.display.Info()
+        user_width = screen_info.current_w
+        user_height = screen_info.current_h
+        
+        # Calculate center position
+        window_x = (user_width - self.width) // 2
+        window_y = (user_height - self.height) // 2
+        
+        # Force window position and size
+        os.environ['SDL_VIDEO_WINDOW_POS'] = f"{window_x},{window_y}"
+        os.environ['SDL_VIDEO_CENTERED'] = '1'
+        
+        # Create fixed size borderless window
+        pygame.display.set_mode((self.width, self.height), pygame.NOFRAME | pygame.SHOWN)
+        self.screen = pygame.display.get_surface()
+        pygame.display.set_caption('Loading RPG Eldoria')
+        
+        # Load and set icon
         icon_path = get_asset_path('graphics', 'icon', 'game.ico')
         icon = pygame.image.load(icon_path)
         pygame.display.set_icon(icon)
         
+        self.font = pygame.font.Font(UI_FONT, 20)
+        self.progress = 0
+        
+    def update(self, progress, message="Carregando..."):
+        self.screen.fill((0, 0, 0))
+        
+        # Draw the game icon at the top
+        icon = pygame.image.load(get_asset_path('graphics', 'icon', 'game.ico'))
+        icon = pygame.transform.scale(icon, (48, 48))  # Slightly larger icon
+        icon_rect = icon.get_rect(midtop=(self.width // 2, 20))
+        self.screen.blit(icon, icon_rect)
+        
+        # Draw loading text
+        text = self.font.render(message, True, (255, 255, 255))
+        text_rect = text.get_rect(center=(self.width // 2, 100))
+        self.screen.blit(text, text_rect)
+        
+        # Draw progress bar
+        bar_width = 400  # Wider progress bar
+        bar_height = 25  # Taller progress bar
+        bar_x = (self.width - bar_width) // 2
+        bar_y = 140
+        
+        # Draw border
+        pygame.draw.rect(self.screen, (255, 255, 255), 
+                        (bar_x - 2, bar_y - 2, bar_width + 4, bar_height + 4), 2)
+        
+        # Draw fill
+        fill_width = int(bar_width * (progress / 100))
+        pygame.draw.rect(self.screen, (255, 255, 255), 
+                        (bar_x, bar_y, fill_width, bar_height))
+        
+        pygame.display.flip()
+
+class Game:
+    def __init__(self):
+        pygame.init()
+
+        loading = LoadingWindow()
+        loading.update(0, "Starting...")
+        time.sleep(0.5)
+        self.settings = Settings()
+        
+        loading.update(20, "Loading settings...")
+        time.sleep(0.5)
+        self.screen = pygame.display.get_surface()
+        pygame.display.set_caption('RPG Eldoria')
+        
+        loading.update(40, "Loading resources...")
+        time.sleep(0.5)
+        icon_path = get_asset_path('graphics', 'icon', 'game.ico')
+        icon = pygame.image.load(icon_path)
+        pygame.display.set_icon(icon)
+        
+        loading.update(50, "Initializing components...")
+        time.sleep(0.5)
         self.clock = pygame.time.Clock()
         self.level = Level()
+        
+        loading.update(70, "Loading menus...")
+        time.sleep(0.5)
         self.main_menu = MainMenu(self.screen)
         self.main_menu_settings = MainMenuSettings(self.screen, self.settings)
         self.pause_menu = PauseMenu(self.screen)
         self.pause_menu_settings = PauseMenuSettings(self.screen, self.settings)
-        self.fullscreen = False
+        
+        loading.update(85, "Setting up audio...")
+        time.sleep(0.5)
+        self.fullscreen = True
         self.in_menu = True
         self.in_settings = False
         self.in_pause = False
         self.in_pause_settings = False
         self.in_gameplay = False
         self.in_upgrade = False
-        
         self.intro_played = False
         self.audio_manager = AudioManager()
-
-        self.toggle_fullscreen()  
-
+        
+        loading.update(100, "Loading complete!")
+        time.sleep(3)
+        
+        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
+        self.fullscreen = True
+        self.main_menu = MainMenu(self.screen)
+        self.main_menu_settings = MainMenuSettings(self.screen, self.settings)
+        self.pause_menu = PauseMenu(self.screen)
+        self.pause_menu_settings = PauseMenuSettings(self.screen, self.settings)
+        
+        if hasattr(self.level, 'player') and self.level.player:
+            player_pos = pygame.math.Vector2(self.level.player.rect.center)
+            self.level.visible_sprites.offset = pygame.math.Vector2(
+                WIDTH // 2 - player_pos.x,
+                HEIGTH // 2 - player_pos.y
+            )
+        
         if not self.intro_played:
             intro = Intro(self.screen)
             intro.display()
@@ -746,7 +840,6 @@ class Game:
             pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), (WIDTH, HEIGTH)
         )
         self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)  
-    
     def apply_resolution(self, resolution):
         global WIDTH, HEIGTH
         WIDTH, HEIGTH = resolution
@@ -754,7 +847,7 @@ class Game:
         self.level.floor_surf = pygame.transform.scale(
             pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), (WIDTH, HEIGTH)
         )
-
+        
 if __name__ == '__main__':
     check_os_and_limit_memory(356)  
     game = Game()

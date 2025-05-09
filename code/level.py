@@ -483,23 +483,27 @@ class YSortCameraGroup(pygame.sprite.Group):
 				shadow_surface.fill(shadow_color)
 				self.display_surface.blit(shadow_surface, shadow_rect.topleft)
 
-	def custom_draw(self,player):
-		# getting the offset 
+	def custom_draw(self, player):
+		# Centraliza a câmera no jogador independente da resolução
+		self.half_width = self.display_surface.get_size()[0] // 2
+		self.half_height = self.display_surface.get_size()[1] // 2
+		
+		# Calcula o offset baseado na posição central do jogador
 		self.offset.x = player.rect.centerx - self.half_width
 		self.offset.y = player.rect.centery - self.half_height
 
-		# drawing the floor
+		# Draw floor first
 		floor_offset_pos = self.floor_rect.topleft - self.offset
-		self.display_surface.blit(self.floor_surf,floor_offset_pos)
+		self.display_surface.blit(self.floor_surf, floor_offset_pos)
 
-		# Draw shadows before sprites
+		# Draw shadows
 		self.draw_shadows(player)
 
-		# for sprite in self.sprites():
-		for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery):
+		# Sort and draw sprites based on Y position
+		for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
 			if self.is_sprite_visible(sprite):
 				offset_pos = sprite.rect.topleft - self.offset
-				self.display_surface.blit(sprite.image,offset_pos)
+				self.display_surface.blit(sprite.image, offset_pos)
 
 	def is_sprite_visible(self, sprite):
 		buffer = TILESIZE * 3  # Buffer to ensure objects and enemies are fully off-screen before disappearing
