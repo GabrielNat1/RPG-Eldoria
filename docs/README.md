@@ -1,7 +1,11 @@
 ---
 
 <h2 align="center">
+   <br>
+   
    <strong>⚠️ Important Notice</strong>
+   
+   <br>
 </h2>
 
 Due to limitations of the Pygame library and the challenges in optimizing game performance, RPG Eldoria will no longer receive major updates. The nature of the Python language, combined with the lack of a robust game engine, has made it unfeasible to significantly expand the project without affecting performance — especially on lower-end devices.
