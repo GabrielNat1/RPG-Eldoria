@@ -16,6 +16,7 @@
 - [Security](../SECURITY.md)
 
 ## Quick Links 🔗
+- [BenchMark And Warning](./eldoria-benchmark.md)
 - [Installation Guide](./technical.md#installation)
 - [Game Controls](./gameplay.md#controls)
 - [Report a Bug](../SECURITY.md#reporting-a-vulnerability)
