@@ -1,23 +1,3 @@
----
-
-<h2 align="center">
-   <br>
-   
-   <strong>⚠️ Important Notice</strong>
-   
-   <br>
-</h2>
-
-Due to limitations of the Pygame library and the challenges in optimizing game performance, RPG Eldoria will no longer receive major updates. The nature of the Python language, combined with the lack of a robust game engine, has made it unfeasible to significantly expand the project without affecting performance — especially on lower-end devices.
-
-Furthermore, the project currently has a very small team, which limits its development even more. While Pygame is excellent for prototyping and learning, it does not offer efficient memory and performance management, making the game heavy and difficult to maintain over time.
-
-In the future, we plan to migrate the RPG Eldoria concept to a more robust language, such as C++, and adopt a proper game engine to fully realize the potential of the project.
-
----
-
-<br><br>
-
 <h1 align="center">
    🎮 <strong>RPG Eldoria</strong> 🎮
 </h1>
