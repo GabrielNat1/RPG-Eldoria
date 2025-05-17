@@ -1,10 +1,10 @@
-<h2 align="center">
+<h2 align="left">
    <br>
-   <strong>⚠️ Important Notice</strong>
+   <strong>⚠️ Important Notice ⚠️</strong>
    <br>
 </h2>
 
-Due to limitations of the Pygame library and the challenges in optimizing game performance, RPG Eldoria will no longer receive major updates in its current form. The nature of the Python language, combined with the lack of a robust game engine, has made it unfeasible to significantly expand the project without affecting performance — especially on lower-end devices.
+ Due to limitations of the Pygame library and the challenges in optimizing game performance, RPG Eldoria will no longer receive major updates in its current form. The nature of the Python language, combined with the lack of a robust game engine, has made it unfeasible to significantly expand the project without affecting performance — especially on lower-end devices.
 
 Furthermore, the project currently has a very small team, which limits its development even more. While Pygame is excellent for prototyping and learning, it does not offer efficient memory and performance management, making the game heavy and difficult to maintain over time.
 
@@ -16,7 +16,7 @@ In the long term, we still plan to migrate the RPG Eldoria concept to a more rob
 
 ---
 
-⚖️ Detailed Performance Benchmark
+## ⚖️ Detailed Performance Benchmark
 The following table compares the performance of Pygame and PyOpenGL under typical 2D RPG game scenarios, highlighting key metrics such as frame rate, CPU and GPU usage, and rendering efficiency:
 
 <p align="center">
@@ -42,5 +42,7 @@ The following table compares the performance of Pygame and PyOpenGL under typica
 > - Benchmarks were taken on a machine with: Intel i5, 8GB RAM, integrated Intel UHD GPU + dedicated NVIDIA MX.
 > - Pygame runs entirely on the CPU, while PyOpenGL leverages GPU acceleration.
 > - Audio tested using `pygame.mixer` vs `PyAL` integrated with the rendering loop.
+
+<br>
 
 🎯 **Conclusion**: Migrating to PyOpenGL with a well-structured setup for audio and window management can **multiply game performance**, **reduce CPU usage**, and **unlock advanced visual effects** — bringing the project closer to professional standards, while still keeping it in Python.
