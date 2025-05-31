@@ -3,14 +3,14 @@ import sys
 import time
 import shutil  
 import os
-from settings import *  # Change to import all from settings
+from settings import *  
 from level import *
 from PIL import Image, ImageSequence  
 from debug import *
 from support import check_os_and_limit_memory
 from paths import get_asset_path
+import gc  
 
-# Add base path resolution
 base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
 class Intro:
@@ -53,30 +53,41 @@ class Intro:
             time.sleep(delay)  
 
     def display(self):
-        self.audio_manager.play_music(AUDIO_PATHS['intro'], loops=-1, volume=VOLUME_SETTINGS['music'])  
-        self.screen.fill((0, 0, 0)) 
-        pygame.display.flip()
-        time.sleep(0.5)  
+        pygame.mouse.set_visible(False)
+        pygame.event.set_blocked(None)  
+        
+        try:
+            pygame.event.clear()
+            
+            self.audio_manager.play_music(AUDIO_PATHS['intro'], loops=-1, volume=VOLUME_SETTINGS['music'])
+            self.screen.fill((0, 0, 0))
+            pygame.display.flip()
+            time.sleep(0.5)
 
-        self.fade_in(delay=10, alpha_step=8) 
+            self.fade_in()
+            self.type_text(self.text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2)
+            time.sleep(1)
+            self.fade_to_black()
 
-        self.type_text(self.text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2, delay=0.05)  
-        time.sleep(1)  
+            self.fade_in()
+            self.type_text(self.version_text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2)
+            time.sleep(1)
+            self.fade_to_black()
 
-        self.fade_to_black(delay=10, alpha_step=8)  
-
-        self.fade_in(delay=10, alpha_step=8) 
-
-        self.type_text(self.version_text, TEXT_COLOR, WIDTH // 2, HEIGTH // 2, delay=0.05)  
-        time.sleep(1)  
-
-        self.fade_to_black(delay=10, alpha_step=8) 
-
-        time.sleep(0.5) 
-        self.audio_manager.stop_music()
+            time.sleep(0.5)
+            self.audio_manager.stop_music()
+            
+        finally:
+            pygame.event.set_allowed(None)
+            pygame.event.clear()
+            
+            self.audio_manager.stop_music()
+            self.font = None
+            self.screen = None
+            gc.collect()  
 
 class MainMenu:
-    shared_background_frames = None # gif frames
+    shared_background_frames = None 
 
     def __init__(self, screen):
         self.screen = screen
@@ -120,15 +131,12 @@ class MainMenu:
             self.current_frame = (self.current_frame + 1) % len(self.background_frames)
             self.last_frame_time = current_time
 
-        # Garante que o fundo não pisque branco
         self.screen.blit(self.background_frames[self.current_frame], (0, 0))
 
-        # Render title
         title_surface = self.font_title.render(self.title, True, TEXT_COLOR)
         title_rect = title_surface.get_rect(center=(WIDTH // 2, HEIGTH // 4))
         self.screen.blit(title_surface, title_rect)
 
-        # Render menu options
         for i, option in enumerate(self.options):
             color = TEXT_COLOR if i != self.selected_option else "blue"
             option_surface = self.font_options.render(option, True, color)
@@ -155,16 +163,15 @@ class MainMenu:
 
         return None
 
-
 class Settings:
     def __init__(self):
         self.options = [
-            {"name": "Fullscreen", "type": "toggle", "value": True},  # Default to fullscreen
+            {"name": "Fullscreen", "type": "toggle", "value": True}, 
             {"name": "Borderless", "type": "toggle", "value": False},
-            {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  # Default to 1920x1080
-            {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1},  # Default to normal
-            {"name": "Volume", "type": "slider", "min": 0, "max": 100, "value": 50},  # Add volume control
-            {"name": "Gamma", "type": "slider", "min": 0, "max": 100, "value": 50},  # Gamma slider
+            {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  
+            {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1}, 
+            {"name": "Volume", "type": "slider", "min": 0, "max": 100, "value": 50},  
+            {"name": "Gamma", "type": "slider", "min": 0, "max": 100, "value": 50},  
             {"name": "Back", "type": "action"}
         ]
         self.selected = 0
@@ -213,7 +220,223 @@ class Settings:
 class MainMenuSettings:
     def __init__(self, screen, settings):
         self.screen = screen
-        self.font = pygame.font.Font(UI_FONT, 40)  # Restore original font size
+        self.font = pygame.font.Font(UI_FONT, 40)  
+        self.settings = settings
+        self.audio_manager = AudioManager()  
+
+    def display(self):
+        self.screen.fill(WATER_COLOR)
+        for idx, option in enumerate(self.settings.options):
+            color = TEXT_COLOR if idx == self.settings.selected else UI_BG_COLOR
+            text = option["name"]
+            
+            if option["type"] == "toggle":
+                text += f": {'On' if option['value'] else 'Off'}"
+            elif option["type"] == "choice":
+                current_res = option["choices"][option["value"]]
+                text += f": {current_res[0]}x{current_res[1]}" if option["name"] == "Resolution" else f": {current_res}"
+            elif option["type"] == "slider":
+                text += f": {option['value']}"
+
+            rendered_text = self.font.render(text, True, color)
+            text_rect = rendered_text.get_rect(center=(WIDTH // 2, 200 + idx * 50))
+            self.screen.blit(rendered_text, text_rect)
+
+        # Display buttons
+        enter_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'ENTER.png')).convert_alpha()
+        y_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'Y.png')).convert_alpha()
+        esc_img = pygame.image.load(get_asset_path('graphics', 'environment', 'sprite_buttons_menu', 'ESC.png')).convert_alpha()
+
+        enter_img = pygame.transform.scale(enter_img, (20, 20))
+        y_img = pygame.transform.scale(y_img, (20, 20))
+        esc_img = pygame.transform.scale(esc_img, (20, 20))
+
+        small_font = pygame.font.Font(UI_FONT, 20)
+        enter_text = small_font.render("Toggle", True, BLACK_COLOR)
+        y_text = small_font.render("Reset", True, BLACK_COLOR)
+        esc_text = small_font.render("Back", True, BLACK_COLOR)
+
+        self.screen.blit(enter_img, (WIDTH - 370, HEIGTH - 30))
+        self.screen.blit(enter_text, (WIDTH - 340, HEIGTH - 30))
+        self.screen.blit(y_img, (WIDTH - 230, HEIGTH - 30))
+        self.screen.blit(y_text, (WIDTH - 200, HEIGTH - 30))
+        self.screen.blit(esc_img, (WIDTH - 110, HEIGTH - 30))
+        self.screen.blit(esc_text, (WIDTH - 80, HEIGTH - 30))
+
+        pygame.display.flip()
+
+    def navigate(self, direction):
+        self.settings.navigate(direction)
+
+    def toggle_option(self):
+        option, value = self.settings.toggle_option()
+        if option == "Volume":
+            self.audio_manager.update_volume(value)
+        if option:
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
+        return option, value
+
+    def adjust_gamma(self, direction):
+        option, value = self.settings.adjust_gamma(direction)
+        if option == "Volume":
+            self.audio_manager.update_volume(value)
+        elif option == "Gamma":
+            self.apply_gamma(value)
+        if option:
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
+        return option, value
+
+    def apply_gamma(self, value):
+        gamma = value / 100.0
+        pygame.display.set_gamma(gamma)
+
+    def reset_settings(self):
+        fullscreen_before_reset = self.settings.options[0]["value"]
+        self.settings = Settings()
+        self.settings.set_option("Fullscreen", fullscreen_before_reset)
+        if fullscreen_before_reset:
+            self.settings.set_option("Borderless", False)
+            game.toggle_fullscreen(borderless=False)
+        else:
+            game.toggle_fullscreen(borderless=True)
+
+class MainMenu:
+    shared_background_frames = None 
+
+    def __init__(self, screen):
+        self.screen = screen
+        self.font_title = pygame.font.Font(UI_FONT, 60)
+        self.font_options = pygame.font.Font(UI_FONT, 40)
+        self.title = "RPG ELDORIA"
+        self.options = ["New Game", "Settings", "Quit Game"]
+        self.selected_option = 0
+        self.audio_manager = AudioManager()
+        self.load_background_frames()
+        self.current_frame = 0
+        self.last_frame_time = pygame.time.get_ticks()
+
+        self.screen.blit(self.background_frames[self.current_frame], (0, 0))
+        pygame.display.update()
+
+    def load_background_frames(self):
+        if MainMenu.shared_background_frames is None:
+            gif_path = get_asset_path('graphics', 'background', 'background.gif')
+            gif = Image.open(gif_path)
+            frames = []
+
+            for frame in ImageSequence.Iterator(gif):
+                img = pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode).convert_alpha()
+                scaled_img = pygame.transform.scale(img, (WIDTH, HEIGTH))
+                frames.append(scaled_img)
+
+            frames = [frame for frame in frames if not self.is_white_frame(frame)]
+            
+            MainMenu.shared_background_frames = frames
+
+        self.background_frames = MainMenu.shared_background_frames
+
+    def is_white_frame(self, frame):
+        avg_color = pygame.transform.average_color(frame)
+        return avg_color == (255, 255, 255, 255)  
+
+    def display(self):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_frame_time > 90:
+            self.current_frame = (self.current_frame + 1) % len(self.background_frames)
+            self.last_frame_time = current_time
+
+        self.screen.blit(self.background_frames[self.current_frame], (0, 0))
+
+        # Render title
+        title_surface = self.font_title.render(self.title, True, TEXT_COLOR)
+        title_rect = title_surface.get_rect(center=(WIDTH // 2, HEIGTH // 4))
+        self.screen.blit(title_surface, title_rect)
+
+        # Render menu options
+        for i, option in enumerate(self.options):
+            color = TEXT_COLOR if i != self.selected_option else "blue"
+            option_surface = self.font_options.render(option, True, color)
+            option_rect = option_surface.get_rect(center=(WIDTH // 2, HEIGTH // 2 + i * 50))
+            self.screen.blit(option_surface, option_rect)
+
+        pygame.display.update()
+
+    def navigate(self, direction):
+        self.selected_option = (self.selected_option + direction) % len(self.options)
+
+    def select(self):
+        if self.selected_option == 0:
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
+            return "new_game"
+        elif self.selected_option == 1:
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_select'], volume=VOLUME_SETTINGS['menu_effects'])
+            return "settings"
+        elif self.selected_option == 2:
+            self.audio_manager.play_sound(AUDIO_PATHS['menu_back'], volume=VOLUME_SETTINGS['menu_effects'])
+            time.sleep(1)
+            pygame.quit()
+            sys.exit()
+
+        return None
+
+class Settings:
+    def __init__(self):
+        self.options = [
+            {"name": "Fullscreen", "type": "toggle", "value": True}, 
+            {"name": "Borderless", "type": "toggle", "value": False},
+            {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  
+            {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1}, 
+            {"name": "Volume", "type": "slider", "min": 0, "max": 100, "value": 50},  
+            {"name": "Gamma", "type": "slider", "min": 0, "max": 100, "value": 50},  
+            {"name": "Back", "type": "action"}
+        ]
+        self.selected = 0
+
+    def navigate(self, direction):
+        self.selected = (self.selected + direction) % len(self.options)
+
+    def toggle_option(self):
+        option = self.options[self.selected]
+
+        if option["type"] == "toggle":
+            option["value"] = not option["value"]
+            if option["name"] == "Fullscreen" and option["value"]:
+                self.set_option("Borderless", False)
+
+            elif option["name"] == "Borderless" and option["value"]:
+                self.set_option("Fullscreen", False)
+
+            return option["name"], option["value"]
+
+        elif option["type"] == "choice":
+            option["value"] = (option["value"] + 1) % len(option["choices"])
+            return option["name"], option["choices"][option["value"]]
+
+        elif option["type"] == "slider":
+            return option["name"], option["value"]
+
+        elif option["type"] == "action" and option["name"] == "Back":
+            return "Back", None
+
+        return None, None
+
+    def set_option(self, name, value):
+        for opt in self.options:
+            if opt["name"] == name:
+                opt["value"] = value
+                break
+
+    def adjust_gamma(self, direction):
+        option = self.options[self.selected]
+        if option["type"] == "slider":
+            option["value"] = max(option["min"], min(option["max"], option["value"] + direction))
+            return option["name"], option["value"]
+        return None, None
+
+class MainMenuSettings:
+    def __init__(self, screen, settings):
+        self.screen = screen
+        self.font = pygame.font.Font(UI_FONT, 40)  
         self.settings = settings
         self.audio_manager = AudioManager()  
 
@@ -299,13 +522,13 @@ class PauseMenu:
         self.font = pygame.font.Font(UI_FONT, 40)
         self.options = ["Resume Game", "Settings", "Quit Game"]
         self.selected = 0
-        self.menu_surface = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA)  # Update to use SRCALPHA for transparency
-        self.menu_surface.fill((0, 0, 0, 150))  # Fill with black color and set alpha
-        self.audio_manager = AudioManager()  # => Add this line
+        self.menu_surface = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA) 
+        self.menu_surface.fill((0, 0, 0, 150))  
+        self.audio_manager = AudioManager() 
 
     def display(self):
-        self.menu_surface = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA)  # Update size to match current resolution
-        self.menu_surface.fill((0, 0, 0, 150))  # Fill with black color and set alpha
+        self.menu_surface = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA)  
+        self.menu_surface.fill((0, 0, 0, 150))  
         self.screen.blit(self.menu_surface, (0, 0))
         
         for idx, option in enumerate(self.options):
@@ -334,7 +557,7 @@ class PauseMenu:
 class PauseMenuSettings:
     def __init__(self, screen, settings):
         self.screen = screen
-        self.font = pygame.font.Font(UI_FONT, 40)  # Restore original font size
+        self.font = pygame.font.Font(UI_FONT, 40) 
         self.settings = settings
         self.audio_manager = AudioManager()  
 
@@ -418,14 +641,13 @@ class PauseMenuSettings:
 class AudioManager:
     def __init__(self):
         pygame.mixer.init()
-        self.update_volume(50)  # Set default volume
+        self.update_volume(50)  
 
     def update_volume(self, value):
-        # Convert 0-100 range to 0-1 range
         volume = value / 100
         pygame.mixer.music.set_volume(volume)
         VOLUME_SETTINGS['music'] = volume
-        VOLUME_SETTINGS['menu_effects'] = volume * 5  # Keep menu sounds slightly louder
+        VOLUME_SETTINGS['menu_effects'] = volume * 5  
         VOLUME_SETTINGS['enemy_effects'] = volume
 
     def play_music(self, filename, loops=0, volume=None):
@@ -454,29 +676,23 @@ class AudioManager:
 
 class LoadingWindow:
     def __init__(self):
-        # Fixed size for loading window
         self.width = 600
         self.height = 200
         
-        # Get user's screen resolution
         screen_info = pygame.display.Info()
         user_width = screen_info.current_w
         user_height = screen_info.current_h
         
-        # Calculate center position
         window_x = (user_width - self.width) // 2
         window_y = (user_height - self.height) // 2
         
-        # Force window position and size
         os.environ['SDL_VIDEO_WINDOW_POS'] = f"{window_x},{window_y}"
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         
-        # Create fixed size borderless window
         pygame.display.set_mode((self.width, self.height), pygame.NOFRAME | pygame.SHOWN)
         self.screen = pygame.display.get_surface()
         pygame.display.set_caption('Loading RPG Eldoria')
         
-        # Load and set icon
         icon_path = get_asset_path('graphics', 'icon', 'game.ico')
         icon = pygame.image.load(icon_path)
         pygame.display.set_icon(icon)
@@ -484,33 +700,30 @@ class LoadingWindow:
         self.font = pygame.font.Font(UI_FONT, 20)
         self.progress = 0
         
-    def update(self, progress, message="Carregando..."):
+    def update(self, progress, message="looading..."):
         self.screen.fill((0, 0, 0))
         
-        # Draw the game icon at the top
+        border_thickness = 3
+        border_color = (255, 255, 255)
+        pygame.draw.rect(self.screen, border_color, 
+                        (0, 0, self.width, self.height), border_thickness)
         icon = pygame.image.load(get_asset_path('graphics', 'icon', 'game.ico'))
-        icon = pygame.transform.scale(icon, (48, 48))  # Slightly larger icon
+        icon = pygame.transform.scale(icon, (48, 48))
         icon_rect = icon.get_rect(midtop=(self.width // 2, 20))
         self.screen.blit(icon, icon_rect)
-        
-        # Draw loading text
         text = self.font.render(message, True, (255, 255, 255))
         text_rect = text.get_rect(center=(self.width // 2, 100))
         self.screen.blit(text, text_rect)
         
-        # Draw progress bar
-        bar_width = 400  # Wider progress bar
-        bar_height = 25  # Taller progress bar
+        bar_width = 400
+        bar_height = 25
         bar_x = (self.width - bar_width) // 2
         bar_y = 140
         
-        # Draw border
-        pygame.draw.rect(self.screen, (255, 255, 255), 
+        pygame.draw.rect(self.screen, border_color,
                         (bar_x - 2, bar_y - 2, bar_width + 4, bar_height + 4), 2)
-        
-        # Draw fill
         fill_width = int(bar_width * (progress / 100))
-        pygame.draw.rect(self.screen, (255, 255, 255), 
+        pygame.draw.rect(self.screen, border_color,
                         (bar_x, bar_y, fill_width, bar_height))
         
         pygame.display.flip()
@@ -518,7 +731,16 @@ class LoadingWindow:
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.mouse.set_visible(False)
+        
+        icon_path = get_asset_path('graphics', 'icon', 'game.ico')
+        icon = pygame.image.load(icon_path)
+        pygame.display.set_icon(icon)
+        pygame.display.set_caption('RPG Eldoria')
 
+        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
+        self.fullscreen = True
+        
         loading = LoadingWindow()
         loading.update(0, "Starting...")
         time.sleep(0.5)
@@ -526,14 +748,9 @@ class Game:
         
         loading.update(20, "Loading settings...")
         time.sleep(0.5)
-        self.screen = pygame.display.get_surface()
-        pygame.display.set_caption('RPG Eldoria')
         
         loading.update(40, "Loading resources...")
         time.sleep(0.5)
-        icon_path = get_asset_path('graphics', 'icon', 'game.ico')
-        icon = pygame.image.load(icon_path)
-        pygame.display.set_icon(icon)
         
         loading.update(50, "Initializing components...")
         time.sleep(0.5)
@@ -549,7 +766,6 @@ class Game:
         
         loading.update(85, "Setting up audio...")
         time.sleep(0.5)
-        self.fullscreen = True
         self.in_menu = True
         self.in_settings = False
         self.in_pause = False
@@ -561,13 +777,18 @@ class Game:
         
         loading.update(100, "Loading complete!")
         time.sleep(3)
-        
+
+        pygame.display.quit()
+        pygame.display.init()
+        pygame.display.set_icon(icon)
+        pygame.display.set_caption('RPG Eldoria')
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
-        self.fullscreen = True
+        
         self.main_menu = MainMenu(self.screen)
         self.main_menu_settings = MainMenuSettings(self.screen, self.settings)
         self.pause_menu = PauseMenu(self.screen)
         self.pause_menu_settings = PauseMenuSettings(self.screen, self.settings)
+        self.level = Level()
         
         if hasattr(self.level, 'player') and self.level.player:
             player_pos = pygame.math.Vector2(self.level.player.rect.center)
@@ -577,9 +798,17 @@ class Game:
             )
         
         if not self.intro_played:
+            self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
+            pygame.display.flip()
             intro = Intro(self.screen)
             intro.display()
             self.intro_played = True
+            intro = None
+            gc.collect()
+            
+            self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
+            self.main_menu = MainMenu(self.screen)
+            pygame.display.flip()
 
         self.audio_manager.play_music(AUDIO_PATHS['main_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
         self.apply_game_settings()
@@ -615,7 +844,6 @@ class Game:
     def _apply_level_settings(self, config):
         self.level.clear_wind_effects()
 
-        # Update these references to use the imported constants directly
         global TILESIZE, CHUNKSIZE, VISIBLE_CHUNKS
         TILESIZE = config["tilesize"]
         CHUNKSIZE = config["chunksize"]
@@ -631,6 +859,8 @@ class Game:
     def run(self):
         try:
             key_hold_time = 0
+            pygame.mouse.set_visible(False)
+            
             while True:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -740,14 +970,14 @@ class Game:
                                     self.toggle_fullscreen(borderless=True)
                                 elif option == "Resolution":
                                     self.apply_resolution(value)
-                                    self.settings.set_option("Fullscreen", False)  # Ensure fullscreen is off
+                                    self.settings.set_option("Fullscreen", False) 
                                 elif option == "Back":
                                     self.in_pause_settings = False
                                     self.in_pause = True
                             elif event.key == pygame.K_y:
                                 fullscreen_before_reset = self.settings.options[0]["value"]
-                                self.main_menu_settings.reset_settings()  # Reset settings to default
-                                self.pause_menu_settings.reset_settings()  # Reset pause menu settings to default
+                                self.main_menu_settings.reset_settings()  #
+                                self.pause_menu_settings.reset_settings()  
                                 self.settings.set_option("Fullscreen", fullscreen_before_reset)
                             elif event.key == pygame.K_ESCAPE:
                                 self.in_pause_settings = False
@@ -805,8 +1035,8 @@ class Game:
                 elif self.in_gameplay:
                     self.screen.fill(WATER_COLOR)
                     self.level.run()
-                    #show_fps(self.clock)  # Show FPS
-                    #show_memory_usage()  # Show memory usage
+                    #show_fps(self.clock) 
+                    #show_memory_usage()  
                     
                     pygame.display.update()
 
@@ -822,6 +1052,14 @@ class Game:
     def cleanup(self):
         if os.path.exists(CHUNKS_FOLDER):
             shutil.rmtree(CHUNKS_FOLDER)
+        
+        # Clean up game resources
+        self.main_menu = None
+        self.level = None
+        self.screen = None
+        pygame.mixer.quit()
+        pygame.quit()
+        gc.collect()
 
     def toggle_fullscreen(self, borderless=False):
         if borderless:
