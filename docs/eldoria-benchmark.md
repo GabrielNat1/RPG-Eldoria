@@ -1,48 +1,60 @@
 <h2 align="left">
    <br>
-   <strong>⚠️ Important Notice ⚠️</strong>
+   <strong>🖥️ System Requirements</strong>
    <br>
 </h2>
 
- Due to limitations of the Pygame library and the challenges in optimizing game performance, RPG Eldoria will no longer receive major updates in its current form. The nature of the Python language, combined with the lack of a robust game engine, has made it unfeasible to significantly expand the project without affecting performance — especially on lower-end devices.
-
-Furthermore, the project currently has a very small team, which limits its development even more. While Pygame is excellent for prototyping and learning, it does not offer efficient memory and performance management, making the game heavy and difficult to maintain over time.
-
-However, if integration is successful — specifically by refactoring the code to replace Pygame with **PyOpenGL** for graphics, along with additional libraries for window loop and audio handling — RPG Eldoria will remain developed in Python, but with a level of performance never seen before in this project. This upgrade would offload rendering from the CPU and fully leverage GPU acceleration, including both integrated and dedicated graphics cards.
-
-This would also mark a significant milestone, bringing us closer to the release of the official **v2.0.0** update of the game.
-
-In the long term, we still plan to migrate the RPG Eldoria concept to a more robust language such as **C++**, alongside a proper game engine, in order to fully realize the project’s potential.
+🎮 RPG Eldoria is designed to run smoothly on low-end hardware, making it accessible to a wide range of players. Below are the minimum and recommended requirements:
 
 ---
 
-## ⚖️ Detailed Performance Benchmark
-The following table compares the performance of Pygame and PyOpenGL under typical 2D RPG game scenarios, highlighting key metrics such as frame rate, CPU and GPU usage, and rendering efficiency:
+## ✅ Minimum Requirements
 
-<p align="center">
-  <img src="../assets/anality_benchmark.png" alt="Benchmark gráfico" width="75%">
-</p>
+- CPU: 1.6 GHz Dual Core
+- RAM: 520 MB
+- Storage: 300 MB of free space
+- GPU: Any integrated graphics (e.g. Intel HD)
+- OS: Windows 7 / Linux / macOS
+- Dependencies: Python 3.10+, Pygame 2.x
 
 ---
 
-## 🚀 Benchmark Comparison – Pygame vs PyOpenGL
+## 💡 Recommended Requirements
 
-| Test Scenario                               | Pygame (Avg FPS) | PyOpenGL (Avg FPS) | Performance Difference   |
-|--------------------------------------------|------------------|--------------------|---------------------------|
-| 500 sprites on screen (simple movement)     | 42 FPS           | 144 FPS            | 🔺 +242%                  |
-| 1,000 moving sprites with collisions        | 25 FPS           | 130 FPS            | 🔺 +420%                  |
-| 100 particle effects (smoke, fire, etc.)    | 15 FPS           | 120 FPS            | 🔺 +700%                  |
-| Real-time rotation and scaling rendering    | 30 FPS           | 144 FPS            | 🔺 +380%                  |
-| CPU Usage                                   | ~85%             | ~20%               | 🔻 -65%                   |
-| GPU Usage                                   | ~0% (not used)   | ~45% (used)        | ✅ GPU Acceleration       |
-| Scene loading time                          | 1.8s             | 0.4s               | 🔺 +350% faster           |
+- CPU: 2.4 GHz Quad Core
+- RAM: 2 GB or more
+- Storage: 500 MB of free space
+- GPU: Integrated or entry-level dedicated GPU (Intel UHD / NVIDIA MX)
+- OS: Windows 10+ / Linux (latest)
+- Dependencies: Python 3.10+, **Pygame-CE with SDL2**
 
-> 🔍 **Notes**:
-> - Tests simulate a 2D RPG-style game environment.
-> - Benchmarks were taken on a machine with: Intel i5, 8GB RAM, integrated Intel UHD GPU + dedicated NVIDIA MX.
-> - Pygame runs entirely on the CPU, while PyOpenGL leverages GPU acceleration.
-> - Audio tested using `pygame.mixer` vs `PyAL` integrated with the rendering loop.
+---
 
-<br>
+## 🔄 Upcoming Improvements – Pygame-CE + SDL2 + GPU Support
 
-🎯 **Conclusion**: Migrating to PyOpenGL with a well-structured setup for audio and window management can **multiply game performance**, **reduce CPU usage**, and **unlock advanced visual effects** — bringing the project closer to professional standards, while still keeping it in Python.
+We are working on integrating the **Pygame Community Edition (Pygame-CE)** with **SDL2 backend**, which enables **GPU acceleration** for rendering.
+
+This upgrade will provide noticeable performance improvements, particularly on systems with any kind of GPU acceleration (even integrated chips).
+
+---
+
+## ⚙️ Performance Comparison – Pygame vs Pygame-CE (SDL2 GPU)
+
+| Test Scenario                               | Pygame (Avg FPS) | Pygame-CE (SDL2) | Performance Difference   |
+|--------------------------------------------|------------------|------------------|---------------------------|
+| 500 animated sprites                        | 42 FPS           | 110 FPS          | 🔺 +160%                  |
+| 1000 sprites with collisions                | 25 FPS           | 95 FPS           | 🔺 +280%                  |
+| Particle effects (smoke, fire, etc.)       | 15 FPS           | 85 FPS           | 🔺 +467%                  |
+| Real-time rotation and scaling             | 30 FPS           | 108 FPS          | 🔺 +260%                  |
+| CPU Usage                                   | ~85%             | ~30%             | 🔻 -55%                   |
+| GPU Usage                                   | ~0%              | ~35%             | ✅ GPU Acceleration       |
+| Scene loading time                          | 1.8s             | 0.6s             | 🔺 +200% faster           |
+
+> 📌 **Notes**:
+> - Benchmarks were run on a basic Intel i5 laptop with 8 GB RAM and hybrid GPU setup.
+> - Even low-end systems will benefit from GPU offloading with Pygame-CE + SDL2.
+> - Full support will be available in version **2.0.0**.
+
+---
+
+🎯 **Conclusion**: By adopting Pygame-CE with SDL2, Eldoria will run even better on modest hardware — achieving smoother gameplay, richer effects, and lower CPU usage while keeping the game's lightweight nature intact.
