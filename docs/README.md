@@ -1,7 +1,5 @@
-
-
 <h1 align="center">
-   🎮 <strong>RPG Eldoria</strong> 🎮
+  🎮🗡️ <strong> RPG Eldoria </strong> 🛡️✨
 </h1>
 
 <p align="center">
