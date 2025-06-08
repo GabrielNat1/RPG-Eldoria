@@ -5,7 +5,7 @@
 <p align="center">
 
 <img src="https://img.shields.io/badge/status-development-yellow" alt="Status" />
-<img src="https://img.shields.io/badge/license-MIT-blue" alt="License" />
+<img src="https://img.shields.io/badge/license-ISC-blue" alt="License" />
 <img src="https://img.shields.io/badge/language-Python-blue" alt="Language" />
 <img src="https://img.shields.io/github/stars/GabrielNat1/RPG-Eldoria?style=social" alt="GitHub Stars" />
 
