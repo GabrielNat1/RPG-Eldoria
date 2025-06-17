@@ -39,6 +39,7 @@
 - [Installation Guide](./technical.md#installation)
 - [Game Controls](./gameplay.md#controls)
 - [Requirements & Benchmark](./eldoria-benchmark.md)
+- [ChangeLog](./changelog.md)
 - [Report a Bug / Security Vulnerabilities](../SECURITY.md#reporting-a-vulnerability)
 - [Project Wiki](https://github.com/GabrielNat1/RPG-Eldoria/wiki)
 
