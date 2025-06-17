@@ -10,14 +10,16 @@ class UI:
 		# bar setup 
 		self.health_bar_rect = pygame.Rect(10,10,HEALTH_BAR_WIDTH,BAR_HEIGHT)
 		self.energy_bar_rect = pygame.Rect(10,34,ENERGY_BAR_WIDTH,BAR_HEIGHT)
-		self.stamina_bar_rect = pygame.Rect(10,58,ENERGY_BAR_WIDTH,BAR_HEIGHT)  # Adicione a barra de estamina
+		self.stamina_bar_rect = pygame.Rect(10,58,ENERGY_BAR_WIDTH,BAR_HEIGHT) 
 
 		# convert weapon dictionary
 		self.weapon_graphics = []
+		self.weapons_data = []
 		for weapon in weapon_data.values():
 			path = weapon['graphic']
-			weapon = pygame.image.load(path).convert_alpha()
-			self.weapon_graphics.append(weapon)
+			weapon_surf = pygame.image.load(path).convert_alpha()
+			self.weapon_graphics.append(weapon_surf)
+			self.weapons_data.append(weapon)
 
 		# convert magic dictionary
 		self.magic_graphics = []
@@ -25,9 +27,9 @@ class UI:
 			magic = pygame.image.load(magic['graphic']).convert_alpha()
 			self.magic_graphics.append(magic)
 
-	def show_bar(self,current,max_amount,bg_rect,color):
+	def show_bar(self,current,max_amount,bg_rect,color,target_surface):
 		# draw bg 
-		pygame.draw.rect(self.display_surface,UI_BG_COLOR,bg_rect)
+		pygame.draw.rect(target_surface,UI_BG_COLOR,bg_rect)
 
 		# converting stat to pixel
 		ratio = current / max_amount
@@ -36,56 +38,49 @@ class UI:
 		current_rect.width = current_width
 
 		# drawing the bar
-		pygame.draw.rect(self.display_surface,color,current_rect)
-		pygame.draw.rect(self.display_surface,UI_BORDER_COLOR,bg_rect,3)
+		pygame.draw.rect(target_surface,color,current_rect)
+		pygame.draw.rect(target_surface,UI_BORDER_COLOR,bg_rect,3)
 
-	def show_exp(self,exp):
+	def show_exp(self,exp,target_surface):
 		text_surf = self.font.render(str(int(exp)),False,TEXT_COLOR)
-		x = self.display_surface.get_size()[0] - 20
-		y = self.display_surface.get_size()[1] - 20
-		text_rect = text_surf.get_rect(bottomright = (x,y))
+		x = self.display_surface.get_size()[0] - 250  # Moved closer to right edge
+		y = self.display_surface.get_size()[1] - 250  # Moved closer to bottom edge
+		text_rect = text_surf.get_rect(bottomright = (x,y))  
 
-		pygame.draw.rect(self.display_surface,UI_BG_COLOR,text_rect.inflate(20,20))
-		self.display_surface.blit(text_surf,text_rect)
-		pygame.draw.rect(self.display_surface,UI_BORDER_COLOR,text_rect.inflate(20,20),3)
+		pygame.draw.rect(target_surface,UI_BG_COLOR,text_rect.inflate(20,20))
+		target_surface.blit(text_surf,text_rect)
+		pygame.draw.rect(target_surface,UI_BORDER_COLOR,text_rect.inflate(20,20),3)
 
-	def selection_box(self,left,top, has_switched):
-		bg_rect = pygame.Rect(left,top,ITEM_BOX_SIZE,ITEM_BOX_SIZE)
-		pygame.draw.rect(self.display_surface,UI_BG_COLOR,bg_rect)
+	def selection_box(self, left, top, has_switched, target_surface):
+		bg_rect = pygame.Rect(left, top, ITEM_BOX_SIZE, ITEM_BOX_SIZE)
+		pygame.draw.rect(target_surface, UI_BG_COLOR, bg_rect)  # Draw background on target_surface
 		if has_switched:
-			pygame.draw.rect(self.display_surface,UI_BORDER_COLOR_ACTIVE,bg_rect,3)
+			pygame.draw.rect(target_surface, UI_BORDER_COLOR_ACTIVE, bg_rect, 3)
 		else:
-			pygame.draw.rect(self.display_surface,UI_BORDER_COLOR,bg_rect,3)
+			pygame.draw.rect(target_surface, UI_BORDER_COLOR, bg_rect, 3)
 		return bg_rect
 
-	def weapon_overlay(self, weapon_name, has_switched):
-		if weapon_name is None:
-			#print("Error: weapon is null | any")
+	def weapon_overlay(self, weapon_index, has_switched, target_surface):
+		if weapon_index is None:
 			return
-		if weapon_name not in weapon_data:
-			pass
-			#print(f"Error: Weapon is not found {weapon_name} in database ")
 			
-		bg_rect = self.selection_box(10, 630, has_switched)
-		
-		weapon_surf = pygame.image.load(weapon_data[weapon_name]['graphic']).convert_alpha()
+		bg_rect = self.selection_box(10, 630, has_switched, target_surface)  # Pass target_surface
+		weapon_surf = self.weapon_graphics[weapon_index]
 		weapon_rect = weapon_surf.get_rect(center=bg_rect.center)
-		
-		self.display_surface.blit(weapon_surf, weapon_rect)
+		target_surface.blit(weapon_surf, weapon_rect)
 
-	def magic_overlay(self,magic_index,has_switched):
-		bg_rect = self.selection_box(80,635,has_switched)
+	def magic_overlay(self, magic_index, has_switched, target_surface):
+		bg_rect = self.selection_box(80, 635, has_switched, target_surface)  # Pass target_surface
 		magic_surf = self.magic_graphics[magic_index]
-		magic_rect = magic_surf.get_rect(center = bg_rect.center)
+		magic_rect = magic_surf.get_rect(center=bg_rect.center)
+		target_surface.blit(magic_surf, magic_rect)
 
-		self.display_surface.blit(magic_surf,magic_rect)
+	def display(self,player, target_surface):
+		self.show_bar(player.health, player.stats['health'], self.health_bar_rect, HEALTH_COLOR, target_surface)
+		self.show_bar(player.energy, player.stats['energy'], self.energy_bar_rect, ENERGY_COLOR, target_surface)
+		self.show_bar(player.stamina, player.stats['stamina'], self.stamina_bar_rect, ENERGY_COLOR, target_surface) 
 
-	def display(self,player):
-		self.show_bar(player.health,player.stats['health'],self.health_bar_rect,HEALTH_COLOR)
-		self.show_bar(player.energy,player.stats['energy'],self.energy_bar_rect,ENERGY_COLOR)
-		self.show_bar(player.stamina,player.stats['stamina'],self.stamina_bar_rect,ENERGY_COLOR)  
+		self.show_exp(player.exp, target_surface)
 
-		self.show_exp(player.exp)
-
-		self.weapon_overlay(player.weapon, not player.can_switch_weapon)
-		self.magic_overlay(player.magic_index, not player.can_switch_magic)
+		self.weapon_overlay(player.weapon_index, not player.can_switch_weapon, target_surface)
+		self.magic_overlay(player.magic_index, not player.can_switch_magic, target_surface)

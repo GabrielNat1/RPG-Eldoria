@@ -2,8 +2,8 @@ import pygame
 from support import import_folder
 from random import choice, randint
 import gc
-import player
 from paths import get_asset_path
+from settings import AUDIO_PATHS
 
 class AnimationPlayer:
     def __init__(self):
@@ -209,7 +209,7 @@ class RainEffect:
         self.last_floor_spawn = pygame.time.get_ticks()
 
         # Load rain sound
-        self.rain_sound = pygame.mixer.Sound(get_asset_path('audio', 'rain.wav'))
+        self.rain_sound = pygame.mixer.Sound(AUDIO_PATHS['rain']) 
         self.rain_sound.set_volume(1.0)  # Adjust volume
         self.player = None  # Initialize player as None
         self.obstacle_sprites = None  # Placeholder for obstacle sprites

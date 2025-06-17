@@ -33,7 +33,7 @@ class Enemy(Entity):
         monster_info = monster_data[self.monster_name]
         self.health = monster_info['health']
         self.exp = monster_info['exp']
-        self.speed = monster_info['speed'] * 0.5  # Reduzir a velocidade dos inimigos
+        self.speed = monster_info['speed'] * 0.5  
         self.attack_damage = monster_info['damage']
         self.resistance = monster_info['resistance']
         self.attack_radius = monster_info['attack_radius']
@@ -41,8 +41,8 @@ class Enemy(Entity):
         self.attack_type = monster_info['attack_type']
 
         if self.monster_name == 'raccoon':
-            self.health *= 2  # Double the health of the raccoon
-
+            self.health *= 2  
+            
         # player interaction
         self.can_attack = True
         self.attack_time = None
@@ -57,14 +57,14 @@ class Enemy(Entity):
         self.invincibility_duration = 300
 
         # sounds
-        self.death_sound = pygame.mixer.Sound(get_asset_path('audio', 'death.wav'))
-        self.hit_sound = pygame.mixer.Sound(get_asset_path('audio', 'hit.wav'))
+        self.death_sound = pygame.mixer.Sound(AUDIO_PATHS['death'])
+        self.hit_sound = pygame.mixer.Sound(AUDIO_PATHS['hit'])
         self.attack_sound = pygame.mixer.Sound(monster_info['attack_sound'])
         self.death_sound.set_volume(VOLUME_SETTINGS['enemy_effects'])
         self.hit_sound.set_volume(VOLUME_SETTINGS['enemy_effects'])
         self.attack_sound.set_volume(VOLUME_SETTINGS['enemy_effects'])
 
-        # respawn - atualize para 60.000ms
+        # respawn 
         self.respawn_time = 60000  
         self.death_time = None
         self.alive = True  
@@ -88,7 +88,7 @@ class Enemy(Entity):
 
         self.animations = Enemy.shared_animations[name]
 
-    def get_player_distance_direction(self,player):
+    def get_player_distance_direction(self, player, in_menu=False):
         enemy_vec = pygame.math.Vector2(self.rect.center)
         player_vec = pygame.math.Vector2(player.rect.center)
         distance = (player_vec - enemy_vec).magnitude()
@@ -99,12 +99,16 @@ class Enemy(Entity):
             direction = pygame.math.Vector2()
 
         if self.monster_name == 'raccoon':
-            if distance <= 750 and not self.fight_music_playing:  # Increased distance
-                self.start_fight_music()
-            elif distance > 750 and self.fight_music_playing:
-                self.stop_fight_music()
+            if in_menu:
+                if self.fight_music_playing:
+                    self.stop_fight_music()
+            else:
+                if distance <= 750 and not self.fight_music_playing:  # Increased distance
+                    self.start_fight_music()
+                elif distance > 750 and self.fight_music_playing:
+                    self.stop_fight_music()
 
-        return (distance,direction)
+        return (distance, direction)
 
     def start_fight_music(self):
         self.fight_music_playing = True
@@ -241,8 +245,9 @@ class Enemy(Entity):
         self.check_death()
         self.respawn()  
 
-    def enemy_update(self,player):
+    def enemy_update(self, player, in_menu=False):
         self.get_status(player)
         self.actions(player)
         self.check_despawn(player)
+        self.get_player_distance_direction(player, in_menu=in_menu)
         self.update()

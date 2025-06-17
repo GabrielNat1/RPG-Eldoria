@@ -16,87 +16,112 @@ from chunk_manager import *
 from paths import get_asset_path
 import os
 import gc
+import pygame._sdl2
+from pygame._sdl2 import Texture
 
 class Level:
 	shared_wind_frames = None
 
 	def __init__(self, mission_system=None):
-		#mission
-		self.mission_system = mission_system if mission_system else MissionSystem()
+		try:
+			# mission
+			self.mission_system = mission_system if mission_system else MissionSystem()
   
-		# get the display surface
-		self.display_surface = pygame.display.get_surface()
-		self.game_paused = False
+			# get the display surface 
+			self.display_surface = get_main_surface()
+			self.game_surface = pygame.Surface((WIDTH, HEIGTH))
+			self.game_paused = False 
+			self.upgrade_menu_active = False
+			self.in_settings = False  # Add this line
+			self.in_pause = False  # Add this line
+			self.in_menu = False  # Add this line for main menu state
 
-		# sprite group setup
-		self.visible_sprites = YSortCameraGroup()
-		self.obstacle_sprites = pygame.sprite.Group()
+			# Estado do jogo
+			self.game_active = False  
+			self.paused = False
+			self.game_state = 'gameplay' 
 
-		# attack sprites
-		self.current_attack = None
-		self.attack_sprites = pygame.sprite.Group()
-		self.attackable_sprites = pygame.sprite.Group()
+			try:
+				window = pygame._sdl2.Window.from_display_module()
+				self.renderer = window.renderer
+			except:
+				self.renderer = None
+
+			# sprite group setup
+			self.visible_sprites = YSortCameraGroup()
+			self.obstacle_sprites = pygame.sprite.Group()
+
+			# attack sprites
+			self.current_attack = None
+			self.attack_sprites = pygame.sprite.Group()
+			self.attackable_sprites = pygame.sprite.Group()
 	    
-		# create map
-		self.initial_position = None 
-		self.create_map()
+			# create map
+			self.initial_position = None 
+			self.create_map()
 
-		# user interface 
-		self.ui = UI()
-		self.upgrade = Upgrade(self.player)
+			# user interface - move this after player creation
+			self.ui = UI()
+			
+			# Initialize upgrade menu with player
+			self.upgrade = Upgrade(self.player)
+			self.upgrade_menu_active = False
 
-		# particles
-		self.animation_player = AnimationPlayer()
-		self.magic_player = MagicPlayer(self.animation_player)
+			# particles
+			self.animation_player = AnimationPlayer()
+			self.magic_player = MagicPlayer(self.animation_player)
 
-		# chunks
-		self.chunks = {}
-		self.current_chunk = None
-		
-		if PERFORMANCE_MODE == 'optimized':
-			self.visible_chunks = VISIBLE_CHUNKS    
-			self.wind_effect_interval = 6000         
-			self.wind_effect_duration = 2000        
-		else:
-			self.visible_chunks = VISIBLE_CHUNKS
-			self.wind_effect_interval = 4000
-			self.wind_effect_duration = 3000
-		self.load_initial_chunks()
-		os.makedirs(CHUNKS_FOLDER, exist_ok=True)  # Ensure chunks folder exists
+			# chunks
+			self.chunks = {}
+			self.current_chunk = None
+			
+			if PERFORMANCE_MODE == 'optimized':
+				self.visible_chunks = VISIBLE_CHUNKS    
+				self.wind_effect_interval = 6000         
+				self.wind_effect_duration = 2000        
+			else:
+				self.visible_chunks = VISIBLE_CHUNKS
+				self.wind_effect_interval = 4000
+				self.wind_effect_duration = 3000
+			self.load_initial_chunks()
+			os.makedirs(CHUNKS_FOLDER, exist_ok=True)  
 
-		self.max_wind_effects = 4 
-		self.wind_effects = pygame.sprite.Group()
-		self.wind_effect_last_spawn_time = pygame.time.get_ticks()
-		self.load_wind_frames()
-		self.spawn_wind_effects()
+			self.max_wind_effects = 4 
+			self.wind_effects = pygame.sprite.Group()
+			self.wind_effect_last_spawn_time = pygame.time.get_ticks()
+			self.load_wind_frames()
+			self.spawn_wind_effects()
 
-		self.floor_surf = pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert()
-		self.floor_surf = pygame.transform.scale(self.floor_surf, (WIDTH, HEIGTH)) 
-		self.floor_rect = self.floor_surf.get_rect(topleft=(0, 0))
+			self.floor_surf = pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert()
+			self.floor_surf = pygame.transform.scale(self.floor_surf, (WIDTH, HEIGTH)) 
+			self.floor_rect = self.floor_surf.get_rect(topleft=(0, 0))
 
-		# Add a delay before enemies can attack the player
-		self.enemy_attack_delay = 3000  # 3 seconds
-		self.game_start_time = pygame.time.get_ticks()
+			# Add a delay before enemies can attack the player
+			self.enemy_attack_delay = 3000  
+			self.game_start_time = pygame.time.get_ticks()
 
-		self.last_respawn_time = pygame.time.get_ticks()
-		self.raccoon_respawn_time = 600000  # 10 minutes
-		self.last_raccoon_respawn_time = pygame.time.get_ticks()
+			self.last_respawn_time = pygame.time.get_ticks()
+			self.raccoon_respawn_time = 600000  # 10 minutes
+			self.last_raccoon_respawn_time = pygame.time.get_ticks()
 
-		# Instance for NPC
-		self.npc = NPC(
-   		 (self.initial_position[0] + 840, self.initial_position[1]),
-   		 [self.visible_sprites, self.obstacle_sprites],
-    	 self.player,
-   		 self.display_surface,
-      	 self.mission_system)
-          
-		# Initialize rain effect at the initial position
-		self.rain_effect = RainEffect(self.initial_position, [self.visible_sprites])
-		if hasattr(self, 'player'):
-			self.rain_effect.set_player(self.player)  
-		self.rain_effect.set_obstacle_sprites(self.obstacle_sprites)  
+			# Instance for NPC
+			self.npc = NPC(
+   			 (self.initial_position[0] + 840, self.initial_position[1]),
+   			 [self.visible_sprites, self.obstacle_sprites],
+    		 self.player,
+   			 self.display_surface,
+      		 self.mission_system)
+		  
+			# Initialize rain effect at the initial position
+			self.rain_effect = RainEffect(self.initial_position, [self.visible_sprites])
+			if hasattr(self, 'player'):
+				self.rain_effect.set_player(self.player)  
+			self.rain_effect.set_obstacle_sprites(self.obstacle_sprites)  
 
-		self.leaf_effects = pygame.sprite.Group()  # Add leaf_effects group
+			self.leaf_effects = pygame.sprite.Group()  
+		except Exception as e:
+			print(f"Erro na inicialização do Level: {e}")
+			raise
 
 	def create_map(self):
 		layouts = {
@@ -110,7 +135,7 @@ class Level:
 			'objects': import_folder(get_asset_path('graphics', 'objects'))
 		}
 
-		self.enemy_spawn_points = []  # Store enemy spawn points
+		self.enemy_spawn_points = [] 
 
 		for style, layout in layouts.items():
 			for row_index, row in enumerate(layout):
@@ -144,8 +169,9 @@ class Level:
 									self.destroy_attack,
 									self.create_magic,
 			                        self.mission_system
-                                    )	
-								self.initial_position = (x, y)  # Store the player's initial position
+                                    )
+								self.initial_position = (x, y)  
+								self.player.can_move = True  
 							else:
 								if col == '390': monster_name = 'bamboo'
 								elif col == '391': monster_name = 'spirit'
@@ -343,7 +369,14 @@ class Level:
 		self.player.exp += amount
 
 	def toggle_menu(self):
-		self.game_paused = not self.game_paused 
+		if hasattr(self, 'player'):
+			self.game_paused = not self.game_paused
+			self.upgrade_menu_active = self.game_paused
+			if self.upgrade is None:
+				self.upgrade = Upgrade(self.player)
+			self.upgrade.is_opening = self.upgrade_menu_active
+			self.upgrade.animation_progress = 0 if self.upgrade_menu_active else 1
+		
 
 	def clear_wind_effects(self):
 		self.wind_effects.empty()
@@ -397,7 +430,7 @@ class Level:
 
 		# Remove all leaf effects if rain stops
 		if not self.rain_effect.is_raining:
-			self.clear_leaf_effects()  # Clear all leaf effects immediately
+			self.clear_leaf_effects()  # Clear all leaf effects imediatamente
 			return
 
 		# Spawn new leaf effects periodically
@@ -417,59 +450,118 @@ class Level:
 		self.leaf_effects.empty()  # Clear existing leaf effects
 		self.wind_effect_last_spawn_time = pygame.time.get_ticks()  # Reset spawn time
 		self.spawn_leaf_effects()
+  
+	def handle_input(self, event):
+		if event.type == pygame.KEYDOWN:
+			# Menu Principal
+			if self.in_menu:
+				if event.key == pygame.K_UP:
+					self.main_menu.navigate(-1)
+				elif event.key == pygame.K_DOWN:
+					self.main_menu.navigate(1)
+				elif event.key == pygame.K_RETURN:
+					action = self.main_menu.select()
+					if action == "new_game":
+						self.in_menu = False
+						self.in_gameplay = True
+						self.audio_manager.stop_music()
+						self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1)
+					elif action == "settings":
+						self.in_menu = False
+						self.in_settings = True
+			
+			# Gameplay
+			elif self.in_gameplay:
+				if event.key == pygame.K_ESCAPE:
+					self.in_pause = not self.in_pause  # Toggle pause state
+					self.game_paused = self.in_pause  # Sync with game_paused
+				elif event.key == pygame.K_u and not self.in_pause:  # Only allow upgrade menu if not paused
+					self.upgrade_menu_active = not self.upgrade_menu_active
+					self.game_paused = self.upgrade_menu_active
 
-	def run(self):
-		self.update_chunks()
-		self.visible_sprites.custom_draw(self.player)
-		self.ui.display(self.player)
-		self.update_wind_effects()
-		self.update_leaf_effects()  # Add leaf effects update logic
+	def cleanup(self):
+			try:
+				# Limpa grupos de sprites
+				if hasattr(self, 'visible_sprites'):
+					self.visible_sprites.empty()
+				if hasattr(self, 'obstacle_sprites'):
+					self.obstacle_sprites.empty()
+				if hasattr(self, 'attack_sprites'):
+					self.attack_sprites.empty()
+				if hasattr(self, 'attackable_sprites'):
+					self.attackable_sprites.empty()
+				if hasattr(self, 'wind_effects'):
+					self.wind_effects.empty()
+				if hasattr(self, 'leaf_effects'):
+					self.leaf_effects.empty()
 
-		# Update rain and leaf effects
-		self.rain_effect.update()
-		if self.rain_effect.is_raining:
-			self.rain_effect.leaf_effects.draw(self.display_surface)  # Draw leaf effects only during rain
+				# Remove referências
+				self.player = None
+				self.current_attack = None
+				self.npc = None
+				self.upgrade = None
+				
+				# Força coleta de lixo
+				gc.collect()
+			except Exception as e:
+				print(f"Erro ao limpar recursos do Level: {e}")
 
-		if self.game_paused:
-			self.upgrade.display()
-		else:
-			if not self.npc.show_dialogue and self.player.health > 0:
-				self.visible_sprites.update()
-				self.visible_sprites.enemy_update(self.player)
-				self.player_attack_logic()
-				self.npc.update()
-				self.npc.check_player_distance()
+	def run(self, game_state='gameplay'):
+		try:
+			if not self.game_active:
+				return self.game_surface
 
-			if not self.game_paused:
-				self.respawn_enemies()  # Ensure enemies respawn correctly
+			self.display_surface = get_main_surface()
+			
+			# Only fill with WATER_COLOR if not in dialog
+			if not (hasattr(self, 'npc') and self.npc.show_dialogue):
+				self.game_surface.fill(WATER_COLOR)
+				
+			self.game_state = game_state
 
-		if self.npc.show_dialogue:
-			self.npc.display_dialogue()
+			if hasattr(self, 'visible_sprites') and hasattr(self, 'player') and self.player:
+				# Impede atualização do player se estiver travado (em diálogo)
+				if not hasattr(self.player, "can_move") or self.player.can_move:
+					self.visible_sprites.custom_draw(self.player, self.game_surface)
+					if game_state == 'gameplay':
+						self.visible_sprites.update()
+						self.visible_sprites.enemy_update(self.player)
+						self.player_attack_logic()
+				else:
+					self.visible_sprites.custom_draw(self.player, self.game_surface)
+					
 
-	def is_chunk_within_visibility_radius(self, chunk):
-		player_pos = self.player.rect.center
-		visibility_radius = 2000
-		chunk_center = (chunk[0] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2, chunk[1] * TILESIZE * CHUNKSIZE + TILESIZE * CHUNKSIZE // 2)
-		distance = ((chunk_center[0] - player_pos[0]) ** 2 + (chunk_center[1] - player_pos[1]) ** 2) ** 0.5
-		return distance < visibility_radius
+			self.ui.display(self.player, self.game_surface)
 
-	def stop_rain(self):
-		self.rain_effect.stop_rain_sound()
+			# Display NPC dialogue
+			if hasattr(self, 'npc') and self.npc.show_dialogue:
+				if self.npc.dialogue_text:
+					self.npc.display_dialogue(self.game_surface)
+
+			if self.upgrade_menu_active and self.upgrade:
+				if self.upgrade.display(self.game_surface):
+					self.toggle_menu()
+
+			return self.game_surface
+
+		except Exception as e:
+			print(f"Error during level execution: {e}")
+			return self.game_surface
 
 class YSortCameraGroup(pygame.sprite.Group):
 	def __init__(self):
 		# general setup 
 		super().__init__()
-		self.display_surface = pygame.display.get_surface()
-		self.half_width = self.display_surface.get_size()[0] // 2
-		self.half_height = self.display_surface.get_size()[1] // 2
+		self.display_surface = pygame.Surface((WIDTH, HEIGTH))
+		self.half_width = WIDTH // 2
+		self.half_height = HEIGTH // 2
 		self.offset = pygame.math.Vector2()
 
 		# creating the floor
 		self.floor_surf = pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert()
 		self.floor_rect = self.floor_surf.get_rect(topleft = (0,0))
 
-	def draw_shadows(self, player):
+	def draw_shadows(self, player, target_surface):
 		light_source = pygame.math.Vector2(player.rect.centerx, player.rect.centery - 100)  # Light source above the player
 		shadow_color = (0, 0, 0, 100)  # Semi-transparent black for shadows
 
@@ -481,29 +573,27 @@ class YSortCameraGroup(pygame.sprite.Group):
 				shadow_rect = sprite.rect.move(shadow_offset.x, shadow_offset.y)
 				shadow_surface = pygame.Surface(sprite.image.get_size(), pygame.SRCALPHA)
 				shadow_surface.fill(shadow_color)
-				self.display_surface.blit(shadow_surface, shadow_rect.topleft)
+				target_surface.blit(shadow_surface, shadow_rect.topleft)
 
-	def custom_draw(self, player):
-		# Centraliza a câmera no jogador independente da resolução
-		self.half_width = self.display_surface.get_size()[0] // 2
-		self.half_height = self.display_surface.get_size()[1] // 2
-		
-		# Calcula o offset baseado na posição central do jogador
+	def custom_draw(self, player, target_surface):
+		# Update camera position
+		self.half_width = target_surface.get_size()[0] // 2
+		self.half_height = target_surface.get_size()[1] // 2
 		self.offset.x = player.rect.centerx - self.half_width
 		self.offset.y = player.rect.centery - self.half_height
 
-		# Draw floor first
+		# Draw floor
 		floor_offset_pos = self.floor_rect.topleft - self.offset
-		self.display_surface.blit(self.floor_surf, floor_offset_pos)
+		target_surface.blit(self.floor_surf, floor_offset_pos)
 
 		# Draw shadows
-		self.draw_shadows(player)
+		self.draw_shadows(player, target_surface)
 
-		# Sort and draw sprites based on Y position
+		# Draw sprites
 		for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
 			if self.is_sprite_visible(sprite):
 				offset_pos = sprite.rect.topleft - self.offset
-				self.display_surface.blit(sprite.image, offset_pos)
+				target_surface.blit(sprite.image, offset_pos)
 
 	def is_sprite_visible(self, sprite):
 		buffer = TILESIZE * 3  # Buffer to ensure objects and enemies are fully off-screen before disappearing

@@ -3,7 +3,6 @@ from settings import *
 from support import import_folder
 from entity import Entity
 from ui import UI
-from npc import NPC, MissionSystem
 from paths import get_asset_path
 
 class Player(Entity):
@@ -12,8 +11,8 @@ class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, create_magic, mission_system):
         super().__init__(groups)
         self.image = pygame.image.load(get_asset_path('graphics', 'test', 'player.png')).convert_alpha()
-        self.rect = self.image.get_rect(topleft=pos)  # Ensure rect is a valid pygame.Rect
-        self.hitbox = self.rect.inflate(-6, HITBOX_OFFSET['player'])  # Sync hitbox with rect
+        self.rect = self.image.get_rect(topleft=pos)  
+        self.hitbox = self.rect.inflate(-6, HITBOX_OFFSET['player']) 
         self.initial_position = pos
 
         # graphics setup
@@ -28,7 +27,7 @@ class Player(Entity):
         self.obstacle_sprites = obstacle_sprites
 
         # weapons
-        self.weapons = ['sword']  # Initial weapons
+        self.weapons = ['sword']  
         self.weapon_index = 0
         self.weapon = self.weapons[self.weapon_index]
         self.can_switch_weapon = True
@@ -63,7 +62,7 @@ class Player(Entity):
         self.blink_start_time = None
 
         # import a sound
-        self.weapon_attack_sound = pygame.mixer.Sound(get_asset_path('audio', 'sword.wav'))
+        self.weapon_attack_sound = pygame.mixer.Sound(AUDIO_PATHS['attack'])
         self.weapon_attack_sound.set_volume(0.4)
 
         # animation speed

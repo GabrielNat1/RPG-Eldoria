@@ -3,22 +3,27 @@ import sys
 import time
 import shutil  
 import os
+import random
+import math
 from settings import *  
 from level import *
-from PIL import Image, ImageSequence  
+from PIL import Image, ImageSequence   # type: ignore
 from debug import *
 from support import check_os_and_limit_memory
 from paths import get_asset_path
 import gc  
+from pygame._sdl2 import Window, Renderer, Texture
+from dev_args import dev_mode
 
 base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
 class Intro:
-    def __init__(self, screen):
+    def __init__(self, screen, renderer):
         self.screen = screen
+        self.renderer = renderer
         self.font = pygame.font.Font(UI_FONT, 60)
         self.text = "RPG ELDORIA"
-        self.version_text = "v2.0.0"
+        self.version_text = "v2.1.0"
         self.audio_manager = AudioManager() 
 
     def fade_to_black(self, delay=10, alpha_step=8): 
@@ -28,7 +33,13 @@ class Intro:
             fade_surface.set_alpha(alpha)
             self.screen.fill(WATER_COLOR)  
             self.screen.blit(fade_surface, (0, 0))
-            pygame.display.flip()
+            
+            # Update SDL2 window
+            texture = Texture.from_surface(self.renderer, self.screen)
+            self.renderer.clear()
+            self.renderer.blit(texture)
+            self.renderer.present()
+            
             pygame.time.delay(delay)
 
     def fade_in(self, delay=10, alpha_step=8):
@@ -38,7 +49,13 @@ class Intro:
             fade_surface.set_alpha(alpha)
             self.screen.fill(WATER_COLOR)
             self.screen.blit(fade_surface, (0, 0))
-            pygame.display.flip()
+            
+            # Update SDL2 window
+            texture = Texture.from_surface(self.renderer, self.screen)
+            self.renderer.clear()
+            self.renderer.blit(texture)
+            self.renderer.present()
+            
             pygame.time.delay(delay)
             
     def type_text(self, text, color, center_x, center_y, delay=0.05): 
@@ -49,7 +66,13 @@ class Intro:
             text_rect = rendered_text.get_rect(center=(center_x, center_y))
             self.screen.fill(WATER_COLOR)  
             self.screen.blit(rendered_text, text_rect)
-            pygame.display.flip()
+            
+            # Update SDL2 window
+            texture = Texture.from_surface(self.renderer, self.screen)
+            self.renderer.clear()
+            self.renderer.blit(texture)
+            self.renderer.present()
+            
             time.sleep(delay)  
 
     def display(self):
@@ -89,8 +112,9 @@ class Intro:
 class MainMenu:
     shared_background_frames = None 
 
-    def __init__(self, screen):
+    def __init__(self, screen, renderer): 
         self.screen = screen
+        self.renderer = renderer  # Store renderer
         self.font_title = pygame.font.Font(UI_FONT, 60)
         self.font_options = pygame.font.Font(UI_FONT, 40)
         self.title = "RPG ELDORIA"
@@ -98,11 +122,20 @@ class MainMenu:
         self.selected_option = 0
         self.audio_manager = AudioManager()
         self.load_background_frames()
+        self.animation_speed = 180 
         self.current_frame = 0
         self.last_frame_time = pygame.time.get_ticks()
 
         self.screen.blit(self.background_frames[self.current_frame], (0, 0))
-        pygame.display.update()
+        
+        # Convert to texture and render with SDL2
+        texture = Texture.from_surface(self.renderer, self.screen)
+        self.renderer.clear()
+        self.renderer.blit(texture)
+        self.renderer.present()
+
+        # Play menu music
+        self.audio_manager.play_music(AUDIO_PATHS['main_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
 
     def load_background_frames(self):
         if MainMenu.shared_background_frames is None:
@@ -116,7 +149,6 @@ class MainMenu:
                 frames.append(scaled_img)
 
             frames = [frame for frame in frames if not self.is_white_frame(frame)]
-            
             MainMenu.shared_background_frames = frames
 
         self.background_frames = MainMenu.shared_background_frames
@@ -127,23 +159,29 @@ class MainMenu:
 
     def display(self):
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_frame_time > 90:
+        if current_time - self.last_frame_time > self.animation_speed:  # Usar animation_speed aqui
             self.current_frame = (self.current_frame + 1) % len(self.background_frames)
             self.last_frame_time = current_time
 
         self.screen.blit(self.background_frames[self.current_frame], (0, 0))
 
+        # Render title
         title_surface = self.font_title.render(self.title, True, TEXT_COLOR)
         title_rect = title_surface.get_rect(center=(WIDTH // 2, HEIGTH // 4))
         self.screen.blit(title_surface, title_rect)
 
+        # Render menu options
         for i, option in enumerate(self.options):
             color = TEXT_COLOR if i != self.selected_option else "blue"
             option_surface = self.font_options.render(option, True, color)
             option_rect = option_surface.get_rect(center=(WIDTH // 2, HEIGTH // 2 + i * 50))
             self.screen.blit(option_surface, option_rect)
 
-        pygame.display.update()
+        # Convert to texture and render with SDL2
+        texture = Texture.from_surface(self.renderer, self.screen)
+        self.renderer.clear()
+        self.renderer.blit(texture)
+        self.renderer.present()
 
     def navigate(self, direction):
         self.selected_option = (self.selected_option + direction) % len(self.options)
@@ -169,7 +207,7 @@ class Settings:
             {"name": "Fullscreen", "type": "toggle", "value": True}, 
             {"name": "Borderless", "type": "toggle", "value": False},
             {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  
-            {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1}, 
+            {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "ultra"], "value": 1}, 
             {"name": "Volume", "type": "slider", "min": 0, "max": 100, "value": 50},  
             {"name": "Gamma", "type": "slider", "min": 0, "max": 100, "value": 50},  
             {"name": "Back", "type": "action"}
@@ -303,8 +341,9 @@ class MainMenuSettings:
 class MainMenu:
     shared_background_frames = None 
 
-    def __init__(self, screen):
+    def __init__(self, screen, renderer):  # Add renderer parameter
         self.screen = screen
+        self.renderer = renderer  # Store renderer
         self.font_title = pygame.font.Font(UI_FONT, 60)
         self.font_options = pygame.font.Font(UI_FONT, 40)
         self.title = "RPG ELDORIA"
@@ -312,11 +351,20 @@ class MainMenu:
         self.selected_option = 0
         self.audio_manager = AudioManager()
         self.load_background_frames()
+        self.animation_speed = 180  
         self.current_frame = 0
         self.last_frame_time = pygame.time.get_ticks()
 
         self.screen.blit(self.background_frames[self.current_frame], (0, 0))
-        pygame.display.update()
+        
+        # Convert to texture and render with SDL2
+        texture = Texture.from_surface(self.renderer, self.screen)
+        self.renderer.clear()
+        self.renderer.blit(texture)
+        self.renderer.present()
+
+        # Play menu music
+        self.audio_manager.play_music(AUDIO_PATHS['main_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
 
     def load_background_frames(self):
         if MainMenu.shared_background_frames is None:
@@ -341,7 +389,7 @@ class MainMenu:
 
     def display(self):
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_frame_time > 90:
+        if current_time - self.last_frame_time > self.animation_speed:  # Usar animation_speed aqui
             self.current_frame = (self.current_frame + 1) % len(self.background_frames)
             self.last_frame_time = current_time
 
@@ -359,7 +407,11 @@ class MainMenu:
             option_rect = option_surface.get_rect(center=(WIDTH // 2, HEIGTH // 2 + i * 50))
             self.screen.blit(option_surface, option_rect)
 
-        pygame.display.update()
+        # Convert to texture and render with SDL2
+        texture = Texture.from_surface(self.renderer, self.screen)
+        self.renderer.clear()
+        self.renderer.blit(texture)
+        self.renderer.present()
 
     def navigate(self, direction):
         self.selected_option = (self.selected_option + direction) % len(self.options)
@@ -385,7 +437,7 @@ class Settings:
             {"name": "Fullscreen", "type": "toggle", "value": True}, 
             {"name": "Borderless", "type": "toggle", "value": False},
             {"name": "Resolution", "type": "choice", "choices": [(1280, 720), (1920, 1080), (800, 600), (1024, 768), (1280, 720), (1366, 768)], "value": 1},  
-            {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "extreme performance"], "value": 1}, 
+            {"name": "Game", "type": "choice", "choices": ["optimized", "normal", "ultra"], "value": 1}, 
             {"name": "Volume", "type": "slider", "min": 0, "max": 100, "value": 50},  
             {"name": "Gamma", "type": "slider", "min": 0, "max": 100, "value": 50},  
             {"name": "Back", "type": "action"}
@@ -689,8 +741,7 @@ class LoadingWindow:
         os.environ['SDL_VIDEO_WINDOW_POS'] = f"{window_x},{window_y}"
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         
-        pygame.display.set_mode((self.width, self.height), pygame.NOFRAME | pygame.SHOWN)
-        self.screen = pygame.display.get_surface()
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.NOFRAME | pygame.SHOWN)
         pygame.display.set_caption('Loading RPG Eldoria')
         
         icon_path = get_asset_path('graphics', 'icon', 'game.ico')
@@ -700,7 +751,7 @@ class LoadingWindow:
         self.font = pygame.font.Font(UI_FONT, 20)
         self.progress = 0
         
-    def update(self, progress, message="looading..."):
+    def update(self, progress, message="loading..."):
         self.screen.fill((0, 0, 0))
         
         border_thickness = 3
@@ -727,45 +778,58 @@ class LoadingWindow:
                         (bar_x, bar_y, fill_width, bar_height))
         
         pygame.display.flip()
+        
+        if progress >= 100:
+            pygame.time.wait(500) 
+            self.cleanup()
+            
+    def cleanup(self):
+        """Properly cleanup the loading window"""
+        pygame.display.quit()  # Close the current display
+        pygame.display.init()  # Reinitialize the display
+        self.screen = None     # Remove reference to screen
+        pygame.event.clear()   # Clear any pending events
 
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.mouse.set_visible(False)
         
+        # Get screen info for centering
+        screen_info = pygame.display.Info()
+        window_x = (screen_info.current_w - WIDTH) // 2
+        window_y = (screen_info.current_h - HEIGTH) // 2
+        
+        # Carregar ícone
         icon_path = get_asset_path('graphics', 'icon', 'game.ico')
         icon = pygame.image.load(icon_path)
-        pygame.display.set_icon(icon)
-        pygame.display.set_caption('RPG Eldoria')
-
-        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
+        
+        # Inicializar loading window com simulação de carregamento
+        loading = LoadingWindow()
+        
+        # Simular carregamento por 4 segundos
+        for i in range(0, 101, 5):  # Incrementos de 5% para suavidade
+            loading_message = "Starting..." if i < 30 else "Loading assets..." if i < 60 else "Preparing game..."
+            loading.update(i, loading_message)
+            pygame.time.wait(200)  # 200ms * 20 steps = 4 segundos total
+        
+        # Depois inicializa a janela SDL2 e renderer
+        self.window = Window(title='RPG Eldoria', size=(WIDTH, HEIGTH))
+        self.window.position = (window_x, window_y)
+        self.renderer = Renderer(self.window, accelerated=1, vsync=True)
+        self.window.set_icon(icon)
+        self.window.set_fullscreen(True)  
+        
+        pygame.display.set_mode((1, 1), flags=pygame.HIDDEN)
+        pygame.mouse.set_visible(False)
+        
+        self.texture = None
+        self.screen = pygame.Surface((WIDTH, HEIGTH))
         self.fullscreen = True
         
-        loading = LoadingWindow()
-        loading.update(0, "Starting...")
-        time.sleep(0.5)
-        self.settings = Settings()
-        
-        loading.update(20, "Loading settings...")
-        time.sleep(0.5)
-        
-        loading.update(40, "Loading resources...")
-        time.sleep(0.5)
-        
-        loading.update(50, "Initializing components...")
-        time.sleep(0.5)
+        # Initialize clock
         self.clock = pygame.time.Clock()
-        self.level = Level()
         
-        loading.update(70, "Loading menus...")
-        time.sleep(0.5)
-        self.main_menu = MainMenu(self.screen)
-        self.main_menu_settings = MainMenuSettings(self.screen, self.settings)
-        self.pause_menu = PauseMenu(self.screen)
-        self.pause_menu_settings = PauseMenuSettings(self.screen, self.settings)
-        
-        loading.update(85, "Setting up audio...")
-        time.sleep(0.5)
+        # Game states
         self.in_menu = True
         self.in_settings = False
         self.in_pause = False
@@ -773,49 +837,11 @@ class Game:
         self.in_gameplay = False
         self.in_upgrade = False
         self.intro_played = False
-        self.audio_manager = AudioManager()
         
-        loading.update(100, "Loading complete!")
-        time.sleep(3)
-
-        pygame.display.quit()
-        pygame.display.init()
-        pygame.display.set_icon(icon)
-        pygame.display.set_caption('RPG Eldoria')
-        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
-        
-        self.main_menu = MainMenu(self.screen)
-        self.main_menu_settings = MainMenuSettings(self.screen, self.settings)
-        self.pause_menu = PauseMenu(self.screen)
-        self.pause_menu_settings = PauseMenuSettings(self.screen, self.settings)
-        self.level = Level()
-        
-        if hasattr(self.level, 'player') and self.level.player:
-            player_pos = pygame.math.Vector2(self.level.player.rect.center)
-            self.level.visible_sprites.offset = pygame.math.Vector2(
-                WIDTH // 2 - player_pos.x,
-                HEIGTH // 2 - player_pos.y
-            )
-        
-        if not self.intro_played:
-            self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
-            pygame.display.flip()
-            intro = Intro(self.screen)
-            intro.display()
-            self.intro_played = True
-            intro = None
-            gc.collect()
-            
-            self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN)
-            self.main_menu = MainMenu(self.screen)
-            pygame.display.flip()
-
-        self.audio_manager.play_music(AUDIO_PATHS['main_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
-        self.apply_game_settings()
-
-    def apply_game_settings(self):
-        game_mode = self.settings.options[3]["value"]
-        game_settings = {
+        # Initialize settings and game components
+        self.settings = Settings()
+        self.level = None
+        self.game_settings = {
             0: {"tilesize": 10,
                 "chunksize": 10, 
                 "visible_chunks": 1, 
@@ -834,16 +860,208 @@ class Game:
                 "wind_interval": 10000, "wind_duration": 5000,
                 "max_wind": 5},
         }
+        
+        # Initialize menu objects
+        self.main_menu = MainMenu(self.screen, self.renderer)  # Pass renderer
+        self.main_menu_settings = MainMenuSettings(self.screen, self.settings)
+        self.pause_menu = PauseMenu(self.screen)
+        self.pause_menu_settings = PauseMenuSettings(self.screen, self.settings)
+        
+        # Initialize audio and play menu music
+        self.audio_manager = AudioManager()
 
-        if game_mode in game_settings:
-            self._apply_level_settings(game_settings[game_mode])
+        # Initialize intro com flag para pular se dev_mode
+        self.intro_played = False
+        if dev_mode:
+            # Pula intro e menu, vai direto para o jogo
+            self.intro_played = True
+            self.in_menu = False
+            self.in_settings = False
+            self.in_pause = False
+            self.in_pause_settings = False
+            self.in_gameplay = True
+            self.start_new_game()
         else:
-            #print(f"Game Mode Unknown: {game_mode}")
-            pass
+            if not self.intro_played:
+                intro = Intro(self.screen, self.renderer)
+                intro.display()
+                self.intro_played = True
+                # Start menu music after intro
+                self.audio_manager.play_music(AUDIO_PATHS['main_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
+
+    def apply_game_settings(self):
+        if self.level is None:
+            return
+        
+        game_mode = self.settings.options[3]["value"]
+        if game_mode in self.game_settings:
+            self._apply_level_settings(self.game_settings[game_mode])
+
+    def start_new_game(self):
+        try:
+            if self.level:
+                self.level.cleanup()
+                self.level = None
+                gc.collect()
+            
+            # Create mystical loading background with particles
+            loading_bg = pygame.Surface((WIDTH, HEIGTH))
+            particles = [(random.randint(0, WIDTH), random.randint(0, HEIGTH), random.random()) 
+                        for _ in range(50)]
+            
+            # Load and scale game icon with glow effect
+            icon = pygame.image.load(get_asset_path('graphics', 'icon', 'game.ico'))
+            icon = pygame.transform.scale(icon, (96, 96))  # Smaller icon
+            icon_rect = icon.get_rect(center=(WIDTH // 2, HEIGTH // 2 - 30))
+            
+            # Loading bar parameters - stone texture style
+            bar_width = 300
+            bar_height = 15
+            border_width = 3
+            bar_rect = pygame.Rect((WIDTH - bar_width) // 2, HEIGTH // 2 + 80, bar_width, bar_height)
+            
+            # Font setup
+            font = pygame.font.Font(UI_FONT, 16)
+            loading_text = font.render("Loading...", True, (180, 180, 200))
+            text_rect = loading_text.get_rect(center=(WIDTH // 2, bar_rect.bottom + 25))
+            
+            # Tip text
+            tip_font = pygame.font.Font(UI_FONT, 14)
+            tip_text = tip_font.render(" Tip: NPCs with glowing eyes guard valuable secrets.", True, (150, 150, 170))
+            tip_rect = tip_text.get_rect(center=(WIDTH // 2, HEIGTH - 30))
+
+            # Initialize configuration before the loading loop
+            game_mode = self.settings.options[3]["value"]
+            config = self.game_settings[game_mode]
+            global TILESIZE, CHUNKSIZE, VISIBLE_CHUNKS
+            TILESIZE = config["tilesize"]
+            CHUNKSIZE = config["chunksize"]
+            VISIBLE_CHUNKS = config["visible_chunks"]
+            
+            loading_steps = {
+                25: "Initializing game state...",
+                50: "Loading resources...",
+                75: "Creating game world..."
+            }
+
+            # Loading animation
+            for progress in range(101):
+                # Dark purple background with fog effect
+                loading_bg.fill((20, 10, 30))
+                
+                # Update and draw particles
+                for i, (x, y, speed) in enumerate(particles):
+                    # Move particles up slowly
+                    y = (y - speed) % HEIGTH
+                    particles[i] = (x, y, speed)
+                    
+                    # Draw particle with fade effect
+                    alpha = int(255 * (0.5 + math.sin(y / 30) * 0.5))
+                    particle_color = (100, 80, 120, alpha)
+                    pygame.draw.circle(loading_bg, particle_color, (int(x), int(y)), 1)
+                
+                # Draw icon with pulsing glow
+                glow = math.sin(pygame.time.get_ticks() * 0.003) * 0.3 + 0.7
+                glow_surf = pygame.Surface((100, 100), pygame.SRCALPHA)
+                pygame.draw.circle(glow_surf, (80, 60, 100, 50), (50, 50), 48 * glow)
+                loading_bg.blit(glow_surf, (icon_rect.centerx - 50, icon_rect.centery - 50))
+                loading_bg.blit(icon, icon_rect)
+                
+                # Draw stone-textured loading bar
+                border_color = (100, 90, 120)
+                fill_color = (80, 60, 100)
+                glow_color = (140, 100, 180, 50)
+                
+                # Bar border with texture
+                pygame.draw.rect(loading_bg, border_color, 
+                               bar_rect.inflate(border_width * 2, border_width * 2), border_width)
+                
+                # Progress fill with magical glow
+                fill_width = int((bar_width - border_width * 2) * (progress / 100))
+                if fill_width > 0:
+                    # Glow effect
+                    glow_rect = pygame.Rect(bar_rect.left + border_width, 
+                                          bar_rect.top + border_width,
+                                          fill_width,
+                                          bar_height - border_width * 2)
+                    pygame.draw.rect(loading_bg, glow_color, glow_rect.inflate(4, 4))
+                    pygame.draw.rect(loading_bg, fill_color, glow_rect)
+                
+                # Draw texts
+                loading_bg.blit(loading_text, text_rect)
+                loading_bg.blit(tip_text, tip_rect)
+                
+                # Convert to texture and render
+                self.renderer.clear()
+                texture = Texture.from_surface(self.renderer, loading_bg)
+                self.renderer.blit(texture)
+                self.renderer.present()
+                
+                # Handle loading steps at specific progress points
+                if progress in loading_steps:
+                    try:
+                        if progress == 25:
+                            # Reset game states
+                            self.in_menu = False
+                            self.in_settings = False
+                            self.in_pause = False
+                            self.in_pause_settings = False
+                            self.in_upgrade = False
+                            pygame.event.clear()
+                            
+                        elif progress == 50:
+                            # Load resources and prepare level initialization
+                            pygame.display.flip()
+                            pygame.time.wait(100)  
+                            
+                        elif progress == 75:
+                            # Create level instance
+                            self.level = Level()
+                            if not self.level:
+                                raise Exception("Failed to create Level instance")
+                            
+                            # Configure level
+                            self.level.game_active = True
+                            self.level.paused = False
+                            self.level.wind_effect_interval = config["wind_interval"]
+                            self.level.wind_effect_duration = config["wind_duration"]
+                            self.level.max_wind_effects = config["max_wind"]
+                            self.level.update_wind_effects_settings()
+                            
+                            # Update game state
+                            self.in_gameplay = True
+                            
+                            # Start game music
+                            self.audio_manager.stop_music()
+                            self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1, volume=VOLUME_SETTINGS['music'])
+                            
+                    except Exception as e:
+                        print(f"Error during loading step {progress}: {e}")
+                        raise
+                
+                # Update loading screen
+                pygame.time.wait(20)  
+                
+            if not self.level:
+                raise Exception("Level initialization failed")
+                
+            return True
+            
+        except Exception as e:
+            print(f"Critical error starting new game: {e}")
+            self.in_menu = True
+            self.in_gameplay = False
+            if self.level:
+                self.level.cleanup()
+                self.level = None
+            gc.collect()
 
     def _apply_level_settings(self, config):
+        if self.level is None:
+            return
+            
         self.level.clear_wind_effects()
-
+        
         global TILESIZE, CHUNKSIZE, VISIBLE_CHUNKS
         TILESIZE = config["tilesize"]
         CHUNKSIZE = config["chunksize"]
@@ -852,14 +1070,18 @@ class Game:
         self.level.wind_effect_interval = config["wind_interval"]
         self.level.wind_effect_duration = config["wind_duration"]
         self.level.max_wind_effects = config["max_wind"]
-
         self.level.update_wind_effects_settings()
-        self.level.spawn_wind_effects()
         
     def run(self):
         try:
             key_hold_time = 0
             pygame.mouse.set_visible(False)
+            
+            if not self.intro_played:
+                intro = Intro(self.screen, self.renderer)
+                intro.display()
+                self.intro_played = True
+
             
             while True:
                 for event in pygame.event.get():
@@ -876,10 +1098,14 @@ class Game:
                             elif event.key == pygame.K_RETURN:
                                 action = self.main_menu.select()
                                 if action == "new_game":
-                                    self.in_menu = False
-                                    self.in_gameplay = True
-                                    self.audio_manager.stop_music()
-                                    self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1, volume=VOLUME_SETTINGS['music'])
+                                    self.audio_manager.stop_music()  # Stop menu music before starting game
+                                    if not self.start_new_game():
+                                        print("Failed to start new game - returning to menu")
+                                        self.in_menu = True
+                                        
+                                        # Restart menu music if game failed to start
+                                        self.audio_manager.play_music(AUDIO_PATHS['main_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
+                                        continue
                                 elif action == "settings":
                                     self.in_menu = False
                                     self.in_settings = True
@@ -901,6 +1127,7 @@ class Game:
                                 action = self.pause_menu.select()
                                 if action == "resume":
                                     self.in_pause = False
+                                    self.level.paused = False
                                     self.audio_manager.stop_music()
                                     self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1, volume=VOLUME_SETTINGS['music'])
                                 elif action == "settings":
@@ -912,6 +1139,7 @@ class Game:
                                     del CHUNKS_FOLDER
                             elif event.key == pygame.K_ESCAPE:
                                 self.in_pause = False
+                                self.level.paused = False
                                 self.audio_manager.stop_music()
                                 self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1, volume=VOLUME_SETTINGS['music'])
 
@@ -987,6 +1215,7 @@ class Game:
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_ESCAPE:
                                 self.in_pause = True
+                                self.level.paused = True
                                 self.audio_manager.stop_music()
                                 self.audio_manager.play_music(AUDIO_PATHS['pause_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
                             elif event.key == pygame.K_f:
@@ -1007,6 +1236,14 @@ class Game:
                             self.in_upgrade = False
                             self.level.toggle_menu()
 
+                    # Restart menu music when returning to menu from settings
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            if self.in_settings:
+                                self.in_settings = False
+                                self.in_menu = True
+                                self.audio_manager.play_music(AUDIO_PATHS['main_menu'], loops=-1, volume=VOLUME_SETTINGS['music'])
+
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_LEFT]:
                     if pygame.time.get_ticks() - key_hold_time > 100:
@@ -1017,35 +1254,55 @@ class Game:
                         self.main_menu_settings.adjust_gamma(1)
                         key_hold_time = pygame.time.get_ticks()
 
+                # Clear the screen surface
+                self.screen.fill(WATER_COLOR)
+
+                # Regular game rendering to self.screen
                 if self.in_menu:
                     self.main_menu.display()
-                    
                 elif self.in_pause:
-                    self.screen.fill(WATER_COLOR)
-                    self.level.visible_sprites.custom_draw(self.level.player)
-                    self.level.ui.display(self.level.player)  
+                    if self.last_game_surface is not None:
+                        self.screen.blit(self.last_game_surface, (0, 0))
                     self.pause_menu.display()
-                    
                 elif self.in_settings:
                     self.main_menu_settings.display()
-                    
                 elif self.in_pause_settings:
                     self.pause_menu_settings.display()
-                    
                 elif self.in_gameplay:
-                    self.screen.fill(WATER_COLOR)
-                    self.level.run()
-                    #show_fps(self.clock) 
-                    #show_memory_usage()  
-                    
-                    pygame.display.update()
-
+                    try:
+                        game_surface = self.level.run()
+                        self.screen.blit(game_surface, (0, 0))
+                        self.last_game_surface = game_surface.copy()
+                    except Exception as e:
+                        print(f"Erro durante renderização do jogo: {e}")
+                        self.in_menu = True
+                        self.in_gameplay = False
+                        if self.level:
+                            self.level.cleanup()
+                            self.level = None
+                        gc.collect()
                 elif self.in_upgrade:
-                    if self.level.upgrade.display():
+                    try:
+                        game_surface = self.level.run(game_state='upgrade')
+                        self.screen.blit(game_surface, (0, 0))
+                        self.last_game_surface = game_surface.copy()
+                    except Exception as e:
+                        print(f"Erro durante renderização do upgrade: {e}")
+                        self.in_menu = True
                         self.in_upgrade = False
-                        self.level.toggle_menu()
+                        if self.level:
+                            self.level.cleanup()
+                            self.level = None
+                        gc.collect()
+                
+                # Convert pygame surface to SDL2 texture and render
+                self.renderer.clear()
+                texture = Texture.from_surface(self.renderer, self.screen)
+                self.renderer.blit(texture)
+                self.renderer.present()
 
                 self.clock.tick(FPS)
+
         finally:
             self.cleanup()
 
@@ -1053,7 +1310,11 @@ class Game:
         if os.path.exists(CHUNKS_FOLDER):
             shutil.rmtree(CHUNKS_FOLDER)
         
-        # Clean up game resources
+        # Properly clean up SDL2 resources
+        if hasattr(self, 'window'):
+            self.renderer = None  # Release renderer reference
+            self.window = None    # Release window reference
+        
         self.main_menu = None
         self.level = None
         self.screen = None
@@ -1063,29 +1324,200 @@ class Game:
 
     def toggle_fullscreen(self, borderless=False):
         if borderless:
-            pygame.display.set_mode((WIDTH, HEIGTH), pygame.NOFRAME)  
-            self.fullscreen = False  
+            self.window.set_windowed()
+            self.window.resizable = True
+            self.window.borderless = True
+            self.fullscreen = False
         else:
             if self.fullscreen:
-                pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)  
+                self.window.set_windowed()
+                self.window.resizable = True
+                self.window.borderless = False
                 self.fullscreen = False
             else:
-                pygame.display.set_mode((WIDTH, HEIGTH), pygame.FULLSCREEN) 
+                self.window.set_fullscreen(True)
                 self.fullscreen = True
 
-        
-        self.level.floor_surf = pygame.transform.scale(
-            pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), (WIDTH, HEIGTH)
-        )
-        self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)  
+        # Only update level floor_surf if level exists
+        if self.level is not None:
+            self.level.floor_surf = pygame.transform.scale(
+                pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), 
+                (WIDTH, HEIGTH)
+            )
+            self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)
+
     def apply_resolution(self, resolution):
         global WIDTH, HEIGTH
         WIDTH, HEIGTH = resolution
-        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.RESIZABLE)
+        
+        # Update window size
+        self.window.size = (WIDTH, HEIGTH)
+        self.screen = pygame.Surface((WIDTH, HEIGTH))
+        
         self.level.floor_surf = pygame.transform.scale(
-            pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), (WIDTH, HEIGTH)
+            pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), 
+            (WIDTH, HEIGTH)
         )
         
+    def start_new_game(self):
+        try:
+            if self.level:
+                self.level.cleanup()
+                self.level = None
+                gc.collect()
+            
+            # Create mystical loading background with particles
+            loading_bg = pygame.Surface((WIDTH, HEIGTH))
+            particles = [(random.randint(0, WIDTH), random.randint(0, HEIGTH), random.random()) 
+                        for _ in range(50)]
+            
+            # Load and scale game icon with glow effect
+            icon = pygame.image.load(get_asset_path('graphics', 'icon', 'game.ico'))
+            icon = pygame.transform.scale(icon, (96, 96))  # Smaller icon
+            icon_rect = icon.get_rect(center=(WIDTH // 2, HEIGTH // 2 - 30))
+            
+            # Loading bar parameters - stone texture style
+            bar_width = 300
+            bar_height = 15
+            border_width = 3
+            bar_rect = pygame.Rect((WIDTH - bar_width) // 2, HEIGTH // 2 + 80, bar_width, bar_height)
+            
+            # Font setup
+            font = pygame.font.Font(UI_FONT, 16)
+            loading_text = font.render("Loading...", True, (180, 180, 200))
+            text_rect = loading_text.get_rect(center=(WIDTH // 2, bar_rect.bottom + 25))
+            
+            # Tip text
+            tip_font = pygame.font.Font(UI_FONT, 14)
+            tip_text = tip_font.render(" Tip: NPCs with glowing eyes guard valuable secrets.", True, (150, 150, 170))
+            tip_rect = tip_text.get_rect(center=(WIDTH // 2, HEIGTH - 30))
+
+            # Initialize configuration before the loading loop
+            game_mode = self.settings.options[3]["value"]
+            config = self.game_settings[game_mode]
+            global TILESIZE, CHUNKSIZE, VISIBLE_CHUNKS
+            TILESIZE = config["tilesize"]
+            CHUNKSIZE = config["chunksize"]
+            VISIBLE_CHUNKS = config["visible_chunks"]
+            
+            loading_steps = {
+                25: "Initializing game state...",
+                50: "Loading resources...",
+                75: "Creating game world..."
+            }
+
+            # Loading animation
+            for progress in range(101):
+                # Dark purple background with fog effect
+                loading_bg.fill((20, 10, 30))
+                
+                # Update and draw particles
+                for i, (x, y, speed) in enumerate(particles):
+                    # Move particles up slowly
+                    y = (y - speed) % HEIGTH
+                    particles[i] = (x, y, speed)
+                    
+                    # Draw particle with fade effect
+                    alpha = int(255 * (0.5 + math.sin(y / 30) * 0.5))
+                    particle_color = (100, 80, 120, alpha)
+                    pygame.draw.circle(loading_bg, particle_color, (int(x), int(y)), 1)
+                
+                # Draw icon with pulsing glow
+                glow = math.sin(pygame.time.get_ticks() * 0.003) * 0.3 + 0.7
+                glow_surf = pygame.Surface((100, 100), pygame.SRCALPHA)
+                pygame.draw.circle(glow_surf, (80, 60, 100, 50), (50, 50), 48 * glow)
+                loading_bg.blit(glow_surf, (icon_rect.centerx - 50, icon_rect.centery - 50))
+                loading_bg.blit(icon, icon_rect)
+                
+                # Draw stone-textured loading bar
+                border_color = (100, 90, 120)
+                fill_color = (80, 60, 100)
+                glow_color = (140, 100, 180, 50)
+                
+                # Bar border with texture
+                pygame.draw.rect(loading_bg, border_color, 
+                               bar_rect.inflate(border_width * 2, border_width * 2), border_width)
+                
+                # Progress fill with magical glow
+                fill_width = int((bar_width - border_width * 2) * (progress / 100))
+                if fill_width > 0:
+                    # Glow effect
+                    glow_rect = pygame.Rect(bar_rect.left + border_width, 
+                                          bar_rect.top + border_width,
+                                          fill_width,
+                                          bar_height - border_width * 2)
+                    pygame.draw.rect(loading_bg, glow_color, glow_rect.inflate(4, 4))
+                    pygame.draw.rect(loading_bg, fill_color, glow_rect)
+                
+                # Draw texts
+                loading_bg.blit(loading_text, text_rect)
+                loading_bg.blit(tip_text, tip_rect)
+                
+                # Convert to texture and render
+                self.renderer.clear()
+                texture = Texture.from_surface(self.renderer, loading_bg)
+                self.renderer.blit(texture)
+                self.renderer.present()
+                
+                # Handle loading steps at specific progress points
+                if progress in loading_steps:
+                    try:
+                        if progress == 25:
+                            # Reset game states
+                            self.in_menu = False
+                            self.in_settings = False
+                            self.in_pause = False
+                            self.in_pause_settings = False
+                            self.in_upgrade = False
+                            pygame.event.clear()
+                            
+                        elif progress == 50:
+                            # Load resources and prepare level initialization
+                            pygame.display.flip()
+                            pygame.time.wait(100)  
+                            
+                        elif progress == 75:
+                            # Create level instance
+                            self.level = Level()
+                            if not self.level:
+                                raise Exception("Failed to create Level instance")
+                            
+                            # Configure level
+                            self.level.game_active = True
+                            self.level.paused = False
+                            self.level.wind_effect_interval = config["wind_interval"]
+                            self.level.wind_effect_duration = config["wind_duration"]
+                            self.level.max_wind_effects = config["max_wind"]
+                            self.level.update_wind_effects_settings()
+                            
+                            # Update game state
+                            self.in_gameplay = True
+                            
+                            # Start game music
+                            self.audio_manager.stop_music()
+                            self.audio_manager.play_music(AUDIO_PATHS['main_game'], loops=-1, volume=VOLUME_SETTINGS['music'])
+                            
+                    except Exception as e:
+                        print(f"Error during loading step {progress}: {e}")
+                        raise
+                
+                # Update loading screen
+                pygame.time.wait(20)  
+                
+            if not self.level:
+                raise Exception("Level initialization failed")
+                
+            return True
+            
+        except Exception as e:
+            print(f"Critical error starting new game: {e}")
+            self.in_menu = True
+            self.in_gameplay = False
+            if self.level:
+                self.level.cleanup()
+                self.level = None
+            gc.collect()
+
 if __name__ == '__main__':
     check_os_and_limit_memory(356)  
     game = Game()

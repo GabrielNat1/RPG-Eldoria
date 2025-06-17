@@ -59,3 +59,13 @@ def check_os_and_limit_memory(memory_limit_mb):
     else:
         #print(f"Sistema operacional {os_name} não suporta limitador de memória.")
         pass
+
+def get_main_surface():
+	# Só use get_window se realmente existir (pygame-ce + SDL2)
+	if hasattr(pygame.display, "get_window"):
+		try:
+			return pygame.display.get_window().get_surface()
+		except Exception:
+			pass
+	# Fallback para pygame tradicional
+	return pygame.display.get_surface()

@@ -29,7 +29,7 @@ FPS = 60
 TILESIZE = 64 
 CHUNKSIZE = 24  
 VISIBLE_CHUNKS = 3 
-CHUNKS_FOLDER = os.path.join(base_path, 'cache')
+CHUNKS_FOLDER = os.path.join(base_path, 'region')
 
 #hitbox config
 HITBOX_OFFSET = {
@@ -48,23 +48,23 @@ UI_FONT = get_asset_path('graphics', 'font', 'joystix.ttf')
 UI_FONT_SIZE = 18
 
 # General colors
-BLACK_COLOR = '#000000'
-WATER_COLOR = '#71ddee'
-UI_BG_COLOR = '#222222'
-UI_BORDER_COLOR = '#111111'
-TEXT_COLOR = '#EEEEEE'
+BLACK_COLOR = (0, 0, 0)
+WATER_COLOR = (113, 221, 238)
+UI_BG_COLOR = (34, 34, 34)
+UI_BORDER_COLOR = (17, 17, 17)
+TEXT_COLOR = (238, 238, 238)
 
 # UI Colors
-HEALTH_COLOR = 'red'
-ENERGY_COLOR = 'blue'
-STAMINA_COLOR = 'green'  
-UI_BORDER_COLOR_ACTIVE = 'gold'
+HEALTH_COLOR = (255, 0, 0)
+ENERGY_COLOR = (0, 0, 255)
+STAMINA_COLOR = (0, 255, 0)
+UI_BORDER_COLOR_ACTIVE = (255, 215, 0)  # gold
 
 # Upgrade menu
-TEXT_COLOR_SELECTED = '#111111'
-BAR_COLOR = '#EEEEEE'
-BAR_COLOR_SELECTED = '#111111'
-UPGRADE_BG_COLOR_SELECTED = '#EEEEEE'
+TEXT_COLOR_SELECTED = (17, 17, 17)
+BAR_COLOR = (238, 238, 238)
+BAR_COLOR_SELECTED = (17, 17, 17)
+UPGRADE_BG_COLOR_SELECTED = (238, 238, 238)
 
 # Weapons
 weapon_data = {
@@ -84,16 +84,16 @@ magic_data = {
 # Enemy
 monster_data = {
     'squid': {'health': 100, 'exp': 100, 'damage': 20, 'attack_type': 'slash', 
-              'attack_sound': get_asset_path('audio', 'attack', 'slash.wav'), 
+              'attack_sound': get_asset_path('audio', 'effects', 'slash.wav'), 
               'speed': 3, 'resistance': 3, 'attack_radius': 80, 'notice_radius': 360},
     'raccoon': {'health': 300, 'exp': 250, 'damage': 40, 'attack_type': 'claw',
-                'attack_sound': get_asset_path('audio', 'attack', 'claw.wav'),
+                'attack_sound': get_asset_path('audio', 'effects', 'claw.wav'),
                 'speed': 2, 'resistance': 3, 'attack_radius': 120, 'notice_radius': 400},
     'spirit': {'health': 100, 'exp': 110, 'damage': 8, 'attack_type': 'thunder',
-               'attack_sound': get_asset_path('audio', 'attack', 'slash.wav'), # Alterado para usar slash.wav
+               'attack_sound': get_asset_path('audio', 'effects', 'slash.wav'), # Alterado para usar slash.wav
                'speed': 4, 'resistance': 3, 'attack_radius': 60, 'notice_radius': 350},
     'bamboo': {'health': 70, 'exp': 120, 'damage': 6, 'attack_type': 'leaf_attack',
-               'attack_sound': get_asset_path('audio', 'attack', 'slash.wav'), # Alterado para usar slash.wav
+               'attack_sound': get_asset_path('audio', 'effects', 'slash.wav'), # Alterado para usar slash.wav
                'speed': 3, 'resistance': 3, 'attack_radius': 50, 'notice_radius': 300}
 }
 
@@ -143,19 +143,23 @@ else:
 
 # Audio paths and settings
 AUDIO_PATHS = {
-    'intro': get_asset_path('audio', 'main_intro.ogg'),
+    'intro': get_asset_path('audio', 'music', 'main_intro.ogg'),
+    'loading': get_asset_path('audio', 'music', 'loading.ogg'),
     'menu_select': get_asset_path('audio', 'menu', 'Menu1.wav'),
     'menu_back': get_asset_path('audio', 'menu', 'Menu6.wav'),
     'menu_change': get_asset_path('audio', 'menu', 'Menu9.wav'),
-    'main_menu': get_asset_path('audio', 'main_menu.ogg'),
-    'pause_menu': get_asset_path('audio', 'pause_menu.ogg'),
-    'main_game': get_asset_path('audio', 'main.ogg'),
-    'heal': get_asset_path('audio', 'heal.wav'),
-    'flame': get_asset_path('audio', 'Fire.wav'),
-    'death': get_asset_path('audio', 'death.wav'),
-    'hit': get_asset_path('audio', 'hit.wav'),
-    'fight': get_asset_path('audio', 'fight.ogg'),
-    'npc_talk': get_asset_path('audio', 'npc', 'talking_sfx', 'Talking.mp3')
+    'main_menu': get_asset_path('audio', 'music', 'main_menu.ogg'),
+    'pause_menu': get_asset_path('audio', 'music', 'pause_menu.ogg'),
+    'main_game': get_asset_path('audio', 'music', 'main.ogg'),
+    'heal': get_asset_path('audio', 'effects', 'heal.wav'),
+    'flame': get_asset_path('audio', 'effects', 'Fire.wav'),
+    'death': get_asset_path('audio', 'effects', 'death.wav'),
+    'hit': get_asset_path('audio', 'effects', 'hit.wav'),
+    'attack': get_asset_path('audio', 'effects', 'sword.wav'),
+    'fight': get_asset_path('audio', 'music', 'fight.ogg'),
+    'npc_talk': get_asset_path('audio', 'effects', 'Talking.mp3'),
+    'rain': get_asset_path('audio', 'effects', 'rain.wav'),
+    
 }
 
 VOLUME_SETTINGS = {
