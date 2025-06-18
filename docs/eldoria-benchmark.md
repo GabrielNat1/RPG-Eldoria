@@ -10,31 +10,23 @@
 
 ## ✅ Minimum Requirements
 
-- CPU: 1.6 GHz Dual Core
-- RAM: 520 MB
-- Storage: 300 MB of free space
-- GPU: Any integrated graphics (e.g. Intel HD)
-- OS: Windows 7 / Linux / macOS
-- Dependencies: Python 3.10+, Pygame 2.x
+- CPU: 1.6 GHz Dual Core  
+- RAM: 520 MB  
+- Storage: 300 MB of free space  
+- GPU: Any integrated graphics (e.g. Intel HD)  
+- OS: Windows 7 / Linux / macOS  
+- Dependencies: Python 3.10+, Pygame 2.x  
 
 ---
 
 ## 💡 Recommended Requirements
 
-- CPU: 2.4 GHz Quad Core
-- RAM: 2 GB or more
-- Storage: 500 MB of free space
-- GPU: Integrated or entry-level dedicated GPU (Intel UHD / NVIDIA MX)
-- OS: Windows 10+ / Linux (latest)
+- CPU: 2.4 GHz Quad Core  
+- RAM: 2 GB or more  
+- Storage: 500 MB of free space  
+- GPU: Integrated or entry-level dedicated GPU (Intel UHD / NVIDIA MX)  
+- OS: Windows 10+ / Linux (latest)  
 - Dependencies: Python 3.10+, **Pygame-CE with SDL2**
-
----
-
-## 🔄 Upcoming Improvements – Pygame-CE + SDL2 + GPU Support
-
-We are working on integrating the **Pygame Community Edition (Pygame-CE)** with **SDL2 backend**, which enables **GPU acceleration** for rendering.
-
-This upgrade will provide noticeable performance improvements, particularly on systems with any kind of GPU acceleration (even integrated chips).
 
 ---
 
@@ -52,9 +44,9 @@ This upgrade will provide noticeable performance improvements, particularly on s
 
 > 📌 **Notes**:
 > - Benchmarks were run on a basic Intel i5 laptop with 8 GB RAM and hybrid GPU setup.
-> - Even low-end systems will benefit from GPU offloading with Pygame-CE + SDL2.
-> - Full support will be available in version **2.0.0**.
+> - Even low-end systems benefit significantly from GPU offloading with Pygame-CE + SDL2.
+> - This configuration is now the default as of version **2.1.0**.
 
 ---
 
-🎯 **Conclusion**: By adopting Pygame-CE with SDL2, Eldoria will run even better on modest hardware — achieving smoother gameplay, richer effects, and lower CPU usage while keeping the game's lightweight nature intact.
+🎯 **Conclusion**: With Pygame-CE and SDL2 now fully integrated, Eldoria delivers smoother gameplay, richer effects, and better performance across a broad range of hardware — all while maintaining its lightweight and accessible nature.
