@@ -14,6 +14,7 @@ from paths import get_asset_path
 import gc  
 from pygame._sdl2 import Window, Renderer, Texture
 from dev_args import dev_mode
+from verify_resources import ResourceVerifier
 
 base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
@@ -750,8 +751,10 @@ class LoadingWindow:
         
         self.font = pygame.font.Font(UI_FONT, 20)
         self.progress = 0
-        
-    def update(self, progress, message="loading..."):
+        self.resource_progress = None  # (current, total)
+        self.resource_message = None
+
+    def update(self, progress, message="loading...", resource_progress=None, resource_message=None):
         self.screen.fill((0, 0, 0))
         
         border_thickness = 3
@@ -765,7 +768,14 @@ class LoadingWindow:
         text = self.font.render(message, True, (255, 255, 255))
         text_rect = text.get_rect(center=(self.width // 2, 100))
         self.screen.blit(text, text_rect)
-        
+
+        if resource_progress is not None and resource_message:
+            res_text = self.font.render(
+                f"{resource_message}: {resource_progress[0]}/{resource_progress[1]}", True, (200, 220, 255)
+            )
+            res_rect = res_text.get_rect(center=(self.width // 2, 130))
+            self.screen.blit(res_text, res_rect)
+
         bar_width = 400
         bar_height = 25
         bar_x = (self.width - bar_width) // 2
@@ -806,13 +816,21 @@ class Game:
         # Inicializar loading window com simulação de carregamento
         loading = LoadingWindow()
         
-        # Simular carregamento por 4 segundos
-        for i in range(0, 101, 5):  # Incrementos de 5% para suavidade
+        loading.update(5, "Verificando recursos do jogo...", resource_progress=(0, 0), resource_message="Carregando recursos")
+        pygame.time.wait(300)
+
+        def loading_callback(verified, total):
+            loading.update(5, "Verificando recursos do jogo...", resource_progress=(verified, total), resource_message="Carregando recursos")
+        verifier = ResourceVerifier()
+        verifier.verify_all(loading_callback=loading_callback)
+        loading.update(15, "Recursos verificados com sucesso!", resource_progress=(1, 1), resource_message="Carregando recursos")
+        pygame.time.wait(300)
+
+        for i in range(20, 101, 5):  
             loading_message = "Starting..." if i < 30 else "Loading assets..." if i < 60 else "Preparing game..."
             loading.update(i, loading_message)
-            pygame.time.wait(200)  # 200ms * 20 steps = 4 segundos total
+            pygame.time.wait(200)  # 200ms * 20 steps = 4 s
         
-        # Depois inicializa a janela SDL2 e renderer
         self.window = Window(title='RPG Eldoria', size=(WIDTH, HEIGTH))
         self.window.position = (window_x, window_y)
         self.renderer = Renderer(self.window, accelerated=1, vsync=True)
@@ -836,6 +854,8 @@ class Game:
         self.in_pause_settings = False
         self.in_gameplay = False
         self.in_upgrade = False
+
+        # Inicialize intro_played 
         self.intro_played = False
         
         # Initialize settings and game components
@@ -867,11 +887,9 @@ class Game:
         self.pause_menu = PauseMenu(self.screen)
         self.pause_menu_settings = PauseMenuSettings(self.screen, self.settings)
         
-        # Initialize audio and play menu music
         self.audio_manager = AudioManager()
 
-        # Initialize intro com flag para pular se dev_mode
-        self.intro_played = False
+
         if dev_mode:
             # Pula intro e menu, vai direto para o jogo
             self.intro_played = True

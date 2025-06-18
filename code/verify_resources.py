@@ -5,12 +5,17 @@ import datetime
 from settings import * 
 from paths import get_asset_path
 from PIL import Image  # type: ignore
+from math import sin
+import time
+import tkinter as tk
+from tkinter import filedialog
+import urllib.request
+import sys
 
-# Required resources dictionary
 REQUIRED_FILES = {
-        'graphics': {
-        'Grass': ['grass_1.png', 'grass_2.png', 'grass_3.png'],
-        'objects': [f'{i}.png' for i in range(37)],  
+    'graphics': {
+        'grass': ['grass_1.png', 'grass_2.png', 'grass_3.png'],
+        'objects': ['0.png'] + [f'{i:02}.png' for i in range(1, 37)],
         'tilemap': ['ground.png', 'Floor.png', 'details.png'],
         'environment': {
             'wind': ['W401-1.png', 'W401-16.png'],
@@ -54,13 +59,6 @@ REQUIRED_FILES = {
             'rapier': ['full.png', 'right.png'],
             'sai': ['full.png', 'right.png']
         },
-        'particles': {
-            'flame': ['fire.png'],
-            'flame_frames': ['0.png', '01.png', '11.png'],
-            'leaf1': [...],
-            'leaf2': [...],
-            'slash': ['0.png', '1.png', '2.png', '3.png']
-        },
         'player': {
             'down': ['down_0.png', 'down_1.png', 'down_2.png', 'down_3.png'],
             'down_attack': ['attack_down.png'],
@@ -92,15 +90,13 @@ REQUIRED_FILES = {
         'Menu': ['Menu1.wav', 'Accept2.wav']
     },
     'map': {
-        'csv': [
-            'map_Details.csv',
-            'map_Entities.csv',
-            'map_Floor.csv',
-            'map_FloorBlocks.csv',
-            'map_Grass.csv',
-            'map_LargeObjects.csv',
-            'map_Objects.csv'
-        ]
+        'map_Details.csv': [],
+        'map_Entities.csv': [],
+        'map_Floor.csv': [],
+        'map_FloorBlocks.csv': [],
+        'map_Grass.csv': [],
+        'map_LargeObjects.csv': [],
+        'map_Objects.csv': []
     }
 }
 
@@ -134,33 +130,104 @@ class ErrorInterface:
             'close': pygame.Rect(WIDTH//2 + 180, HEIGTH - 60, 160, 35)
         }
         
-        # Adicionar estado de hover para botões
+        # Scrollbar
         self.hover_button = None
         
-        # Adicionar dicionário de retorno
+        # result verification
         self.result = {
             'action': None,
             'repaired_files': [],
             'ignored_files': []
         }
+        
+        self.ICON_SIZE = 28
+        self.SEPARATOR_COLOR = (60, 60, 60)
+        self.TOOLTIP_BG = (40, 40, 40)
+        self.TOOLTIP_TEXT = (255, 255, 255)
+        self.status_message = ""
+        self.tooltip = None
+        self.tooltip_rect = None
+        self.card_hover_index = None
+        self.scrollbar_hover = False
+        self.progress_color = (80, 180, 80)
+        self.progress_bg = (40, 60, 40)
+        self.anim_frame = 0
+        self.card_padding = 12
+        self.card_text_maxwidth = 600  
+        self.section_label_height = 36
+        
+        try:
+            self.icon_surface = pygame.image.load(get_asset_path('graphics', 'icon', 'game.ico')).convert_alpha()
+            self.icon_surface = pygame.transform.smoothscale(self.icon_surface, (36, 36))
+        except Exception:
+            self.icon_surface = None
+
+        self.window_initialized = False  
+
+        self.dragging_scrollbar = False
+        self.drag_start_y = 0
+        self.scroll_offset_on_drag = 0
+
+    def draw_shadow(self, rect, alpha=80, radius=10):
+        shadow = pygame.Surface((rect.width+8, rect.height+8), pygame.SRCALPHA)
+        pygame.draw.rect(shadow, (0,0,0,alpha), shadow.get_rect(), border_radius=radius)
+        self.screen.blit(shadow, (rect.x-4, rect.y-4))
+
+    def draw_progress_bar(self, y=70):
+        total = self.total_items
+        done = self.total_items - (len(self.missing_files) + len(self.corrupted_files))
+        if total == 0:
+            percent = 1.0
+        else:
+            percent = done / total
+        bar_w = WIDTH - 80
+        bar_h = 18
+        bar_x = 40
+        bar_y = y
+        pygame.draw.rect(self.screen, self.progress_bg, (bar_x, bar_y, bar_w, bar_h), border_radius=8)
+        pygame.draw.rect(self.screen, self.progress_color, (bar_x, bar_y, int(bar_w*percent), bar_h), border_radius=8)
+        txt = self.font_small.render(f"Progresso: {done}/{total}", True, (220,220,220))
+        self.screen.blit(txt, (bar_x+8, bar_y+1))
 
     def repair_file(self, filepath):
         """Tenta reparar um arquivo corrompido ou ausente"""
         try:
-            # Verifica se é um arquivo de backup
             backup_path = os.path.join('backup', filepath)
+            dest_path = get_asset_path(filepath)
             if os.path.exists(backup_path):
-                # Copia o arquivo de backup
-                os.makedirs(os.path.dirname(filepath), exist_ok=True)
-                shutil.copy2(backup_path, filepath)
+                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                shutil.copy2(backup_path, dest_path)
+                return True
+            if self.download_and_save(filepath):
                 return True
             return False
+        except Exception:
+            return False
+
+    def get_repo_relative_path(self, filepath):
+        norm_path = filepath.replace("\\", "/")
+        for folder in ["graphics/", "audio/", "map/"]:
+            idx = norm_path.lower().find(folder)
+            if idx != -1:
+                return norm_path[idx:]
+        return os.path.basename(norm_path)
+
+    def github_raw_url(self, filepath):
+        rel_path = self.get_repo_relative_path(filepath)
+        return f"https://raw.githubusercontent.com/GabrielNat1/RPG-Eldoria/main/{rel_path}"
+
+    def download_and_save(self, filepath):
+        url = self.github_raw_url(filepath)
+        dest_path = get_asset_path(filepath)
+        try:
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            with urllib.request.urlopen(url, timeout=10) as response, open(dest_path, "wb") as out_file:
+                out_file.write(response.read())
+            return True
         except Exception as e:
-            print(f"Erro ao reparar {filepath}: {e}")
             return False
 
     def repair_all(self):
-        """Tenta reparar todos os arquivos com problemas"""
         repaired = []
         failed = []
         
@@ -176,303 +243,610 @@ class ErrorInterface:
         return repaired, failed
 
     def export_report(self):
-        """Exporta um relatório detalhado dos problemas"""
         try:
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"resource_check_report_{timestamp}.txt"
-            
-            with open(filename, 'w') as f:
+            root = tk.Tk()
+            root.withdraw()
+            root.attributes("-topmost", True)
+            default_name = f"resource_check_report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt")],
+                initialfile=default_name,
+                title="Save report as"
+            )
+            root.destroy()
+            if not file_path:
+                return False, "Cancelled by user"
+            with open(file_path, 'w', encoding='utf-8') as f:
                 f.write("=== RPG Eldoria Resource Check Report ===\n\n")
-                f.write(f"Data: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-                
-                f.write("Arquivos ausentes:\n")
+                f.write(f"Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                f.write("Missing files:\n")
                 for file in self.missing_files:
                     f.write(f"  - {file}\n")
-                    
-                f.write("\nArquivos corrompidos:\n")
+                f.write("\nCorrupted files:\n")
                 for file in self.corrupted_files:
                     f.write(f"  - {file}\n")
-                    
-            return True, filename
+            return True, file_path
         except Exception as e:
             return False, str(e)
 
-    def draw_scrollbar(self):
-        """Desenha a barra de rolagem"""
-        if self.total_items <= self.max_visible_items:
-            return
-            
-        # Calcula tamanho e posição da barra
-        content_height = self.total_items * self.item_height
-        visible_height = self.max_visible_items * self.item_height
-        scroll_height = (visible_height / content_height) * visible_height
-        scroll_pos = (self.scroll_offset / content_height) * visible_height
-        
-        # Desenha trilho da barra
-        bar_rect = pygame.Rect(WIDTH - 20, 100, 10, visible_height)
-        pygame.draw.rect(self.screen, (40, 40, 40), bar_rect)
-        
-        # Desenha a barra
-        scroll_rect = pygame.Rect(WIDTH - 20, 100 + scroll_pos, 10, scroll_height)
-        pygame.draw.rect(self.screen, (80, 80, 80), scroll_rect)
+    def draw_icon(self, icon_type, pos, highlight=False):
+        x, y = pos
+        surf = pygame.Surface((self.ICON_SIZE, self.ICON_SIZE), pygame.SRCALPHA)
+        if icon_type == "missing":
+            color = (255, 220, 60) if highlight else (255, 187, 0)
+            pygame.draw.circle(surf, color, (self.ICON_SIZE//2, self.ICON_SIZE//2), self.ICON_SIZE//2)
+            pygame.draw.line(surf, (255,255,255), (8,8), (20,20), 3)
+            pygame.draw.line(surf, (255,255,255), (20,8), (8,20), 3)
+        elif icon_type == "corrupted":
+            color = (255, 100, 100) if highlight else (255, 69, 58)
+            pygame.draw.circle(surf, color, (self.ICON_SIZE//2, self.ICON_SIZE//2), self.ICON_SIZE//2)
+            pygame.draw.line(surf, (255,255,255), (14,7), (14,21), 3)
+            pygame.draw.circle(surf, (255,255,255), (14,24), 2)
+        self.screen.blit(surf, (x, y))
 
-    def handle_scroll(self, event):
-        """Processa eventos de rolagem"""
-        if event.type == pygame.MOUSEWHEEL:
-            self.scroll_offset = max(0, min(
-                self.scroll_offset - (event.y * self.item_height),
-                self.item_height * max(0, self.total_items - self.max_visible_items)
-            ))
+    def draw_separator(self, y):
+        pygame.draw.line(self.screen, self.SEPARATOR_COLOR, (48, y), (WIDTH-48, y), 2)
 
-    def draw_button(self, text, rect, hover=False, active=True):
-        """Draw a button with hover effect and active state"""
+    def draw_tooltip(self, text, pos):
+        font = self.font_small
+        surf = font.render(text, True, self.TOOLTIP_TEXT)
+        padding = 8
+        rect = surf.get_rect()
+        rect.topleft = (pos[0]+16, pos[1]-rect.height-8)
+        bg_rect = pygame.Rect(rect.left-padding, rect.top-padding, rect.width+2*padding, rect.height+2*padding)
+        pygame.draw.rect(self.screen, self.TOOLTIP_BG, bg_rect, border_radius=6)
+        pygame.draw.rect(self.screen, (80,80,80), bg_rect, 1, border_radius=6)
+        self.screen.blit(surf, rect)
+
+    def draw_button(self, text, rect, hover=False, active=True, tooltip=None):
+        # Animação sutil no hover
+        anim_offset = 0
+        if hover:
+            anim_offset = int(2 * (1 + sin(self.anim_frame/8)))  
         color = self.BUTTON_HOVER if hover else self.BUTTON_BG
         if not active:
-            color = (30, 30, 30)  # Darker color for inactive buttons
-        
-        # Draw button background with rounded corners
-        pygame.draw.rect(self.screen, color, rect, border_radius=4)
-        
-        # Add subtle border
-        border_color = (255, 255, 255, 30) if hover else (255, 255, 255, 15)
-        pygame.draw.rect(self.screen, border_color, rect, 1, border_radius=4)
-        
-        # Render text
+            color = (30, 30, 30)
+        pygame.draw.rect(self.screen, color, rect.move(0, -anim_offset), border_radius=8)
+        border_color = (255, 255, 255, 80) if hover else (255, 255, 255, 15)
+        pygame.draw.rect(self.screen, border_color, rect.move(0, -anim_offset), 1, border_radius=8)
         text_color = self.TEXT_COLOR if active else (100, 100, 100)
         text_surf = self.font_small.render(text, True, text_color)
-        text_rect = text_surf.get_rect(center=rect.center)
-        
-        # Add slight offset when hovering
+        text_rect = text_surf.get_rect(center=rect.move(0, -anim_offset).center)
         if hover:
             text_rect.y -= 1
-            
         self.screen.blit(text_surf, text_rect)
-        
+        if hover and tooltip:
+            self.tooltip = tooltip
+            self.tooltip_rect = rect
         return rect.collidepoint(pygame.mouse.get_pos())
-        
+
+    def truncate_text(self, text, font, max_width):
+        if font.size(text)[0] <= max_width:
+            return text
+        while font.size(text + "...")[0] > max_width and len(text) > 3:
+            text = text[:-1]
+        return text + "..."
+
+    def get_missing_label(self):
+        return self.font_text.render("Arquivos Ausentes", True, self.WARNING_COLOR)
+
+    def get_corrupted_label(self):
+        return self.font_text.render("Arquivos Corrompidos", True, self.ERROR_COLOR)
+
+    def get_short_file_label(self, file, kind):
+        filename = os.path.basename(file)
+        if kind == "missing":
+            return f"missing {filename}"
+        elif kind == "corrupted":
+            return f"corrupted {filename}"
+        return filename
+
+    def draw_custom_header(self):
+        header_h = 56
+        pygame.draw.rect(self.screen, (24, 24, 24), (0, 0, WIDTH, header_h))
+    
+        shadow = pygame.Surface((WIDTH, 8), pygame.SRCALPHA)
+        pygame.draw.rect(shadow, (0,0,0,60), shadow.get_rect())
+        self.screen.blit(shadow, (0, header_h-2))
+
+        if self.icon_surface:
+            self.screen.blit(self.icon_surface, (18, 10))
+    
+        title = self.font_title.render("Verificação de Recursos do Jogo", True, self.WARNING_COLOR)
+        self.screen.blit(title, (WIDTH//2-title.get_width()//2, 12))
+     
+        close_rect = pygame.Rect(WIDTH-48, 12, 32, 32)
+        mouse_pos = pygame.mouse.get_pos()
+        hover = close_rect.collidepoint(mouse_pos)
+        pygame.draw.circle(self.screen, (60,30,30) if hover else (40,40,40), close_rect.center, 16)
+        x_color = (255, 80, 80) if hover else (200, 80, 80)
+        pygame.draw.line(self.screen, x_color, (close_rect.centerx-7, close_rect.centery-7), (close_rect.centerx+7, close_rect.centery+7), 3)
+        pygame.draw.line(self.screen, x_color, (close_rect.centerx+7, close_rect.centery-7), (close_rect.centerx-7, close_rect.centery+7), 3)
+        return close_rect
+
+    def show_loading(self, duration=5):
+        start = time.time()
+        clock = pygame.time.Clock()
+        center = (WIDTH // 2, HEIGTH // 2)
+        radius = 40
+        color = (255, 187, 0)
+        bg = (10, 10, 10)
+        while time.time() - start < duration:
+            self.screen.fill(bg)
+            elapsed = time.time() - start
+            angle = (elapsed / duration) * 360
+            pygame.draw.circle(self.screen, (40,40,40), center, radius, 0)
+            end_angle = angle * 3.14159 / 180
+            pygame.draw.arc(self.screen, color, (center[0]-radius, center[1]-radius, radius*2, radius*2), 0, end_angle, 8)
+            
+            pygame.draw.circle(self.screen, (30,30,30), center, radius-16, 0)
+            font = self.font_title
+            txt = font.render("Carregando...", True, (220,220,220))
+            self.screen.blit(txt, (center[0]-txt.get_width()//2, center[1]+radius+16))
+            pygame.display.flip()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+            clock.tick(60)
+
     def display(self):
-        # Reset screen
+        self.anim_frame += 1
+        if not self.window_initialized:
+            pygame.display.set_mode((WIDTH, HEIGTH), pygame.NOFRAME)
+            self.window_initialized = True
         self.screen.fill(self.DARK_BG)
         
-        # Draw heading
-        title = self.font_title.render("⚠️ Erro na verificação de recursos", True, self.WARNING_COLOR)
-        title_rect = title.get_rect(centerx=WIDTH//2, top=20)
-        self.screen.blit(title, title_rect)
+        close_rect = self.draw_custom_header()
+        desc = self.font_text.render("Arquivos ausentes ou corrompidos abaixo. Clique para reparar ou ignorar.", True, self.TEXT_COLOR)
+        self.screen.blit(desc, (WIDTH//2-desc.get_width()//2, 62))
+        self.draw_progress_bar(y=90)
         
-        # Calculate scroll area
-        content_height = len(self.missing_files + self.corrupted_files) * self.item_height
-        max_scroll = max(0, content_height - (HEIGTH - 200))
-        
-        # Draw scrollable content area
-        y = 80 - self.scroll_offset
-        
-        # Missing files
-        for file in self.missing_files:
-            if 80 <= y <= HEIGTH - 100:  # Only draw visible items
-                file_text = self.font_text.render(f"⚠️ {file}", True, self.WARNING_COLOR)
-                file_rect = file_text.get_rect(x=30, y=y)
-                self.screen.blit(file_text, file_rect)
-                
-                # Buttons
-                repair_rect = pygame.Rect(WIDTH - 180, y, 70, 24)
-                ignore_rect = pygame.Rect(WIDTH - 100, y, 70, 24)
-                
-                # Draw buttons with hover effect
-                mouse_pos = pygame.mouse.get_pos()
-                self.draw_button("Reparar", repair_rect, repair_rect.collidepoint(mouse_pos))
-                self.draw_button("Ignorar", ignore_rect, ignore_rect.collidepoint(mouse_pos))
-            y += self.item_height
-            
-        # Corrupted files
-        for file in self.corrupted_files:
-            if 80 <= y <= HEIGTH - 100:
-                file_text = self.font_text.render(f"❌ {file}", True, self.ERROR_COLOR)
-                file_rect = file_text.get_rect(x=30, y=y)
-                self.screen.blit(file_text, file_rect)
-                
-                # Buttons
-                repair_rect = pygame.Rect(WIDTH - 180, y, 70, 24)
-                ignore_rect = pygame.Rect(WIDTH - 100, y, 70, 24)
-                
-                # Draw buttons with hover effect
-                mouse_pos = pygame.mouse.get_pos()
-                self.draw_button("Reparar", repair_rect, repair_rect.collidepoint(mouse_pos))
-                self.draw_button("Ignorar", ignore_rect, ignore_rect.collidepoint(mouse_pos))
-            y += self.item_height
-            
-        # Draw scrollbar if needed
-        if content_height > HEIGTH - 200:
-            scrollbar_height = (HEIGTH - 200) * ((HEIGTH - 200) / content_height)
-            scrollbar_pos = (self.scroll_offset / max_scroll) * (HEIGTH - 200 - scrollbar_height)
-            pygame.draw.rect(self.screen, (40, 40, 40), (WIDTH - 12, 80, 4, HEIGTH - 200))
-            pygame.draw.rect(self.screen, (80, 80, 80), (WIDTH - 12, 80 + scrollbar_pos, 4, scrollbar_height))
-        
-        # Draw bottom button bar background
-        pygame.draw.rect(self.screen, (25, 25, 25), (0, HEIGTH - 60, WIDTH, 60))
-        
-        # Bottom buttons
-        verify_rect = pygame.Rect(WIDTH//2 - 270, HEIGTH - 45, 160, 30)
-        export_rect = pygame.Rect(WIDTH//2 - 80, HEIGTH - 45, 160, 30)
-        close_rect = pygame.Rect(WIDTH//2 + 110, HEIGTH - 45, 160, 30)
-        
+        area_top = 120
+        area_bottom = HEIGTH - 100
+        y = area_top - self.scroll_offset
         mouse_pos = pygame.mouse.get_pos()
-        self.draw_button("Verificar novamente", verify_rect, verify_rect.collidepoint(mouse_pos))
-        self.draw_button("Exportar relatório", export_rect, export_rect.collidepoint(mouse_pos))
-        self.draw_button("Fechar", close_rect, close_rect.collidepoint(mouse_pos))
+        self.card_hover_index = None
+        idx = 0
+        card_w = WIDTH - 2*self.card_padding - 32
+        card_h = self.item_height + 10
+
+        # Render cards
+        if self.missing_files:
+            pass 
+        for file in self.missing_files:
+            if area_top <= y <= area_bottom - self.section_label_height - 10:
+                card_rect = pygame.Rect(self.card_padding+16, y, card_w, card_h)
+                self.draw_shadow(card_rect, alpha=100)
+                highlight = card_rect.collidepoint(mouse_pos)
+                if highlight:
+                    self.card_hover_index = idx
+                pygame.draw.rect(self.screen, (45,45,25) if not highlight else (70,70,40), card_rect, border_radius=10)
+                pygame.draw.rect(self.screen, (255, 187, 0, 60), card_rect, 1, border_radius=10)
+                self.draw_icon("missing", (card_rect.x+10, y+7), highlight=highlight)
+               
+                file_label = self.get_short_file_label(file, "missing")
+                file_text = self.truncate_text(file_label, self.font_text, self.card_text_maxwidth)
+                file_surf = self.font_text.render(file_text, True, self.WARNING_COLOR if not highlight else (255,255,120))
+                self.screen.blit(file_surf, (card_rect.x+48, y+13))
+                
+                repair_rect = pygame.Rect(card_rect.right-150, y+8, 64, 24)
+                ignore_rect = pygame.Rect(card_rect.right-78, y+8, 64, 24)
+                
+                self.draw_button("Reparar", repair_rect, repair_rect.collidepoint(mouse_pos), tooltip="Tentar restaurar este arquivo")
+                self.draw_button("Ignorar", ignore_rect, ignore_rect.collidepoint(mouse_pos), tooltip="Ignorar este arquivo")
+            y += card_h + 10
+            idx += 1
+        if self.corrupted_files:
+            if area_top <= y <= area_bottom - self.section_label_height - 10:
+                corr_label = self.get_corrupted_label()
+                self.screen.blit(corr_label, (self.card_padding+32, y))
+                y += self.section_label_height
+        for file in self.corrupted_files:
+            if area_top <= y <= area_bottom:
+                card_rect = pygame.Rect(self.card_padding+16, y, card_w, card_h)
+                self.draw_shadow(card_rect, alpha=100)
+                highlight = card_rect.collidepoint(mouse_pos)
+                if highlight:
+                    self.card_hover_index = idx
+                pygame.draw.rect(self.screen, (60,30,30) if not highlight else (90,50,50), card_rect, border_radius=10)
+                pygame.draw.rect(self.screen, (255, 69, 58, 60), card_rect, 1, border_radius=10)
+                self.draw_icon("corrupted", (card_rect.x+10, y+7), highlight=highlight)
+                file_label = self.get_short_file_label(file, "corrupted")
+                file_text = self.truncate_text(file_label, self.font_text, self.card_text_maxwidth)
+                file_surf = self.font_text.render(file_text, True, self.ERROR_COLOR if not highlight else (255,180,180))
+                self.screen.blit(file_surf, (card_rect.x+48, y+13))
+                repair_rect = pygame.Rect(card_rect.right-150, y+8, 64, 24)
+                ignore_rect = pygame.Rect(card_rect.right-78, y+8, 64, 24)
+                self.draw_button("Reparar", repair_rect, repair_rect.collidepoint(mouse_pos), tooltip="Tentar restaurar este arquivo")
+                self.draw_button("Ignorar", ignore_rect, ignore_rect.collidepoint(mouse_pos), tooltip="Ignorar este arquivo")
+            y += card_h + 10
+            idx += 1
+
+        # Label "Arquivos Ausentes" fixo no rodapé da área de scroll (se houver arquivos ausentes)
+        if self.missing_files and (area_bottom - self.section_label_height - 10 > area_top):
+            missing_label = self.get_missing_label()
+            self.screen.blit(missing_label, (self.card_padding+32, area_bottom - self.section_label_height))
+
+        if not self.missing_files and not self.corrupted_files:
+            msg = self.font_title.render("Nenhum problema encontrado!", True, (80,220,80))
+            self.screen.blit(msg, (WIDTH//2-msg.get_width()//2, area_top+40))
+            msg2 = self.font_text.render("Todos os recursos necessários estão presentes e íntegros.", True, (180,255,180))
+            self.screen.blit(msg2, (WIDTH//2-msg2.get_width()//2, area_top+90))
+
+        # Scrollbar
+        content_height = self.total_items * (card_h + 10)
+        visible_height = area_bottom-area_top
+        if content_height > visible_height:
+            bar_x = WIDTH - 32
+            bar_w = 12
+            scroll_height = max(40, (visible_height / content_height) * visible_height)
+            max_scroll = max(1, content_height - visible_height)
+            scroll_pos = (self.scroll_offset / max_scroll) * (visible_height - scroll_height)
+            mouse_on_bar = pygame.Rect(bar_x, area_top, bar_w, visible_height).collidepoint(mouse_pos)
+            self.scrollbar_hover = mouse_on_bar
+            self.scrollbar_rect = pygame.Rect(bar_x, area_top+scroll_pos, bar_w, scroll_height)  # <-- add this for drag logic
+            pygame.draw.rect(self.screen, (40,40,40), (bar_x, area_top, bar_w, visible_height), border_radius=6)
+            pygame.draw.rect(
+                self.screen,
+                (180,180,180) if self.scrollbar_hover or self.dragging_scrollbar else (120,120,120),
+                self.scrollbar_rect,
+                border_radius=6
+            )
+        else:
+            self.scrollbar_rect = None
+      
+        footer_rect = pygame.Rect(0, HEIGTH - 60, WIDTH, 60)
+        pygame.draw.rect(self.screen, (30, 30, 30, 220), footer_rect)
+        glass = pygame.Surface((WIDTH, 60), pygame.SRCALPHA)
+        pygame.draw.rect(glass, (255,255,255,18), glass.get_rect())
+        self.screen.blit(glass, (0, HEIGTH-60))
+        # Bottom buttons
+        btn_y = HEIGTH - 45
+        btn_w = 160
+        btn_h = 30
+        gap = 24
+        total_btn_w = btn_w*3 + gap*2
+        start_x = WIDTH//2 - total_btn_w//2
+        verify_rect = pygame.Rect(start_x, btn_y, btn_w, btn_h)
+        export_rect = pygame.Rect(start_x+btn_w+gap, btn_y, btn_w, btn_h)
+        close_rect = pygame.Rect(start_x+2*(btn_w+gap), btn_y, btn_w, btn_h)
+        self.draw_button("Verificar novamente", verify_rect, verify_rect.collidepoint(mouse_pos), tooltip="Executar nova verificação")
+        self.draw_button("Exportar relatório", export_rect, export_rect.collidepoint(mouse_pos), tooltip="Salvar relatório em arquivo")
+        self.draw_button("Fechar", close_rect, close_rect.collidepoint(mouse_pos), tooltip="Fechar esta janela")
         
+        # Status message
+        status = f"{len(self.missing_files)} ausentes, {len(self.corrupted_files)} corrompidos"
+        status_surf = self.font_small.render(status, True, self.TEXT_COLOR)
+        self.screen.blit(status_surf, (self.card_padding+16, HEIGTH-38))
+        
+        # Tooltip
+        if self.tooltip and self.tooltip_rect and self.tooltip_rect.collidepoint(mouse_pos):
+            self.draw_tooltip(self.tooltip, mouse_pos)
+        self.tooltip = None
+        self.tooltip_rect = None
         pygame.display.flip()
 
-    # ...rest of existing code...
+    def show_success_modal(self):
+        modal_w, modal_h = 420, 180
+        modal_x = (WIDTH - modal_w) // 2
+        modal_y = (HEIGTH - modal_h) // 2
+        modal_rect = pygame.Rect(modal_x, modal_y, modal_w, modal_h)
+        btn_rect = pygame.Rect(modal_x + modal_w//2 - 60, modal_y + modal_h - 60, 120, 38)
+        running = True
+        clock = pygame.time.Clock()
+        font_big = pygame.font.Font(UI_FONT, 28)
+        font_small = pygame.font.Font(UI_FONT, 18)
+        
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit(0)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if btn_rect.collidepoint(pygame.mouse.get_pos()):
+                        pygame.quit()
+                        sys.exit(0)
+         
+            overlay = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA)
+            overlay.fill((0,0,0,120))
+            self.screen.blit(overlay, (0,0))
+            # modal
+            pygame.draw.rect(self.screen, (32,32,32), modal_rect, border_radius=16)
+            pygame.draw.rect(self.screen, (255,255,255,30), modal_rect, 2, border_radius=16)
+            # texto
+            txt = font_big.render("Todos item(s) reparados!", True, (80,220,80))
+            self.screen.blit(txt, (modal_x + modal_w//2 - txt.get_width()//2, modal_y + 32))
+            txt2 = font_small.render("Todos os arquivos ausentes/corrompidos foram restaurados.", True, (220,220,220))
+            self.screen.blit(txt2, (modal_x + modal_w//2 - txt2.get_width()//2, modal_y + 80))
+            # botão OK
+            mouse_over = btn_rect.collidepoint(pygame.mouse.get_pos())
+            btn_color = (80,180,80) if mouse_over else (60,120,60)
+            pygame.draw.rect(self.screen, btn_color, btn_rect, border_radius=8)
+            pygame.draw.rect(self.screen, (255,255,255,40), btn_rect, 2, border_radius=8)
+            ok_txt = font_small.render("OK", True, (255,255,255))
+            self.screen.blit(ok_txt, (btn_rect.centerx - ok_txt.get_width()//2, btn_rect.centery - ok_txt.get_height()//2))
+            pygame.display.flip()
+            clock.tick(60)
+
+    def show_fail_modal(self):
+        modal_w, modal_h = 440, 180
+        modal_x = (WIDTH - modal_w) // 2
+        modal_y = (HEIGTH - modal_h) // 2
+        modal_rect = pygame.Rect(modal_x, modal_y, modal_w, modal_h)
+        btn_rect = pygame.Rect(modal_x + modal_w//2 - 60, modal_y + modal_h - 60, 120, 38)
+        running = True
+        clock = pygame.time.Clock()
+        font_big = pygame.font.Font(UI_FONT, 26)
+        font_small = pygame.font.Font(UI_FONT, 18)
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit(0)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if btn_rect.collidepoint(pygame.mouse.get_pos()):
+                        running = False
+            overlay = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA)
+            overlay.fill((0,0,0,120))
+            self.screen.blit(overlay, (0,0))
+            # modal
+            pygame.draw.rect(self.screen, (40,20,20), modal_rect, border_radius=16)
+            pygame.draw.rect(self.screen, (255,80,80,60), modal_rect, 2, border_radius=16)
+            # texto
+            txt = font_big.render("Falha ao reparar!", True, (255,80,80))
+            self.screen.blit(txt, (modal_x + modal_w//2 - txt.get_width()//2, modal_y + 32))
+            txt2 = font_small.render("Consulte o repositório oficial do GitHub para baixar o arquivo manualmente.", True, (255,220,220))
+            self.screen.blit(txt2, (modal_x + modal_w//2 - txt2.get_width()//2, modal_y + 80))
+            # botão OK
+            mouse_over = btn_rect.collidepoint(pygame.mouse.get_pos())
+            btn_color = (180,80,80) if mouse_over else (120,60,60)
+            pygame.draw.rect(self.screen, btn_color, btn_rect, border_radius=8)
+            pygame.draw.rect(self.screen, (255,255,255,40), btn_rect, 2, border_radius=8)
+            ok_txt = font_small.render("OK", True, (255,255,255))
+            self.screen.blit(ok_txt, (btn_rect.centerx - ok_txt.get_width()//2, btn_rect.centery - ok_txt.get_height()//2))
+            pygame.display.flip()
+            clock.tick(60)
 
     def handle_events(self):
-        """Handle all pygame events for the interface"""
         mouse_pos = pygame.mouse.get_pos()
-        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.result['action'] = 'quit'
+                pygame.display.quit()
+                pygame.quit()
+                sys.exit(0)
                 return False
-                
+            # Fechar ao clicar no X customizado
             if event.type == pygame.MOUSEBUTTONDOWN:
-                # Verifica clique nos botões de reparo individuais
-                y = 80 - self.scroll_offset
-                for file in self.missing_files + self.corrupted_files:
-                    if 80 <= y <= HEIGTH - 100:
-                        repair_rect = pygame.Rect(WIDTH - 180, y, 70, 24)
-                        ignore_rect = pygame.Rect(WIDTH - 100, y, 70, 24)
-                        
+                close_rect = pygame.Rect(WIDTH-48, 12, 32, 32)
+                if close_rect.collidepoint(mouse_pos) or self.buttons['close'].collidepoint(mouse_pos):
+                    self.result['action'] = 'close'
+                    pygame.display.quit()
+                    pygame.quit()
+                    sys.exit(0)
+                    return False
+                
+                area_top = 120
+                area_bottom = HEIGTH - 100
+                y = area_top - self.scroll_offset
+                idx = 0
+                card_w = WIDTH - 2*self.card_padding - 32
+                card_h = self.item_height + 10
+                
+                # missing files
+                for file in self.missing_files:
+                    if area_top <= y <= area_bottom - self.section_label_height - 10:
+                        card_rect = pygame.Rect(self.card_padding+16, y, card_w, card_h)
+                        repair_rect = pygame.Rect(card_rect.right-150, y+8, 64, 24)
+                        ignore_rect = pygame.Rect(card_rect.right-78, y+8, 64, 24)
                         if repair_rect.collidepoint(mouse_pos):
                             if self.repair_file(file):
                                 self.result['repaired_files'].append(file)
                                 if file in self.missing_files:
                                     self.missing_files.remove(file)
-                                if file in self.corrupted_files:
-                                    self.corrupted_files.remove(file)
+                                if not self.missing_files and not self.corrupted_files:
+                                    self.show_success_modal()
+                                    self.result['action'] = 'complete'
+                                    return False
+                            else:
+                                self.show_fail_modal()
+                            break
                         elif ignore_rect.collidepoint(mouse_pos):
                             self.result['ignored_files'].append(file)
                             if file in self.missing_files:
                                 self.missing_files.remove(file)
+                            if not self.missing_files and not self.corrupted_files:
+                                self.result['action'] = 'complete'
+                                return False
+                            break
+                    y += card_h + 10
+                    idx += 1
+                # label 
+                if self.corrupted_files:
+                    if area_top <= y <= area_bottom - self.section_label_height - 10:
+                        y += self.section_label_height
+                # corrupted files
+                for file in self.corrupted_files:
+                    if area_top <= y <= area_bottom:
+                        card_rect = pygame.Rect(self.card_padding+16, y, card_w, card_h)
+                        repair_rect = pygame.Rect(card_rect.right-150, y+8, 64, 24)
+                        ignore_rect = pygame.Rect(card_rect.right-78, y+8, 64, 24)
+                        if repair_rect.collidepoint(mouse_pos):
+                            if self.repair_file(file):
+                                self.result['repaired_files'].append(file)
+                                if file in self.corrupted_files:
+                                    self.corrupted_files.remove(file)
+                                if not self.missing_files and not self.corrupted_files:
+                                    self.show_success_modal()
+                                    self.result['action'] = 'complete'
+                                    return False
+                            else:
+                                self.show_fail_modal()
+                            break
+                        elif ignore_rect.collidepoint(mouse_pos):
+                            self.result['ignored_files'].append(file)
                             if file in self.corrupted_files:
                                 self.corrupted_files.remove(file)
-                    y += self.item_height
-                
-                # Verifica clique nos botões do rodapé
+                            if not self.missing_files and not self.corrupted_files:
+                                self.result['action'] = 'complete'
+                                return False
+                            break
+                    y += card_h + 10
+                    idx += 1
+                    
                 if self.buttons['repair_all'].collidepoint(mouse_pos):
                     repaired, failed = self.repair_all()
                     self.result['repaired_files'].extend(repaired)
+                    if failed:
+                        self.show_fail_modal()
+                    elif not self.missing_files and not self.corrupted_files:
+                        self.show_success_modal()
+                        self.result['action'] = 'complete'
+                        return False
                     self.result['action'] = 'repair_all'
-                    
+                    return True
                 elif self.buttons['export'].collidepoint(mouse_pos):
-                    success, result = self.export_report()
-                    if success:
-                        self.result['action'] = 'export'
-                        self.result['export_file'] = result
-                        
+                    return True
                 elif self.buttons['close'].collidepoint(mouse_pos):
                     self.result['action'] = 'close'
                     return False
-                    
+                
+                btn_y = HEIGTH - 45
+                btn_w = 160
+                btn_h = 30
+                gap = 24
+                total_btn_w = btn_w*3 + gap*2
+                start_x = WIDTH//2 - total_btn_w//2
+                verify_rect = pygame.Rect(start_x, btn_y, btn_w, btn_h)
+                if verify_rect.collidepoint(mouse_pos):
+                    self.show_loading(5)
+                    return True
             if event.type == pygame.MOUSEWHEEL:
                 self.handle_scroll(event)
-                
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.result['action'] = 'close'
+                    pygame.display.quit()
+                    pygame.quit()
                     return False
-                    
+            # Scrollbar drag start
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.scrollbar_rect and self.scrollbar_rect.collidepoint(mouse_pos):
+                    self.dragging_scrollbar = True
+                    self.drag_start_y = mouse_pos[1]
+                    self.scroll_offset_on_drag = self.scroll_offset
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.dragging_scrollbar = False
+            if event.type == pygame.MOUSEMOTION:
+                if self.dragging_scrollbar and self.scrollbar_rect:
+                    area_top = 120
+                    area_bottom = HEIGTH - 100
+                    visible_height = area_bottom - area_top
+                    card_h = self.item_height + 10
+                    content_height = self.total_items * card_h
+                    max_scroll = max(1, content_height - visible_height)
+                    scroll_height = max(40, (visible_height / content_height) * visible_height)
+                    delta_y = mouse_pos[1] - self.drag_start_y
+                    scroll_track_height = visible_height - scroll_height
+                    if scroll_track_height > 0:
+                        percent = delta_y / scroll_track_height
+                        self.scroll_offset = int(self.scroll_offset_on_drag + percent * max_scroll)
+                        self.scroll_offset = max(0, min(self.scroll_offset, max_scroll))
         return True
 
+    def handle_scroll(self, event):
+        """Handles mouse wheel scrolling for the error list."""
+        card_h = self.item_height + 10
+        content_height = self.total_items * card_h
+        area_top = 120
+        area_bottom = HEIGTH - 100
+        visible_height = area_bottom - area_top
+        max_scroll = max(0, content_height - visible_height)
+      
+        self.scroll_offset -= event.y * card_h  # event.y is +1 for up, -1 for down
+        self.scroll_offset = max(0, min(self.scroll_offset, max_scroll))
+
     def run(self):
-        """Main loop for the error interface"""
         running = True
+        clock = pygame.time.Clock()
         while running:
-            running = self.handle_events()
             self.display()
-            
-            # Se não houver mais arquivos com problemas, fecha a interface
+            running = self.handle_events()
             if not self.missing_files and not self.corrupted_files:
                 self.result['action'] = 'complete'
-                running = False
-                
+                break
+            clock.tick(60)
         return self.result
 
-# Modificar a classe ResourceVerifier para usar o novo sistema
 class ResourceVerifier:
-    def __init__(self):
+    def __init__(self, screen=None):
         self.missing = []
         self.corrupted = []
-        pygame.init()
-        pygame.mixer.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGTH))
-        pygame.display.set_caption('Verificador de Recursos')
+        if screen is not None:
+            self.screen = screen
+        else:
+            pygame.init()
+            pygame.mixer.init()
+            self.screen = screen
 
     def show_error_interface(self):
         if self.missing or self.corrupted:
             error_ui = ErrorInterface(self.screen, self.missing, self.corrupted)
             result = error_ui.run()
-            
-            # Processa o resultado
             if result['action'] == 'quit':
                 pygame.quit()
                 sys.exit()
             elif result['action'] == 'complete':
-                print("\n✅ Todos os problemas foram resolvidos!")
+                pass
             elif result['action'] == 'export':
-                print(f"\nRelatório exportado para: {result['export_file']}")
-            
+                pass
             if result['repaired_files']:
-                print("\nArquivos reparados:")
-                for file in result['repaired_files']:
-                    print(f"  ✓ {file}")
-                    
+                pass
             if result['ignored_files']:
-                print("\nArquivos ignorados:")
-                for file in result['ignored_files']:
-                    print(f"  - {file}")
+                pass
 
     def verify_file(self, category, subcategory, filename):
-        """Verify if a file exists and is not corrupted"""
-        filepath = get_asset_path(f"{category}/{subcategory}/{filename}")
-        
-        if not os.path.exists(filepath):
+        if subcategory:
+            filepath = os.path.join(category, subcategory, filename)
+        else:
+            filepath = os.path.join(category, filename)
+        fullpath = get_asset_path(filepath)
+        if not os.path.exists(fullpath):
             self.missing.append(filepath)
             return False
-            
         try:
-            # Try to load the file based on its type
-            if filepath.endswith(('.png', '.jpg', '.jpeg')):
-                Image.open(filepath)
-            elif filepath.endswith(('.wav', '.ogg')):
-                pygame.mixer.Sound(filepath)
-            elif filepath.endswith('.ttf'):
-                pygame.font.Font(filepath)
-            elif filepath.endswith('.csv'):
-                with open(filepath, 'r') as f:
+            if fullpath.endswith(('.png', '.jpg', '.jpeg')):
+                Image.open(fullpath)
+            elif fullpath.endswith(('.wav', '.ogg')):
+                pygame.mixer.Sound(fullpath)
+            elif fullpath.endswith('.ttf'): 
+                pygame.font.Font(fullpath)
+            elif fullpath.endswith('.csv'):
+                with open(fullpath, 'r') as f:
                     f.read()
             return True
-        except Exception as e:
+        except Exception:
             self.corrupted.append(filepath)
             return False
 
-    def verify_all(self):
-        """Verify all required game resources"""
-        print("\nVerificando recursos do jogo...")
+    def verify_all(self, screen=None, loading_callback=None):
+        # Use a provided screen if available
+        if screen is not None:
+            self.screen = screen
         total = 0
         verified = 0
-
-        # Check audio files
-        print("\nVerificando áudios...")
         for subdir, files in REQUIRED_FILES['audio'].items():
             for f in files:
                 total += 1
                 if self.verify_file('audio', subdir, f):
                     verified += 1
-                    print(f"✓ {subdir}/{f}")
                 else:
-                    print(f"✗ {subdir}/{f}")
-
-        # Check graphic files  
-        print("\nVerificando gráficos...")
+                    pass
+                # Call loading_callback if provided
+                if loading_callback:
+                    loading_callback(verified, total)
         for subdir, items in REQUIRED_FILES['graphics'].items():
             if isinstance(items, dict):
                 for subsubdir, files in items.items():
@@ -482,59 +856,42 @@ class ResourceVerifier:
                                 total += 1
                                 if self.verify_file('graphics', f"{subdir}/{subsubdir}/{subsubsubdir}", f):
                                     verified += 1
-                                    print(f"✓ graphics/{subdir}/{subsubdir}/{subsubsubdir}/{f}")
                                 else:
-                                    print(f"✗ graphics/{subdir}/{subsubdir}/{subsubsubdir}/{f}")
+                                    pass
+                                if loading_callback:
+                                    loading_callback(verified, total)
                     else:
                         for f in files:
                             total += 1
                             if self.verify_file('graphics', f"{subdir}/{subsubdir}", f):
                                 verified += 1
-                                print(f"✓ graphics/{subdir}/{subsubdir}/{f}")
                             else:
-                                print(f"✗ graphics/{subdir}/{subsubdir}/{f}")
+                                pass
+                            if loading_callback:
+                                loading_callback(verified, total)
             else:
                 for f in items:
                     total += 1
                     if self.verify_file('graphics', subdir, f):
                         verified += 1
-                        print(f"✓ graphics/{subdir}/{f}")
                     else:
-                        print(f"✗ graphics/{subdir}/{f}")
-
-        # Check map files
-        print("\nVerificando mapas...")
+                        pass
+                    if loading_callback:
+                        loading_callback(verified, total)
         for subdir, files in REQUIRED_FILES['map'].items():
             for f in files:
                 total += 1
                 if self.verify_file('map', subdir, f):
                     verified += 1
-                    print(f"✓ map/{subdir}/{f}")
                 else:
-                    print(f"✗ map/{subdir}/{f}")
-
-        # Print summary
-        print(f"\nVerificação concluída: {verified}/{total} arquivos OK")
-        
-        if self.missing:
-            print("\nArquivos ausentes:")
-            for f in self.missing:
-                print(f"  - {f}")
-                
-        if self.corrupted:
-            print("\nArquivos corrompidos:")
-            for f in self.corrupted:
-                print(f"  - {f}")
-                
-        if not self.missing and not self.corrupted:
-            print("\n✅ Todos os recursos necessários estão presentes e íntegros!")
-        else:
-            print("\n❌ Foram encontrados problemas com alguns recursos!")
+                    pass
+                if loading_callback:
+                    loading_callback(verified, total)
+        if self.missing or self.corrupted:
             self.show_error_interface()
-            
-        pygame.quit()
+        else:
+            pass
 
-# Fix duplicate call
 if __name__ == "__main__":
     verifier = ResourceVerifier()
     verifier.verify_all()
