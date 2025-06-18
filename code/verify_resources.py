@@ -186,11 +186,11 @@ class ErrorInterface:
         bar_y = y
         pygame.draw.rect(self.screen, self.progress_bg, (bar_x, bar_y, bar_w, bar_h), border_radius=8)
         pygame.draw.rect(self.screen, self.progress_color, (bar_x, bar_y, int(bar_w*percent), bar_h), border_radius=8)
-        txt = self.font_small.render(f"Progresso: {done}/{total}", True, (220,220,220))
+        txt = self.font_small.render(f"Progress: {done}/{total}", True, (220,220,220))
         self.screen.blit(txt, (bar_x+8, bar_y+1))
 
     def repair_file(self, filepath):
-        """Tenta reparar um arquivo corrompido ou ausente"""
+        """Attempts to repair a missing or corrupted file"""
         try:
             backup_path = os.path.join('backup', filepath)
             dest_path = get_asset_path(filepath)
@@ -329,10 +329,10 @@ class ErrorInterface:
         return text + "..."
 
     def get_missing_label(self):
-        return self.font_text.render("Arquivos Ausentes", True, self.WARNING_COLOR)
+        return self.font_text.render("Missing Files", True, self.WARNING_COLOR)
 
     def get_corrupted_label(self):
-        return self.font_text.render("Arquivos Corrompidos", True, self.ERROR_COLOR)
+        return self.font_text.render("Corrupted Files", True, self.ERROR_COLOR)
 
     def get_short_file_label(self, file, kind):
         filename = os.path.basename(file)
@@ -353,7 +353,7 @@ class ErrorInterface:
         if self.icon_surface:
             self.screen.blit(self.icon_surface, (18, 10))
     
-        title = self.font_title.render("Verificação de Recursos do Jogo", True, self.WARNING_COLOR)
+        title = self.font_title.render("Game Resource Verification", True, self.WARNING_COLOR)
         self.screen.blit(title, (WIDTH//2-title.get_width()//2, 12))
      
         close_rect = pygame.Rect(WIDTH-48, 12, 32, 32)
@@ -382,7 +382,7 @@ class ErrorInterface:
             
             pygame.draw.circle(self.screen, (30,30,30), center, radius-16, 0)
             font = self.font_title
-            txt = font.render("Carregando...", True, (220,220,220))
+            txt = font.render("Loading...", True, (220,220,220))
             self.screen.blit(txt, (center[0]-txt.get_width()//2, center[1]+radius+16))
             pygame.display.flip()
             for event in pygame.event.get():
@@ -399,7 +399,7 @@ class ErrorInterface:
         self.screen.fill(self.DARK_BG)
         
         close_rect = self.draw_custom_header()
-        desc = self.font_text.render("Arquivos ausentes ou corrompidos abaixo. Clique para reparar ou ignorar.", True, self.TEXT_COLOR)
+        desc = self.font_text.render("Missing or corrupted files below. Click to repair or ignore.", True, self.TEXT_COLOR)
         self.screen.blit(desc, (WIDTH//2-desc.get_width()//2, 62))
         self.draw_progress_bar(y=90)
         
@@ -434,8 +434,8 @@ class ErrorInterface:
                 repair_rect = pygame.Rect(card_rect.right-150, y+8, 64, 24)
                 ignore_rect = pygame.Rect(card_rect.right-78, y+8, 64, 24)
                 
-                self.draw_button("Reparar", repair_rect, repair_rect.collidepoint(mouse_pos), tooltip="Tentar restaurar este arquivo")
-                self.draw_button("Ignorar", ignore_rect, ignore_rect.collidepoint(mouse_pos), tooltip="Ignorar este arquivo")
+                self.draw_button("Repair", repair_rect, repair_rect.collidepoint(mouse_pos), tooltip="Try to restore this file")
+                self.draw_button("Ignore", ignore_rect, ignore_rect.collidepoint(mouse_pos), tooltip="Ignore this file")
             y += card_h + 10
             idx += 1
         if self.corrupted_files:
@@ -459,20 +459,20 @@ class ErrorInterface:
                 self.screen.blit(file_surf, (card_rect.x+48, y+13))
                 repair_rect = pygame.Rect(card_rect.right-150, y+8, 64, 24)
                 ignore_rect = pygame.Rect(card_rect.right-78, y+8, 64, 24)
-                self.draw_button("Reparar", repair_rect, repair_rect.collidepoint(mouse_pos), tooltip="Tentar restaurar este arquivo")
-                self.draw_button("Ignorar", ignore_rect, ignore_rect.collidepoint(mouse_pos), tooltip="Ignorar este arquivo")
+                self.draw_button("Repair", repair_rect, repair_rect.collidepoint(mouse_pos), tooltip="Try to restore this file")
+                self.draw_button("Ignore", ignore_rect, ignore_rect.collidepoint(mouse_pos), tooltip="Ignore this file")
             y += card_h + 10
             idx += 1
 
-        # Label "Arquivos Ausentes" fixo no rodapé da área de scroll (se houver arquivos ausentes)
+        # Label "Missing Files" fixed at the bottom of the scroll area (if there are missing files)
         if self.missing_files and (area_bottom - self.section_label_height - 10 > area_top):
             missing_label = self.get_missing_label()
             self.screen.blit(missing_label, (self.card_padding+32, area_bottom - self.section_label_height))
 
         if not self.missing_files and not self.corrupted_files:
-            msg = self.font_title.render("Nenhum problema encontrado!", True, (80,220,80))
+            msg = self.font_title.render("No problems found!", True, (80,220,80))
             self.screen.blit(msg, (WIDTH//2-msg.get_width()//2, area_top+40))
-            msg2 = self.font_text.render("Todos os recursos necessários estão presentes e íntegros.", True, (180,255,180))
+            msg2 = self.font_text.render("All required resources are present and intact.", True, (180,255,180))
             self.screen.blit(msg2, (WIDTH//2-msg2.get_width()//2, area_top+90))
 
         # Scrollbar
@@ -512,12 +512,12 @@ class ErrorInterface:
         verify_rect = pygame.Rect(start_x, btn_y, btn_w, btn_h)
         export_rect = pygame.Rect(start_x+btn_w+gap, btn_y, btn_w, btn_h)
         close_rect = pygame.Rect(start_x+2*(btn_w+gap), btn_y, btn_w, btn_h)
-        self.draw_button("Verificar novamente", verify_rect, verify_rect.collidepoint(mouse_pos), tooltip="Executar nova verificação")
-        self.draw_button("Exportar relatório", export_rect, export_rect.collidepoint(mouse_pos), tooltip="Salvar relatório em arquivo")
-        self.draw_button("Fechar", close_rect, close_rect.collidepoint(mouse_pos), tooltip="Fechar esta janela")
+        self.draw_button("Verify again", verify_rect, verify_rect.collidepoint(mouse_pos), tooltip="Run verification again")
+        self.draw_button("Export report", export_rect, export_rect.collidepoint(mouse_pos), tooltip="Save report to file")
+        self.draw_button("Close", close_rect, close_rect.collidepoint(mouse_pos), tooltip="Close this window")
         
         # Status message
-        status = f"{len(self.missing_files)} ausentes, {len(self.corrupted_files)} corrompidos"
+        status = f"{len(self.missing_files)} missing, {len(self.corrupted_files)} corrupted"
         status_surf = self.font_small.render(status, True, self.TEXT_COLOR)
         self.screen.blit(status_surf, (self.card_padding+16, HEIGTH-38))
         
@@ -556,9 +556,9 @@ class ErrorInterface:
             pygame.draw.rect(self.screen, (32,32,32), modal_rect, border_radius=16)
             pygame.draw.rect(self.screen, (255,255,255,30), modal_rect, 2, border_radius=16)
             # texto
-            txt = font_big.render("Todos item(s) reparados!", True, (80,220,80))
+            txt = font_big.render("All item(s) repaired!", True, (80,220,80))
             self.screen.blit(txt, (modal_x + modal_w//2 - txt.get_width()//2, modal_y + 32))
-            txt2 = font_small.render("Todos os arquivos ausentes/corrompidos foram restaurados.", True, (220,220,220))
+            txt2 = font_small.render("All missing/corrupted files have been restored.", True, (220,220,220))
             self.screen.blit(txt2, (modal_x + modal_w//2 - txt2.get_width()//2, modal_y + 80))
             # botão OK
             mouse_over = btn_rect.collidepoint(pygame.mouse.get_pos())
@@ -595,9 +595,9 @@ class ErrorInterface:
             pygame.draw.rect(self.screen, (40,20,20), modal_rect, border_radius=16)
             pygame.draw.rect(self.screen, (255,80,80,60), modal_rect, 2, border_radius=16)
             # texto
-            txt = font_big.render("Falha ao reparar!", True, (255,80,80))
+            txt = font_big.render("Failed to repair!", True, (255,80,80))
             self.screen.blit(txt, (modal_x + modal_w//2 - txt.get_width()//2, modal_y + 32))
-            txt2 = font_small.render("Consulte o repositório oficial do GitHub para baixar o arquivo manualmente.", True, (255,220,220))
+            txt2 = font_small.render("Check the official GitHub repository to download the file manually.", True, (255,220,220))
             self.screen.blit(txt2, (modal_x + modal_w//2 - txt2.get_width()//2, modal_y + 80))
             # botão OK
             mouse_over = btn_rect.collidepoint(pygame.mouse.get_pos())
@@ -618,7 +618,7 @@ class ErrorInterface:
                 pygame.quit()
                 sys.exit(0)
                 return False
-            # Fechar ao clicar no X customizado
+            # Close when clicking the custom X
             if event.type == pygame.MOUSEBUTTONDOWN:
                 close_rect = pygame.Rect(WIDTH-48, 12, 32, 32)
                 if close_rect.collidepoint(mouse_pos) or self.buttons['close'].collidepoint(mouse_pos):

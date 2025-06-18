@@ -816,14 +816,14 @@ class Game:
         # Inicializar loading window com simulação de carregamento
         loading = LoadingWindow()
         
-        loading.update(5, "Verificando recursos do jogo...", resource_progress=(0, 0), resource_message="Carregando recursos")
+        loading.update(5, "Checking game resources...", resource_progress=(0, 0), resource_message="Loading resources")
         pygame.time.wait(300)
 
         def loading_callback(verified, total):
-            loading.update(5, "Verificando recursos do jogo...", resource_progress=(verified, total), resource_message="Carregando recursos")
+            loading.update(5, "Checking game resources...", resource_progress=(verified, total), resource_message="Loading resources")
         verifier = ResourceVerifier()
         verifier.verify_all(loading_callback=loading_callback)
-        loading.update(15, "Recursos verificados com sucesso!", resource_progress=(1, 1), resource_message="Carregando recursos")
+        loading.update(15, "Resources verified successfully!", resource_progress=(1, 1), resource_message="Loading resources")
         pygame.time.wait(300)
 
         for i in range(20, 101, 5):  
