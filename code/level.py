@@ -17,7 +17,6 @@ from paths import get_asset_path
 import os
 import gc
 import pygame._sdl2
-from pygame._sdl2 import Texture
 
 class Level:
 	shared_wind_frames = None
