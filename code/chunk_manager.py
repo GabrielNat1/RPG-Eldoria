@@ -163,3 +163,59 @@ async def chunk_streamer(player_chunk, chunks_dict, radius=2, max_concurrent=2):
                     await async_load_chunk(chunk, chunks_dict)
     workers = [asyncio.create_task(worker()) for _ in range(max_concurrent)]
     await asyncio.gather(*workers)
+
+def generate_chunk_mesh(chunk_data):
+    mesh = []
+    
+    for layer in ['boundary', 'grass', 'object']:
+        tiles = chunk_data.get(layer, [])
+      
+        tiles_by_row = {}
+        for tile in tiles:
+            row = tile['y']
+            tiles_by_row.setdefault(row, []).append(tile)
+        for row, row_tiles in tiles_by_row.items():
+            row_tiles.sort(key=lambda t: t['x'])
+            start = None
+            last_x = None
+            for tile in row_tiles:
+                if start is None:
+                    start = tile
+                    last_x = tile['x']
+                elif tile['x'] == last_x + TILESIZE:
+                    last_x = tile['x']
+                else:
+                    width = last_x - start['x'] + TILESIZE
+                    mesh.append({
+                        'x': start['x'],
+                        'y': start['y'],
+                        'w': width,
+                        'h': TILESIZE,
+                        'sprite_type': start.get('sprite_type', layer),
+                        'layer': layer
+                    })
+                    start = tile
+                    last_x = tile['x']
+                    
+            if start is not None:
+                width = last_x - start['x'] + TILESIZE
+                mesh.append({
+                    'x': start['x'],
+                    'y': start['y'],
+                    'w': width,
+                    'h': TILESIZE,
+                    'sprite_type': start.get('sprite_type', layer),
+                    'layer': layer
+                })
+                
+    return mesh
+
+def occlusion_culling(mesh, camera_rect):
+    visible = []
+    cam_x, cam_y, cam_w, cam_h = camera_rect
+    for rect in mesh:
+        rx, ry, rw, rh = rect['x'], rect['y'], rect['w'], rect['h']
+        if (rx + rw > cam_x and rx < cam_x + cam_w and
+            ry + rh > cam_y and ry < cam_y + cam_h):
+            visible.append(rect)
+    return visible
