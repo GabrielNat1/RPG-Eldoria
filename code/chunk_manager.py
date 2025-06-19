@@ -5,6 +5,9 @@ from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER
 from support import import_csv_layout, import_folder
 from paths import get_asset_path
 import gc  
+import asyncio
+import queue
+import threading
 
 def get_chunk_file(chunk):
     return os.path.join(CHUNKS_FOLDER, f"chunk_{chunk[0]}_{chunk[1]}.dat")
@@ -110,3 +113,53 @@ def unload_chunks(chunks_dict, current_chunk, visibility_radius=2):
         save_chunk_data(chunk_pos, data)
         del chunks_dict[chunk_pos]
     gc.collect()  # Trigger garbage collection after unloading chunks
+
+class ChunkPriorityQueue:
+    def __init__(self):
+        self.q = queue.PriorityQueue()
+        self.set = set()
+        self.lock = threading.Lock()
+
+    def put(self, priority, chunk):
+        with self.lock:
+            if chunk not in self.set:
+                self.q.put((priority, chunk))
+                self.set.add(chunk)
+
+    def get(self):
+        with self.lock:
+            if not self.q.empty():
+                priority, chunk = self.q.get()
+                self.set.remove(chunk)
+                return priority, chunk
+            return None, None
+
+    def empty(self):
+        with self.lock:
+            return self.q.empty()
+
+chunk_queue = ChunkPriorityQueue()
+
+async def async_load_chunk(chunk, chunks_dict):
+    loop = asyncio.get_event_loop()
+    data = await loop.run_in_executor(None, load_chunk_data, chunk)
+    if data is None:
+        data = await loop.run_in_executor(None, generate_chunk_data, chunk)
+    chunks_dict[chunk] = data
+
+async def chunk_streamer(player_chunk, chunks_dict, radius=2, max_concurrent=2):
+    tasks = []
+    for dx in range(-radius, radius + 1):
+        for dy in range(-radius, radius + 1):
+            chunk = (player_chunk[0] + dx, player_chunk[1] + dy)
+            dist = abs(dx) + abs(dy)
+            chunk_queue.put(dist, chunk)
+    sem = asyncio.Semaphore(max_concurrent)
+    async def worker():
+        while not chunk_queue.empty():
+            _, chunk = chunk_queue.get()
+            if chunk is not None and chunk not in chunks_dict:
+                async with sem:
+                    await async_load_chunk(chunk, chunks_dict)
+    workers = [asyncio.create_task(worker()) for _ in range(max_concurrent)]
+    await asyncio.gather(*workers)
