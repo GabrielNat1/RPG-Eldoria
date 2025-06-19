@@ -2,7 +2,7 @@ import os
 import pickle
 import gzip  
 from random import randint
-from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER, REGION_SIZE
+from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER, REGION_SIZE, LRU_CACHE_SIZE
 from support import import_csv_layout, import_folder
 from paths import get_asset_path
 import gc  
@@ -10,6 +10,7 @@ import asyncio
 import queue
 import threading
 import concurrent.futures
+from collections import OrderedDict
 
 _executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
@@ -255,3 +256,81 @@ def occlusion_culling(mesh, camera_rect):
             ry + rh > cam_y and ry < cam_y + cam_h):
             visible.append(rect)
     return visible
+
+class ChunkLRUCache:
+    def __init__(self, max_size=LRU_CACHE_SIZE):
+        self.cache = OrderedDict()
+        self.max_size = max_size
+
+    def get(self, chunk):
+        if chunk in self.cache:
+            self.cache.move_to_end(chunk)
+            return self.cache[chunk]
+        return None
+
+    def put(self, chunk, data):
+        self.cache[chunk] = data
+        self.cache.move_to_end(chunk)
+        if len(self.cache) > self.max_size:
+            old_chunk, old_data = self.cache.popitem(last=False)
+           
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(_executor, save_chunk_data, old_chunk, old_data)
+
+    def remove(self, chunk):
+        if chunk in self.cache:
+            del self.cache[chunk]
+
+    def __contains__(self, chunk):
+        return chunk in self.cache
+
+    def __getitem__(self, chunk):
+        return self.get(chunk)
+
+    def __setitem__(self, chunk, data):
+        self.put(chunk, data)
+
+    def keys(self):
+        return self.cache.keys()
+
+    def items(self):
+        return self.cache.items()
+
+chunk_cache = ChunkLRUCache()
+
+def unload_chunks(chunks_dict, current_chunk, visibility_radius=2):
+    chunks_to_unload = []
+    for chunk_pos in list(chunk_cache.keys()):
+        dx = abs(chunk_pos[0] - current_chunk[0])
+        dy = abs(chunk_pos[1] - current_chunk[1])
+        if dx > visibility_radius or dy > visibility_radius:
+            chunks_to_unload.append(chunk_pos)
+    for chunk_pos in chunks_to_unload:
+        data = chunk_cache[chunk_pos]
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(_executor, save_chunk_data, chunk_pos, data)
+        chunk_cache.remove(chunk_pos)
+    gc.collect()
+
+def load_chunk_data_with_cache(chunk):
+    data = chunk_cache.get(chunk)
+    if data is not None:
+        return data
+    region_coords = get_region_coords(chunk)
+    region_data = load_region(region_coords)
+    data = region_data.get(get_chunk_key(chunk), None)
+    if data is not None:
+        chunk_cache.put(chunk, data)
+    return data
+
+def save_chunk_data_with_cache(chunk, data):
+    chunk_cache.put(chunk, data)
+   
+async def async_load_chunk(chunk, chunks_dict):
+    loop = asyncio.get_event_loop()
+    data = await loop.run_in_executor(None, load_chunk_data_with_cache, chunk)
+    if data is None:
+        data = await loop.run_in_executor(None, generate_chunk_data, chunk)
+        await loop.run_in_executor(_executor, save_chunk_data_with_cache, chunk, data)
+    chunk_cache.put(chunk, data)
+    chunks_dict[chunk] = data
