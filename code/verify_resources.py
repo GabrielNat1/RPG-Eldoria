@@ -829,21 +829,24 @@ class ResourceVerifier:
     def __init__(self, screen=None):
         self.missing = []
         self.corrupted = []
+        self._loading_screen_mode = False
         if screen is not None:
             self.screen = screen
         else:
             pygame.init()
             pygame.mixer.init()
-            # Always create a window if not provided
-            self.screen = pygame.display.set_mode((WIDTH, HEIGTH))
+            self.screen = pygame.display.set_mode((600, 200), pygame.NOFRAME)
             pygame.display.set_caption("Resource Verification")
+            self._loading_screen_mode = True
 
     def show_error_interface(self):
-        # Ensure self.screen is valid
-        if self.screen is None:
-            pygame.init()
-            self.screen = pygame.display.set_mode((WIDTH, HEIGTH))
+        if getattr(self, '_loading_screen_mode', False):
+            pygame.display.quit()
+            pygame.display.init()
+            self.screen = pygame.display.set_mode((WIDTH, HEIGTH), pygame.NOFRAME)
             pygame.display.set_caption("Resource Verification")
+            self._loading_screen_mode = False
+      
         if self.missing or self.corrupted:
             error_ui = ErrorInterface(self.screen, self.missing, self.corrupted)
             result = error_ui.run()
