@@ -2,7 +2,7 @@ import os
 import pickle
 import gzip  
 from random import randint
-from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER, REGION_SIZE, LRU_CACHE_SIZE
+from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER, REGION_SIZE, LRU_CACHE_SIZE, CHUNK_DATA_VERSION  
 from support import import_csv_layout, import_folder
 from paths import get_asset_path
 import gc  
@@ -28,6 +28,7 @@ def get_chunk_file(chunk):
 
 def generate_chunk_data(chunk):
     chunk_data = {
+        'version': CHUNK_DATA_VERSION,  
         'boundary': [],
         'grass': [],
         'object': [],
@@ -315,12 +316,23 @@ def unload_chunks(chunks_dict, current_chunk, visibility_radius=2):
 def load_chunk_data_with_cache(chunk):
     data = chunk_cache.get(chunk)
     if data is not None:
-        return data
-    region_coords = get_region_coords(chunk)
-    region_data = load_region(region_coords)
-    data = region_data.get(get_chunk_key(chunk), None)
-    if data is not None:
-        chunk_cache.put(chunk, data)
+    
+        if isinstance(data, dict) and data.get('version') == CHUNK_DATA_VERSION:
+            return data
+      
+        chunk_cache.remove(chunk)
+        data = None
+    if data is None:
+        region_coords = get_region_coords(chunk)
+        region_data = load_region(region_coords)
+        data = region_data.get(get_chunk_key(chunk), None)
+   
+        if isinstance(data, dict) and data.get('version') == CHUNK_DATA_VERSION:
+            chunk_cache.put(chunk, data)
+            return data
+        else:
+            return None
+        
     return data
 
 def save_chunk_data_with_cache(chunk, data):

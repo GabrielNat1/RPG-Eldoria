@@ -31,6 +31,7 @@ CHUNKSIZE = 24
 VISIBLE_CHUNKS = 3 
 REGION_SIZE = 32
 LRU_CACHE_SIZE = 64
+CHUNK_DATA_VERSION = 1  
 CHUNKS_FOLDER = os.path.join(base_path, 'region')
 
 #hitbox config
