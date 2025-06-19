@@ -29,6 +29,7 @@ FPS = 60
 TILESIZE = 64 
 CHUNKSIZE = 24  
 VISIBLE_CHUNKS = 3 
+REGION_SIZE = 32
 CHUNKS_FOLDER = os.path.join(base_path, 'region')
 
 #hitbox config

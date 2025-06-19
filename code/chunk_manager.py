@@ -2,13 +2,25 @@ import os
 import pickle
 import gzip  
 from random import randint
-from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER
+from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER, REGION_SIZE
 from support import import_csv_layout, import_folder
 from paths import get_asset_path
 import gc  
 import asyncio
 import queue
 import threading
+import concurrent.futures
+
+_executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+
+def get_region_coords(chunk):
+    return (chunk[0] // REGION_SIZE, chunk[1] // REGION_SIZE)
+
+def get_region_file(region_coords):
+    return os.path.join(CHUNKS_FOLDER, f"region_{region_coords[0]}_{region_coords[1]}.region")
+
+def get_chunk_key(chunk):
+    return (chunk[0], chunk[1])
 
 def get_chunk_file(chunk):
     return os.path.join(CHUNKS_FOLDER, f"chunk_{chunk[0]}_{chunk[1]}.region")
@@ -82,24 +94,34 @@ def generate_chunk_data(chunk):
                                     'monster_name': monster_name })
     return chunk_data
 
-def save_chunk_data(chunk, data):
+def load_region(region_coords):
+    region_file = get_region_file(region_coords)
+    if os.path.exists(region_file) and os.path.getsize(region_file) > 0:
+        try:
+            with gzip.open(region_file, "rb") as f:
+                region_data = pickle.load(f)
+                return region_data
+        except Exception:
+            return {}
+    else:
+        return {}
+
+def save_region(region_coords, region_data):
     os.makedirs(CHUNKS_FOLDER, exist_ok=True)
-    chunk_file = get_chunk_file(chunk)
-    
-    with gzip.open(chunk_file, "wb") as f:  
-        pickle.dump(data, f)
+    region_file = get_region_file(region_coords)
+    with gzip.open(region_file, "wb") as f:
+        pickle.dump(region_data, f)
+
+def save_chunk_data(chunk, data):
+    region_coords = get_region_coords(chunk)
+    region_data = load_region(region_coords)
+    region_data[get_chunk_key(chunk)] = data
+    save_region(region_coords, region_data)
 
 def load_chunk_data(chunk):
-    chunk_file = get_chunk_file(chunk)
-    if os.path.exists(chunk_file) and os.path.getsize(chunk_file) > 0:
-        try:
-            with gzip.open(chunk_file, "rb") as f:  
-                data = pickle.load(f)
-                return data
-        except Exception as e:
-            return None
-    else:
-        return None
+    region_coords = get_region_coords(chunk)
+    region_data = load_region(region_coords)
+    return region_data.get(get_chunk_key(chunk), None)
 
 def unload_chunks(chunks_dict, current_chunk, visibility_radius=2):
     chunks_to_unload = []
@@ -108,10 +130,11 @@ def unload_chunks(chunks_dict, current_chunk, visibility_radius=2):
         dy = abs(chunk_pos[1] - current_chunk[1])
         if dx > visibility_radius or dy > visibility_radius:
             chunks_to_unload.append(chunk_pos)
-    
     for chunk_pos in chunks_to_unload:
         data = chunks_dict[chunk_pos]
-        save_chunk_data(chunk_pos, data)
+        # Save chunk data asynchronously in a thread
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(_executor, save_chunk_data, chunk_pos, data)
         del chunks_dict[chunk_pos]
     gc.collect()  # Trigger garbage collection after unloading chunks
 
