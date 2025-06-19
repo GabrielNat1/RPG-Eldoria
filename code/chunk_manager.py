@@ -1,5 +1,6 @@
 import os
 import pickle
+import gzip  
 from random import randint
 from settings import TILESIZE, CHUNKSIZE, CHUNKS_FOLDER
 from support import import_csv_layout, import_folder
@@ -85,18 +86,18 @@ def save_chunk_data(chunk, data):
     os.makedirs(CHUNKS_FOLDER, exist_ok=True)
     chunk_file = get_chunk_file(chunk)
     
-    with open(chunk_file, "wb") as f:
+    with gzip.open(chunk_file, "wb") as f:  
         pickle.dump(data, f)
 
 def load_chunk_data(chunk):
     chunk_file = get_chunk_file(chunk)
     if os.path.exists(chunk_file) and os.path.getsize(chunk_file) > 0:
-        with open(chunk_file, "rb") as f:
-            try:
+        try:
+            with gzip.open(chunk_file, "rb") as f:  
                 data = pickle.load(f)
                 return data
-            except Exception as e:
-                return None
+        except Exception as e:
+            return None
     else:
         return None
 
