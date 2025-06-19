@@ -10,7 +10,7 @@ import queue
 import threading
 
 def get_chunk_file(chunk):
-    return os.path.join(CHUNKS_FOLDER, f"chunk_{chunk[0]}_{chunk[1]}.dat")
+    return os.path.join(CHUNKS_FOLDER, f"chunk_{chunk[0]}_{chunk[1]}.region")
 
 def generate_chunk_data(chunk):
     chunk_data = {
@@ -147,13 +147,25 @@ async def async_load_chunk(chunk, chunks_dict):
         data = await loop.run_in_executor(None, generate_chunk_data, chunk)
     chunks_dict[chunk] = data
 
-async def chunk_streamer(player_chunk, chunks_dict, radius=2, max_concurrent=2):
-    tasks = []
-    for dx in range(-radius, radius + 1):
-        for dy in range(-radius, radius + 1):
-            chunk = (player_chunk[0] + dx, player_chunk[1] + dy)
-            dist = abs(dx) + abs(dy)
-            chunk_queue.put(dist, chunk)
+def get_prefetch_chunks(player_chunk, direction, speed, radius=2, prefetch_distance=2):
+    dx, dy = direction
+    prefetch_chunks = set()
+    
+    for step in range(1, int(prefetch_distance * max(1, speed)) + 1):
+        target_chunk = (player_chunk[0] + dx * step, player_chunk[1] + dy * step)
+        prefetch_chunks.add((int(round(target_chunk[0])), int(round(target_chunk[1]))))
+
+    for x in range(-radius, radius + 1):
+        for y in range(-radius, radius + 1):
+            prefetch_chunks.add((player_chunk[0] + x, player_chunk[1] + y))
+    return list(prefetch_chunks)
+
+async def chunk_streamer(player_chunk, chunks_dict, radius=2, max_concurrent=2, direction=(0,0), speed=0):
+    prefetch_chunks = get_prefetch_chunks(player_chunk, direction, speed, radius=radius, prefetch_distance=2)
+    for chunk in prefetch_chunks:
+        dist = abs(chunk[0] - player_chunk[0]) + abs(chunk[1] - player_chunk[1])
+     
+        chunk_queue.put(dist, chunk)
     sem = asyncio.Semaphore(max_concurrent)
     async def worker():
         while not chunk_queue.empty():
