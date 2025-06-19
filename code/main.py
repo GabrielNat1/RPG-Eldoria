@@ -309,6 +309,9 @@ class MainMenuSettings:
 
     def toggle_option(self):
         option, value = self.settings.toggle_option()
+        if option == "Resolution":
+            self.settings.selected = 2  
+            self.settings.options[2]["value"] = (self.settings.options[2]["value"] - 1) % len(self.settings.options[2]["choices"])
         if option == "Volume":
             self.audio_manager.update_volume(value)
         if option:
@@ -539,6 +542,9 @@ class MainMenuSettings:
 
     def toggle_option(self):
         option, value = self.settings.toggle_option()
+        if option == "Resolution":
+            self.settings.selected = 2
+            self.settings.options[2]["value"] = (self.settings.options[2]["value"] - 1) % len(self.settings.options[2]["choices"])
         if option == "Volume":
             self.audio_manager.update_volume(value)
         if option:
@@ -661,6 +667,9 @@ class PauseMenuSettings:
 
     def toggle_option(self):
         option, value = self.settings.toggle_option()
+        if option == "Resolution":
+            self.settings.selected = 2
+            self.settings.options[2]["value"] = (self.settings.options[2]["value"] - 1) % len(self.settings.options[2]["choices"])
         if option == "Volume":
             self.audio_manager.update_volume(value)
         if option:
@@ -795,10 +804,77 @@ class LoadingWindow:
             
     def cleanup(self):
         """Properly cleanup the loading window"""
-        pygame.display.quit()  # Close the current display
-        pygame.display.init()  # Reinitialize the display
-        self.screen = None     # Remove reference to screen
-        pygame.event.clear()   # Clear any pending events
+        pygame.display.quit()  
+        pygame.display.init()  
+        self.screen = None    
+        pygame.event.clear()   
+
+class ResolutionErrorDialog:
+    def __init__(self, renderer, background_surface):
+        self.width = 400
+        self.height = 180
+        self.renderer = renderer
+        self.background_surface = background_surface 
+        # Centraliza na tela principal
+        screen_info = pygame.display.Info()
+        self.x = (screen_info.current_w - self.width) // 2
+        self.y = (screen_info.current_h - self.height) // 2
+        self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.font = pygame.font.Font(UI_FONT, 14)  #
+        self.small_font = pygame.font.Font(UI_FONT, 18)
+        self.ok_rect = pygame.Rect(self.width // 2 - 40, self.height - 50, 80, 32)
+
+    def show(self):
+        running = True
+        clock = pygame.time.Clock()
+        # Cria overlay escuro para o fundo
+        overlay = pygame.Surface(self.background_surface.get_size(), pygame.SRCALPHA)
+        overlay.fill((10, 10, 20, 180)) 
+
+        while running:
+            composed_bg = self.background_surface.copy()
+            composed_bg.blit(overlay, (0, 0))
+
+            self.surface.fill((0, 0, 0, 0))
+            pygame.draw.rect(self.surface, (30, 30, 50), (0, 0, self.width, self.height), border_radius=16)
+            pygame.draw.rect(self.surface, (80, 80, 120), (0, 0, self.width, self.height), 3, border_radius=16)
+
+            text1 = self.font.render("Error: Resolution blocked.", True, (220, 60, 60))
+
+            text1_rect = text1.get_rect(center=(self.width // 2, 44))
+            self.surface.blit(text1, text1_rect)
+            text2a = self.small_font.render("Maintenance in progress.", True, (200, 180, 180))
+            text2b = self.small_font.render("Do not insist.", True, (200, 180, 180))
+            self.surface.blit(text2a, text2a.get_rect(center=(self.width // 2, 92)))
+            self.surface.blit(text2b, text2b.get_rect(center=(self.width // 2, 112)))
+
+            pygame.draw.rect(self.surface, (50, 50, 100), self.ok_rect, border_radius=8)
+            ok_text = self.font.render("OK", True, (220, 220, 240))
+            self.surface.blit(ok_text, ok_text.get_rect(center=self.ok_rect.center))
+
+            final_surface = composed_bg.copy()
+            final_surface.blit(self.surface, ((final_surface.get_width() - self.width) // 2, (final_surface.get_height() - self.height) // 2))
+
+            texture = Texture.from_surface(self.renderer, final_surface)
+            self.renderer.clear()
+            self.renderer.blit(texture)
+            self.renderer.present()
+
+            # Events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mx, my = pygame.mouse.get_pos()
+                    rel_x = mx - self.x
+                    rel_y = my - self.y
+                    if self.ok_rect.collidepoint(rel_x, rel_y):
+                        running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key in (pygame.K_RETURN, pygame.K_ESCAPE, pygame.K_SPACE):
+                        running = False
+            clock.tick(30)
 
 class Game:
     def __init__(self):
@@ -823,8 +899,12 @@ class Game:
             loading.update(5, "Checking game resources...", resource_progress=(verified, total), resource_message="Loading resources")
         verifier = ResourceVerifier()
         verifier.verify_all(loading_callback=loading_callback)
-        loading.update(15, "Resources verified successfully!", resource_progress=(1, 1), resource_message="Loading resources")
-        pygame.time.wait(300)
+        if verifier.missing or verifier.corrupted:
+            loading.cleanup()
+            verifier.show_error_interface()
+        else:
+            loading.update(15, "Resources verified successfully!", resource_progress=(1, 1), resource_message="Loading resources")
+            pygame.time.wait(300)
 
         for i in range(20, 101, 5):  
             loading_message = "Starting..." if i < 30 else "Loading assets..." if i < 60 else "Preparing game..."
@@ -1180,8 +1260,10 @@ class Game:
                                 elif option == "Borderless":
                                     self.toggle_fullscreen(borderless=True)
                                 elif option == "Resolution":
-                                    self.apply_resolution(value)
-                                    self.settings.set_option("Fullscreen", False) 
+                                    self.main_menu_settings.display()
+                                    bg_surface = self.screen.copy()
+                                    dialog = ResolutionErrorDialog(self.renderer, bg_surface)
+                                    dialog.show()
                                 elif option == "Back":
                                     self.in_settings = False
                                     self.in_menu = True
@@ -1215,8 +1297,10 @@ class Game:
                                 elif option == "Borderless":
                                     self.toggle_fullscreen(borderless=True)
                                 elif option == "Resolution":
-                                    self.apply_resolution(value)
-                                    self.settings.set_option("Fullscreen", False) 
+                                    self.pause_menu_settings.display()
+                                    bg_surface = self.screen.copy()
+                                    dialog = ResolutionErrorDialog(self.renderer, bg_surface)
+                                    dialog.show()
                                 elif option == "Back":
                                     self.in_pause_settings = False
                                     self.in_pause = True
@@ -1365,18 +1449,19 @@ class Game:
             self.level.visible_sprites.offset = pygame.math.Vector2(0, 0)
 
     def apply_resolution(self, resolution):
-        global WIDTH, HEIGTH
-        WIDTH, HEIGTH = resolution
-        
-        # Update window size
-        self.window.size = (WIDTH, HEIGTH)
-        self.screen = pygame.Surface((WIDTH, HEIGTH))
-        
-        self.level.floor_surf = pygame.transform.scale(
-            pygame.image.load(get_asset_path('graphics', 'tilemap', 'ground.png')).convert(), 
-            (WIDTH, HEIGTH)
-        )
-        
+        """Apply the selected resolution from settings"""
+        if self.in_settings:
+            self.main_menu_settings.display()
+            bg_surface = self.screen.copy()
+        elif self.in_pause_settings:
+            self.pause_menu_settings.display()
+            bg_surface = self.screen.copy()
+        else:
+            bg_surface = self.screen.copy()
+        dialog = ResolutionErrorDialog(self.renderer, bg_surface)
+        dialog.show()
+        # Não altera nada
+
     def start_new_game(self):
         try:
             if self.level:
