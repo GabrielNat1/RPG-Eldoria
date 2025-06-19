@@ -609,6 +609,45 @@ class ErrorInterface:
             pygame.display.flip()
             clock.tick(60)
 
+    def show_repair_denied_modal(self):
+        modal_w, modal_h = 480, 180
+        modal_x = (WIDTH - modal_w) // 2
+        modal_y = (HEIGTH - modal_h) // 2
+        modal_rect = pygame.Rect(modal_x, modal_y, modal_w, modal_h)
+        btn_rect = pygame.Rect(modal_x + modal_w//2 - 60, modal_y + modal_h - 60, 120, 38)
+        running = True
+        clock = pygame.time.Clock()
+        font_big = pygame.font.Font(UI_FONT, 22)
+        font_small = pygame.font.Font(UI_FONT, 16)
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit(0)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if btn_rect.collidepoint(pygame.mouse.get_pos()):
+                        running = False
+            overlay = pygame.Surface((WIDTH, HEIGTH), pygame.SRCALPHA)
+            overlay.fill((0,0,0,120))
+            self.screen.blit(overlay, (0,0))
+            pygame.draw.rect(self.screen, (40,20,20), modal_rect, border_radius=16)
+            pygame.draw.rect(self.screen, (255,80,80,60), modal_rect, 2, border_radius=16)
+            txt = font_big.render("Repair denied.", True, (255,80,80))
+            self.screen.blit(txt, (modal_x + modal_w//2 - txt.get_width()//2, modal_y + 32))
+            txt2 = font_small.render("Corruption is irreversible. Reinstall from GitHub or the original source.", True, (255,220,220))
+            self.screen.blit(txt2, (modal_x + modal_w//2 - txt2.get_width()//2, modal_y + 80))
+            mouse_over = btn_rect.collidepoint(pygame.mouse.get_pos())
+            btn_color = (180,80,80) if mouse_over else (120,60,60)
+            pygame.draw.rect(self.screen, btn_color, btn_rect, border_radius=8)
+            pygame.draw.rect(self.screen, (255,255,255,40), btn_rect, 2, border_radius=8)
+            ok_txt = font_small.render("OK", True, (255,255,255))
+            self.screen.blit(ok_txt, (btn_rect.centerx - ok_txt.get_width()//2, btn_rect.centery - ok_txt.get_height()//2))
+            pygame.display.flip()
+            clock.tick(60)
+
+    def is_exe(self):
+        return getattr(sys, 'frozen', False)
+
     def handle_events(self):
         mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
@@ -642,6 +681,9 @@ class ErrorInterface:
                         repair_rect = pygame.Rect(card_rect.right-150, y+8, 64, 24)
                         ignore_rect = pygame.Rect(card_rect.right-78, y+8, 64, 24)
                         if repair_rect.collidepoint(mouse_pos):
+                            if self.is_exe():
+                                self.show_repair_denied_modal()
+                                break
                             if self.repair_file(file):
                                 self.result['repaired_files'].append(file)
                                 if file in self.missing_files:
@@ -674,6 +716,9 @@ class ErrorInterface:
                         repair_rect = pygame.Rect(card_rect.right-150, y+8, 64, 24)
                         ignore_rect = pygame.Rect(card_rect.right-78, y+8, 64, 24)
                         if repair_rect.collidepoint(mouse_pos):
+                            if self.is_exe():
+                                self.show_repair_denied_modal()
+                                break
                             if self.repair_file(file):
                                 self.result['repaired_files'].append(file)
                                 if file in self.corrupted_files:
@@ -695,7 +740,7 @@ class ErrorInterface:
                             break
                     y += card_h + 10
                     idx += 1
-                    
+
                 if self.buttons['repair_all'].collidepoint(mouse_pos):
                     repaired, failed = self.repair_all()
                     self.result['repaired_files'].extend(repaired)
@@ -789,9 +834,16 @@ class ResourceVerifier:
         else:
             pygame.init()
             pygame.mixer.init()
-            self.screen = screen
+            # Always create a window if not provided
+            self.screen = pygame.display.set_mode((WIDTH, HEIGTH))
+            pygame.display.set_caption("Resource Verification")
 
     def show_error_interface(self):
+        # Ensure self.screen is valid
+        if self.screen is None:
+            pygame.init()
+            self.screen = pygame.display.set_mode((WIDTH, HEIGTH))
+            pygame.display.set_caption("Resource Verification")
         if self.missing or self.corrupted:
             error_ui = ErrorInterface(self.screen, self.missing, self.corrupted)
             result = error_ui.run()
@@ -831,10 +883,8 @@ class ResourceVerifier:
             self.corrupted.append(filepath)
             return False
 
-    def verify_all(self, screen=None, loading_callback=None):
-        # Use a provided screen if available
-        if screen is not None:
-            self.screen = screen
+    def verify_all(self, loading_callback=None):
+        # Use self.screen, always initialized in __init__
         total = 0
         verified = 0
         for subdir, files in REQUIRED_FILES['audio'].items():
