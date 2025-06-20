@@ -29,6 +29,7 @@
 - [Technical Details](./technical.md)
 - [Combat & Gameplay](./gameplay.md)
 - [Polling System (Coming Soon)](./polling.md)
+- [System Upgrade (Coming Soon)](./systemupgrade.md)
 - [Credits & Attribution](./credits.md)
 - [License](../LICENSE)
 - [Security](../SECURITY.md)
@@ -42,4 +43,14 @@
 - [ChangeLog](./changelog.md)
 - [Report a Bug / Security Vulnerabilities](../SECURITY.md#reporting-a-vulnerability)
 - [Project Wiki](https://github.com/GabrielNat1/RPG-Eldoria/wiki)
+
+---
+
+## 🧰 Advanced Technical Documentation
+- [🗃️ Database / Internal Saving](./advanced-db-save.md)
+- [💾 Cross-Platform Compatibility](./advanced-compatibility.md)
+- [🔁 Event and Trigger System](./advanced-events-triggers.md)
+- [📦 Asset Management](./advanced-assets.md)
+- [🧮 Performance Management](./advanced-performance.md)
+- [🧩 Internal Module System](./advanced-modules.md)
 
