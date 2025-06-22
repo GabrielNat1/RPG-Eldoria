@@ -86,7 +86,7 @@ REQUIRED_FILES = {
     },
     'audio': {
         'effects': ['Fire.wav', 'claw.wav', 'sword.wav'],
-        'music': ['adventure_rain.ogg', 'main.ogg', 'village.ogg'],
+        'music': ['adventure_rain.ogg', 'main.ogg', 'main_menu.ogg', 'pause_menu.ogg'],
         'Menu': ['Menu1.wav', 'Accept2.wav']
     },
     'map': {
