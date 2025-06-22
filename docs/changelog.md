@@ -1,5 +1,5 @@
-# 📜 Changelog - RPG-Eldoria  
-*Project update history*  
+# 📜 Changelog – RPG-Eldoria  
+*Project update history*
 
 ---
 
@@ -84,34 +84,52 @@
 
 ### 🌧️ Systems  
 - Optimized rain/wind effects  
-- Enhanced memory management
+- Enhanced memory management  
 
-## **🚧 Future Update - In Development - Version 2.1.0**  
-### ⚙️ Planned Improvements  
-- **Migration to pygame-ce** for enhanced performance  
-- **GPU acceleration** integration  
-- **New loading screen** with progress indicators  
-- **Graphical overhaul**:  
-  - Improved lighting effects  
+---
+
+## **🌟 Version 2.1.0** (2025-06-22)  
+### ✨ New Features  
+- Full migration to **pygame-ce**  
+- Initial **GPU acceleration** support  
+- New **loading screen** with progress bar  
+- Graphical overhaul:  
+  - Improved lighting  
   - Enhanced texture quality  
   - Smoother animations  
 
----
+### ⚙️ Technical Improvements  
+- Fixed Cython integration bugs  
+- Compatibility fixes (Linux/macOS)  
 
-# 📜 Version History - RPG-Eldoria
-
-| Version      | Date         | Key Changes                                                                         | Category               |
-|--------------|--------------|-------------------------------------------------------------------------------------|------------------------|
-| **0.5.0**    | 2024-11-27   | Initial map, basic movement, mechanic prototypes                                    | Core Foundations       |
-| **1.0.0**    | 2024-11-29   | Core systems (UI/weapons), basic monsters, magic                                    | Initial Release        |
-| **1.2.0**    | 2024-12-17   | Functional menus, audio system, intro screen                                        | Interface/Audio        |
-| **1.5.0**    | 2025-01-29   | NPC dialogues, quest system, stamina mechanic                                       | RPG Systems            |
-| **2.0.0**    | 2025-02-23   | Expanded map, weather system (rain/wind), sprite optimizations                      | Major Expansion        |
-| *Tech Updates* | 2025-05-06  | Cython rebuild, multi-platform support (Linux/macOS)                               | Performance            |
-| **2.1.0**    | *In Dev*     | Pygame-ce migration, GPU acceleration, graphical overhaul                           | Future Update          |
+### 🐛 Bug Fixes  
+- Fixed crash on loading screen in some systems  
+- Partial fix for overlay issues during cutscenes  
 
 ---
 
+## **🚧 Future Update – Version 2.1.x** *(In Development)*  
+### 🔧 Planned Bug Fixes  
+- Final fix for overlay glitches during cutscenes  
+- Stability improvements for GPU acceleration  
+- Cross-platform graphical compatibility refinements  
+
+---
+
+# 📜 Version History – RPG-Eldoria
+
+| Version         | Date         | Key Changes                                                                 | Category              |
+|------------------|--------------|------------------------------------------------------------------------------|-----------------------|
+| **0.5.0**        | 2024-11-27   | Initial map, basic movement, mechanic prototypes                             | Core Foundations      |
+| **1.0.0**        | 2024-11-29   | Core systems (UI/weapons), basic monsters, magic                             | Initial Release       |
+| **1.2.0**        | 2024-12-17   | Functional menus, audio system, intro screen                                 | Interface/Audio       |
+| **1.5.0**        | 2025-01-29   | NPC dialogues, quest system, stamina mechanic                                | RPG Systems           |
+| **2.0.0**        | 2025-02-23   | Expanded map, weather system, sprite optimizations                           | Major Expansion       |
+| *Tech Updates*   | 2025-05-06   | Cython rebuild, multiplatform (Linux/macOS), memory & rain optimization      | Performance Patch     |
+| **2.1.0**        | 2025-06-22   | pygame-ce, GPU acceleration, graphical overhaul, loading screen              | Feature Release       |
+| **2.1.x**        | *In Dev*     | Bug fixes (cutscene overlay, GPU stability, visual adjustments)              | Maintenance           |
+
+---
 
 > 💡 **Tip**: Check [GitHub commits](https://github.com/GabrielNat1/RPG-Eldoria/commits) for specific details.  
 > 🔍 Search for: NPC, quest, optimization, map
