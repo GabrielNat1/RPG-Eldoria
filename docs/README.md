@@ -14,8 +14,13 @@
 <img src="https://img.shields.io/badge/Python-3.10+-blue?logo=python" alt="Python 3.10+" />
 <img src="https://img.shields.io/badge/Pygame-CE%202.x-green?logo=pygame" alt="Pygame CE 2.x" />
 <img src="https://img.shields.io/badge/SDL2-GPU%20Ready-purple?logo=sdl" alt="SDL2 GPU" />
-<img src="https://img.shields.io/badge/Input-Polling%20Coming%20Soon-yellow?logo=keyboard" alt="Input Polling Coming Soon" />
 <img src="https://img.shields.io/badge/Memory-Optimized%20Enemies%20Planned-lightgrey?logo=ram" alt="Memory Optimized Enemies Planned" />
+
+<img src="https://img.shields.io/badge/Platform-Windows-blue?logo=windows&logoColor=white" alt="Windows" />
+
+<img src="https://img.shields.io/badge/Platform-Linux-black?logo=linux&logoColor=white" alt="Linux" />
+
+</p>
 
 </p>
 
