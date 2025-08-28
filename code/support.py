@@ -2,6 +2,7 @@ import pygame
 from csv import reader
 from os import walk
 import platform
+import os  
 
 if platform.system() in ["Linux", "Darwin"]: 
     import resource
@@ -28,7 +29,7 @@ def import_folder(path):
     try:
         for _, __, img_files in walk(path):
             for image in img_files:
-                full_path = path + '/' + image
+                full_path = os.path.join(path, image)  
                 if full_path not in image_cache:
                     try:
                         image_surf = pygame.image.load(full_path).convert_alpha()
@@ -61,11 +62,10 @@ def check_os_and_limit_memory(memory_limit_mb):
         pass
 
 def get_main_surface():
-	# Só use get_window se realmente existir (pygame-ce + SDL2)
 	if hasattr(pygame.display, "get_window"):
 		try:
 			return pygame.display.get_window().get_surface()
 		except Exception:
 			pass
-	# Fallback para pygame tradicional
+	
 	return pygame.display.get_surface()

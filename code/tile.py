@@ -5,7 +5,8 @@ class Tile(pygame.sprite.Sprite):
     shared_surfaces = {}
 
     def __init__(self, pos, groups, sprite_type, surface=None):
-        super().__init__(groups)
+        unique_groups = list(set(groups))
+        super().__init__(unique_groups)
         self.sprite_type = sprite_type
         y_offset = HITBOX_OFFSET[sprite_type]
 

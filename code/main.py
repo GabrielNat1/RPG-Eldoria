@@ -15,6 +15,8 @@ import gc
 from pygame._sdl2 import Window, Renderer, Texture
 from dev_args import dev_mode
 from verify_resources import ResourceVerifier
+#from memory_check import monitor_memory
+#import threading
 
 base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
@@ -1622,6 +1624,7 @@ class Game:
             gc.collect()
 
 if __name__ == '__main__':
-    check_os_and_limit_memory(356)  
+    # threading.Thread(target=monitor_memory, args=(5,), daemon=True).start()
+    # check_os_and_limit_memory(356)  
     game = Game()
     game.run()

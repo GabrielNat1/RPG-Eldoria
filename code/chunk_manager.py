@@ -111,14 +111,20 @@ def load_region(region_coords):
 def save_region(region_coords, region_data):
     os.makedirs(CHUNKS_FOLDER, exist_ok=True)
     region_file = get_region_file(region_coords)
-    with gzip.open(region_file, "wb") as f:
+   
+    with gzip.open(region_file, "wb", compresslevel=9) as f:
         pickle.dump(region_data, f)
+   
+    del region_data
 
 def save_chunk_data(chunk, data):
     region_coords = get_region_coords(chunk)
     region_data = load_region(region_coords)
     region_data[get_chunk_key(chunk)] = data
     save_region(region_coords, region_data)
+    
+    del data
+    del region_data
 
 def load_chunk_data(chunk):
     region_coords = get_region_coords(chunk)
