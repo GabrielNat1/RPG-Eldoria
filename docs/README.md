@@ -61,5 +61,7 @@
 - [🔁 Event & Trigger System](./advanced-events-triggers.md)
 - [📦 Asset Management](./advanced-assets.md)
 - [🧮 Performance Management](./advanced-performance.md)
+- [⚙️ Development Mode](./development_mode.md)
+- [🛠️ Resource Verification Module](./verify_resources.md)
 - [🧩 Internal Module System](./advanced-modules.md)
-- [🧠 Memory Checker System](./memory-checker.md)
+
