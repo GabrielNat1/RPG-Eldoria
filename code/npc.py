@@ -2,7 +2,6 @@ import pygame
 from paths import get_asset_path
 from settings import WIDTH, HEIGTH, AUDIO_PATHS
 
-# Helper para obter a surface correta, independente do backend
 def get_main_surface():
 	if hasattr(pygame.display, "get_window"):
 		try:
@@ -17,7 +16,7 @@ class NPC(pygame.sprite.Sprite):
     def __init__(self, pos, groups, player, display_surface, mission_system=None):
         super().__init__(groups)
         self.load_frames()
-        # Fallback para imagem transparente se faltar alguma
+    
         fallback_img = pygame.Surface((128, 128), pygame.SRCALPHA)
         self.dialogue_images = {
             0: self.safe_load_dialog_img('OldManBox_0.png', fallback_img),
@@ -39,7 +38,7 @@ class NPC(pygame.sprite.Sprite):
         # SDL2: use always the correct display surface
         self.display_surface = get_main_surface()
         self.dialogue_text = ""
-        self.displayed_text = ""  # Novo: texto que está sendo exibido
+        self.displayed_text = "" 
         self.typing_effect_index = 0
         self.typing_effect_speed = 40  
         self.typing_effect_last_update = pygame.time.get_ticks()
@@ -57,7 +56,7 @@ class NPC(pygame.sprite.Sprite):
 
         # Sound npc talking
         self.speech_sound = pygame.mixer.Sound(AUDIO_PATHS['npc_talk'])
-        self.typing_sound = pygame.mixer.Sound(get_asset_path('audio', 'effects', 'Talking.mp3'))  # Efeito de digitação
+        self.typing_sound = pygame.mixer.Sound(get_asset_path('audio', 'effects', 'Talking.mp3'))  
         self.typing_sound.set_volume(0.3)
         self.is_playing_speech = False
         self.is_sound_playing = False  
@@ -74,9 +73,8 @@ class NPC(pygame.sprite.Sprite):
         self._dialogue_box = pygame.image.load(get_asset_path('graphics', 'dialog', 'UI', 'DialogBoxFaceset.png')).convert_alpha()
         self._dialogue_font = pygame.font.Font(None, 40)
 
-        # Novos controles de diálogo
-        self.dialogue_active = False  # Novo: controle adicional para diálogo
-        self.dialogue_initialized = False  # Novo: garante que o diálogo foi iniciado
+        self.dialogue_active = False 
+        self.dialogue_initialized = False  
 
     def load_frames(self):
         if not NPC.shared_frames:
@@ -161,7 +159,6 @@ class NPC(pygame.sprite.Sprite):
             self.player.can_move = False
 
     def get_current_dialogue(self):
-        # Retorna o texto correto baseado no estágio atual
         if self.dialogue_stage == 0:
             #print("start dialogue")
             self.dialogue_stage += 1
@@ -286,32 +283,27 @@ class NPC(pygame.sprite.Sprite):
             text_rect = text_surface.get_rect(topleft=(target_surface.get_width() // 2 - 400 + 140, int(HEIGTH // 1.3) + 80))
             target_surface.blit(text_surface, text_rect)
 
-            # Fecha automaticamente após 2 segundos do texto terminar
             if self.typing_effect_index >= len(self.dialogue_text) and self.dialogue_finished_time is not None:
                 if pygame.time.get_ticks() - self.dialogue_finished_time >= 2000:
                     self.give_reward()
                     self.close_dialogue()
 
-            # Permite pular o efeito digitando pressionando ENTER
             keys = pygame.key.get_pressed()
             if self.typing_effect_index < len(self.dialogue_text) and keys[pygame.K_RETURN]:
                 self.displayed_text = self.dialogue_text
                 self.typing_effect_index = len(self.dialogue_text)
                 self.dialogue_finished_time = pygame.time.get_ticks()
                 self.typing_sound.stop()
-            # ...existing code...
+        
         except Exception as e:
             print(f"Error displaying dialogue: {e}")
             self.close_dialogue()
 
     def give_reward(self):
-        # Dá recompensas conforme o estágio do diálogo/missão
-        # Exemplo: adicionar armas ou experiência ao jogador
         if self.dialogue_stage == 2 and self.player.exp >= 100:
-            # Dar lança e experiência
             if hasattr(self.player, "inventory"):
                 self.player.inventory.append("Lance")
-            self.player.exp += 50  # Exemplo de recompensa
+            self.player.exp += 50  
         elif self.dialogue_stage == 4 and self.player.exp >= 200:
             if hasattr(self.player, "inventory"):
                 self.player.inventory.append("Axe")
@@ -370,7 +362,6 @@ class NPC(pygame.sprite.Sprite):
     def update(self, game_state='gameplay'):
         keys = pygame.key.get_pressed()
 
-        # Só permite interação se o estado for gameplay ou dialog
         if game_state not in ('gameplay', 'dialog'):
             return
 
@@ -399,9 +390,9 @@ class NPC(pygame.sprite.Sprite):
         self.typing_effect_index = 0
         self.typing_effect_last_update = pygame.time.get_ticks()
 
-    def display(self, surface):
-        # Remove debug text display - function can stay empty or be removed
-        pass
+    """def display(self, surface):
+        
+        pass"""
             
 class MissionSystem:
     def __init__(self):
