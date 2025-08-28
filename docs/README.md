@@ -30,32 +30,36 @@
 **RPG Eldoria** is a 2D RPG developed in **Python** using the Pygame library. Inspired by games like **Stardew Valley** and **Dark Souls**, the game combines a **pixel art** visual style with challenging combat and exploration mechanics.
 
 ## 📚 Main Sections
-- [Features & Systems](./features.md)
-- [Technical Details](./technical.md)
-- [Combat & Gameplay](./gameplay.md)
-- [Polling System (Coming Soon)](./polling.md)
-- [System Upgrade (Coming Soon)](./systemupgrade.md)
-- [Credits & Attribution](./credits.md)
-- [License](../LICENSE)
-- [Security](../SECURITY.md)
+
+### Core Game
+- [✨ Features & Systems](./features.md)
+- [🗡️ Combat & Gameplay](./gameplay.md)
+- [📊 Polling System *(Coming Soon)*](./polling.md)
+- [⬆️ System Upgrade *(Coming Soon)*](./systemupgrade.md)
+
+### Technical & Legal
+- [⚙️ Technical Details](./technical.md)
+- [👥 Credits & Attribution](./credits.md)
+- [📜 License](../LICENSE)
+- [🔐 Security](../SECURITY.md)
 
 ---
 
 ## 🔗 Quick Links
-- [Installation Guide](./technical.md#installation)
-- [Game Controls](./gameplay.md#controls)
-- [Requirements & Benchmark](./eldoria-benchmark.md)
-- [ChangeLog](./changelog.md)
-- [Report a Bug / Security Vulnerabilities](../SECURITY.md#reporting-a-vulnerability)
-- [Project Wiki](https://github.com/GabrielNat1/RPG-Eldoria/wiki)
+- [📥 Installation Guide](./technical.md#installation)
+- [🎮 Game Controls](./gameplay.md#controls)
+- [📈 Requirements & Benchmark](./eldoria-benchmark.md)
+- [📝 ChangeLog](./changelog.md)
+- [🐛 Report a Bug / Security Vulnerabilities](../SECURITY.md#reporting-a-vulnerability)
+- [📖 Project Wiki](https://github.com/GabrielNat1/RPG-Eldoria/wiki)
 
 ---
 
 ## 🧰 Advanced Technical Documentation
-- [🗃️ Database / Internal Saving](./advanced-db-save.md)
+- [🗃️ Database & Internal Saving](./advanced-db-save.md)
 - [💾 Cross-Platform Compatibility](./advanced-compatibility.md)
-- [🔁 Event and Trigger System](./advanced-events-triggers.md)
+- [🔁 Event & Trigger System](./advanced-events-triggers.md)
 - [📦 Asset Management](./advanced-assets.md)
 - [🧮 Performance Management](./advanced-performance.md)
 - [🧩 Internal Module System](./advanced-modules.md)
-
+- [🧠 Memory Checker System](./memory-checker.md)
