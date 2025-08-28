@@ -20,33 +20,33 @@ It uses Python’s built-in **`tracemalloc`** library to track memory allocation
 ## 🚀 Usage
 
 ### Run the demo
-"bash
+```bash
 python code/memory_check.py
-"
+```
 
 ### Enable live monitoring in your project
 In `main.py`, import the monitor after your other imports:
 
-"python
+```python
 from memory_check import monitor_memory
 import threading
-"
+```
 
 Start the monitor before creating your `Game` instance:
 
-"python
+```python
 if __name__ == '__main__':
     threading.Thread(target=monitor_memory, args=(5,), daemon=True).start()
     game = Game()
     game.run()
-"
+```
 
 This enables background memory monitoring while your game is running.
 
 ---
 
 ## 🔍 Example Output
-"
+```shell
 Memory monitoring started...
 
 [ Top 10 memory allocation locations ]
@@ -58,7 +58,7 @@ File: code/chunk_manager.py:104
 
 Current memory: 2061.1 KiB; Peak: 3198.6 KiB
 ----------------------------------------
-"
+```
 
 ---
 
