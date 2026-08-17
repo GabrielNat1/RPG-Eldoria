@@ -1,2 +1,2 @@
-pygame-ce==2.5.7
+pygame-ce==2.5.8
 pillow==12.3.0
